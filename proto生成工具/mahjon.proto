@@ -1,0 +1,63 @@
+package pb;
+
+/////////////////////////////////////////////////////////////
+// define types
+
+enum GameMode
+{
+    JoinRoom =1;
+	CreateRoom =2;
+	QuickEnter =3;
+}
+
+enum BattleSide
+{
+	east =1;
+	south =2;
+	west =3;
+	north =4;
+}
+
+enum CardStatus
+{
+	noDeal =1;
+	inHand =2;
+	bePeng =3;
+	beGang =4;
+	dicard =5;
+}
+
+message CardInfo
+{
+	required int32 CardId = 1;
+    required int32 PlayerId = 2;
+	required CardStatus Status =3;
+}
+
+message RoleInfo
+{
+	required int32 oid = 1;
+	required string nickName = 2;
+	required string headIcon = 3;
+	required int32 lev = 4;
+	required bool isOwner = 5;	
+}
+
+/////////////////////////////////////////////////////////////////////
+message C2GSEnterGame
+{
+	required int32 playerId = 1;
+    required GameMode mode = 2;
+	optional int32 roomId = 3;	
+}
+
+message GS2CUpdateRoomInfo
+{
+    repeated RoleInfo players = 1;
+}
+
+message GS2CDealCard
+{
+    repeated CardInfo CardList = 1;
+	required BattleSide startSide = 2;
+}
