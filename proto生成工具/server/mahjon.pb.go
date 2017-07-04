@@ -174,18 +174,38 @@ func (m *CardInfo) GetStatus() CardStatus {
 }
 
 type RoleInfo struct {
+<<<<<<< HEAD
 	Oid              *int32  `protobuf:"varint,1,req,name=oid" json:"oid,omitempty"`
 	NickName         *string `protobuf:"bytes,2,req,name=nickName" json:"nickName,omitempty"`
 	HeadIcon         *string `protobuf:"bytes,3,req,name=headIcon" json:"headIcon,omitempty"`
 	Lev              *int32  `protobuf:"varint,4,req,name=lev" json:"lev,omitempty"`
 	IsOwner          *bool   `protobuf:"varint,5,req,name=isOwner" json:"isOwner,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
+=======
+	Side             *BattleSide `protobuf:"varint,1,req,name=side,enum=pb.BattleSide" json:"side,omitempty"`
+	Oid              *int32      `protobuf:"varint,2,req,name=oid" json:"oid,omitempty"`
+	NickName         *string     `protobuf:"bytes,3,req,name=nickName" json:"nickName,omitempty"`
+	HeadIcon         *string     `protobuf:"bytes,4,req,name=headIcon" json:"headIcon,omitempty"`
+	Lev              *int32      `protobuf:"varint,5,req,name=lev" json:"lev,omitempty"`
+	IsOwner          *bool       `protobuf:"varint,6,req,name=isOwner" json:"isOwner,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+>>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 }
 
 func (m *RoleInfo) Reset()         { *m = RoleInfo{} }
 func (m *RoleInfo) String() string { return proto.CompactTextString(m) }
 func (*RoleInfo) ProtoMessage()    {}
 
+<<<<<<< HEAD
+=======
+func (m *RoleInfo) GetSide() BattleSide {
+	if m != nil && m.Side != nil {
+		return *m.Side
+	}
+	return BattleSide_east
+}
+
+>>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 func (m *RoleInfo) GetOid() int32 {
 	if m != nil && m.Oid != nil {
 		return *m.Oid

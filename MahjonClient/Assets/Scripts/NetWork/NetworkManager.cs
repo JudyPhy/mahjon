@@ -156,7 +156,11 @@ public class NetworkManager : MonoBehaviour
         else
         {
             Debug.Log("游戏服务器连接成功，跳转主场景");
+<<<<<<< HEAD
             UIManager.Instance.ShowWindow<MainUI>(eWindowsID.MainUI);
+=======
+            UIManager.Instance.ShowMainWindow<MainUI>(eWindowsID.MainUI);
+>>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
         }
     }
 
