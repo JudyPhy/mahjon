@@ -18,15 +18,6 @@ public class BattleUI : WindowsBasePanel
 
     private void WaitGameStart()
     {
-
+        
     }
-
-<<<<<<< HEAD
-    public override void OnInitWindow()
-    {
-        base.OnInitWindow();
-    }
-=======
-    
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 }

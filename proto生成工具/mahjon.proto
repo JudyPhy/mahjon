@@ -36,20 +36,12 @@ message CardInfo
 
 message RoleInfo
 {
-<<<<<<< HEAD
-	required int32 oid = 1;
-	required string nickName = 2;
-	required string headIcon = 3;
-	required int32 lev = 4;
-	required bool isOwner = 5;	
-=======
 	required BattleSide side = 1;
 	required int32 oid = 2;
 	required string nickName = 3;
 	required string headIcon = 4;
 	required int32 lev = 5;
 	required bool isOwner = 6;
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 }
 
 /////////////////////////////////////////////////////////////////////

@@ -46,10 +46,6 @@ namespace pb
   {
     public RoleInfo() {}
     
-<<<<<<< HEAD
-    private int _oid;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"oid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-=======
     private pb.BattleSide _side;
     [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"side", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     public pb.BattleSide side
@@ -59,51 +55,34 @@ namespace pb
     }
     private int _oid;
     [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"oid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     public int oid
     {
       get { return _oid; }
       set { _oid = value; }
     }
     private string _nickName;
-<<<<<<< HEAD
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
-=======
     [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     public string nickName
     {
       get { return _nickName; }
       set { _nickName = value; }
     }
     private string _headIcon;
-<<<<<<< HEAD
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"headIcon", DataFormat = global::ProtoBuf.DataFormat.Default)]
-=======
     [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"headIcon", DataFormat = global::ProtoBuf.DataFormat.Default)]
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     public string headIcon
     {
       get { return _headIcon; }
       set { _headIcon = value; }
     }
     private int _lev;
-<<<<<<< HEAD
-    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-=======
     [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     public int lev
     {
       get { return _lev; }
       set { _lev = value; }
     }
     private bool _isOwner;
-<<<<<<< HEAD
-    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"isOwner", DataFormat = global::ProtoBuf.DataFormat.Default)]
-=======
     [global::ProtoBuf.ProtoMember(6, IsRequired = true, Name=@"isOwner", DataFormat = global::ProtoBuf.DataFormat.Default)]
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     public bool isOwner
     {
       get { return _isOwner; }

@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-<<<<<<< HEAD
-=======
 using EventTransmit;
 
 public class RoleInfo
@@ -33,7 +31,6 @@ public class SideInfo
         _playerInfo = new RoleInfo(role);
     }
 }
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 
 public class Pai
 {
@@ -74,20 +71,12 @@ public class BattleManager
         }
     }
 
-<<<<<<< HEAD
-    Dictionary<int, List<Pai>> PlayerPaiInfoDict = new Dictionary<int, List<Pai>>();
-=======
     private Dictionary<pb.BattleSide, SideInfo> _playerPaiInfoDict = new Dictionary<pb.BattleSide, SideInfo>();
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
 
     public void UpdatePlayerInfo(pb.GS2CUpdateRoomInfo msg)
     {
         for (int i = 0; i < msg.players.Count; i++)
         {
-<<<<<<< HEAD
-
-        }
-=======
             pb.RoleInfo role = msg.players[i];
             if (_playerPaiInfoDict.ContainsKey(role.side))
             {
@@ -99,6 +88,5 @@ public class BattleManager
             }
         }
         EventDispatcher.TriggerEvent(EventDefine.UpdateRoleInfo);
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
     }
 }
