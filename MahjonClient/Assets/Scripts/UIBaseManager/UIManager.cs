@@ -20,7 +20,7 @@ public class UIManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(this.gameObject);
         UICamera_ = this.transform.FindChild("Camera").GetComponent<Camera>();
-        _centerRoot = this.transform.FindChild("CenterRoot").gameObject;
+        _centerRoot = UICamera_.transform.FindChild("CenterAnchor").gameObject;
     }
 
     public void ShowMainWindow<T>(eWindowsID windowId) where T : WindowsBasePanel

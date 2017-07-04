@@ -10,64 +10,18 @@ public class PanelBattle : WindowsBasePanel
     public override void OnAwake()
     {
         base.OnAwake();
-        for (int i = 0; i < 4; i++)
-        {
-            string path = "Root_pai/Side" + i.ToString();
-            _rootPai.Add(transform.FindChild(path).gameObject);
-        }
     }
 
     public override void OnStart()
     {
         base.OnStart();
-        BattlePrepareStart();
+        UpdateRoleUI();
     }
 
-    private void BattlePrepareStart()
+    private void UpdateRoleUI()
     {
-        Debug.Log("[Battle] prepare start...");
-        PlaceWholePai();
-    }
-
-    private void PlaceWholePai()
-    {
-        /*_drawCardsDict.Clear();
-        int index = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            int count = i % 2 == 0 ? 28 : 26;
-            for (int j = 0; j < count; j++)
-            { 
-                Item_pai_hide item = UIManager.Instance.AddChild<Item_pai_hide>(_rootPai[i]);
-                item.Init((BattleSide)i, j);
-                if (_drawCardsDict.ContainsKey((BattleSide)i))
-                {
-                    _drawCardsDict[(BattleSide)i].Add(item);
-                }
-                else
-                {
-                    List<Item_pai_hide> list = new List<Item_pai_hide>();
-                    list.Add(item);
-                    _drawCardsDict.Add((BattleSide)i, list);
-                }
-                index++;
-            }
-        }
-        PlayPaiEnterAni();*/
-    }
-
-    private void PlayPaiEnterAni()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (i % 2 == 0)
-            {
-
-            }
-            else
-            {
-            }
-        }
+        Debug.Log("UpdateRoleUI");
+        //for (int i=0;i< BattleManager.Instance.UpdatePlayerInfo)
     }
 
 }

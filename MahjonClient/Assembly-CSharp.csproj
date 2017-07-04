@@ -182,7 +182,6 @@
      <Compile Include="Assets\NGUI\Scripts\UI\UITooltip.cs" />
      <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
-     <Compile Include="Assets\Scripts\BattleUI\BattleUI.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_pai_hide.cs" />
      <Compile Include="Assets\Scripts\BattleUI\PanelBattle.cs" />
      <Compile Include="Assets\Scripts\Effects\EffectDepth.cs" />
@@ -207,6 +206,7 @@
      <Compile Include="Assets\Scripts\NetWork\MsgDefine.cs" />
      <Compile Include="Assets\Scripts\NetWork\NetworkManager.cs" />
      <Compile Include="Assets\Scripts\NetWork\TcpNetworkProcessor.cs" />
+     <Compile Include="Assets\Scripts\Player\Player.cs" />
      <Compile Include="Assets\Scripts\ReadCsv\ConfigData.cs" />
      <Compile Include="Assets\Scripts\ReadCsv\ReadCsv.cs" />
      <Compile Include="Assets\Scripts\ResourcesManager\ResourcesManager.cs" />
