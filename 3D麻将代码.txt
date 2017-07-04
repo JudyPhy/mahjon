@@ -1,0 +1,5 @@
+https://svn.dapenggame.cn/svn/MyProject/ChessCardServer/trunk/wuhu_server
+https://svn.dapenggame.cn/svn/MyProject/MyProject/Majong/Client
+下面是客户端，上面是服务器
+账号：zxl
+密码：zxl@321
