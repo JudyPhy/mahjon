@@ -46,36 +46,43 @@ namespace pb
   {
     public RoleInfo() {}
     
+    private pb.BattleSide _side;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"side", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.BattleSide side
+    {
+      get { return _side; }
+      set { _side = value; }
+    }
     private int _oid;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"oid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"oid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     public int oid
     {
       get { return _oid; }
       set { _oid = value; }
     }
     private string _nickName;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
     public string nickName
     {
       get { return _nickName; }
       set { _nickName = value; }
     }
     private string _headIcon;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"headIcon", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"headIcon", DataFormat = global::ProtoBuf.DataFormat.Default)]
     public string headIcon
     {
       get { return _headIcon; }
       set { _headIcon = value; }
     }
     private int _lev;
-    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     public int lev
     {
       get { return _lev; }
       set { _lev = value; }
     }
     private bool _isOwner;
-    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"isOwner", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(6, IsRequired = true, Name=@"isOwner", DataFormat = global::ProtoBuf.DataFormat.Default)]
     public bool isOwner
     {
       get { return _isOwner; }

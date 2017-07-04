@@ -1,1 +1,2 @@
 D:\Project\U3D\MJ\MJ\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+D:\Project\U3D\MahjonClient\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache

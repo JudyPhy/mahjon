@@ -31,19 +31,19 @@ public class MainUI : WindowsBasePanel
     private void OnClikEnsureEnterRoom(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.JoinRoom);
-        UIManager.Instance.ShowWindow<BattleUI>(eWindowsID.BattleUI);
+        UIManager.Instance.ShowMainWindow<BattleUI>(eWindowsID.BattleUI);
     }
 
     private void OnClikCreateRoom(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.CreateRoom);
-        UIManager.Instance.ShowWindow<BattleUI>(eWindowsID.BattleUI);
+        UIManager.Instance.ShowMainWindow<BattleUI>(eWindowsID.BattleUI);
     }
 
     private void OnClikQuickGame(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.QuickEnter);
-        UIManager.Instance.ShowWindow<BattleUI>(eWindowsID.BattleUI);
+        UIManager.Instance.ShowMainWindow<BattleUI>(eWindowsID.BattleUI);
     }
 
 }

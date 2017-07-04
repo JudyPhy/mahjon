@@ -21,8 +21,5 @@ public class BattleUI : WindowsBasePanel
 
     }
 
-    public override void OnInitWindow()
-    {
-        base.OnInitWindow();
-    }
+    
 }

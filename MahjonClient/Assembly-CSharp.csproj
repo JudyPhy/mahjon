@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{D942B0E1-E0EF-9302-2126-00E3F6A6E0CF}</ProjectGuid>
+    <ProjectGuid>{B49622C1-686C-D50C-5697-4DA3FBBC7B01}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -186,6 +186,10 @@
      <Compile Include="Assets\Scripts\Effects\EffectDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\UIDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\iTween.cs" />
+     <Compile Include="Assets\Scripts\EventDispatch\EventController.cs" />
+     <Compile Include="Assets\Scripts\EventDispatch\EventDefine.cs" />
+     <Compile Include="Assets\Scripts\EventDispatch\EventDispatcher.cs" />
+     <Compile Include="Assets\Scripts\EventDispatch\EventException.cs" />
      <Compile Include="Assets\Scripts\LitJson\IJsonWrapper.cs" />
      <Compile Include="Assets\Scripts\LitJson\JsonData.cs" />
      <Compile Include="Assets\Scripts\LitJson\JsonException.cs" />
@@ -203,9 +207,6 @@
      <Compile Include="Assets\Scripts\ReadCsv\ConfigData.cs" />
      <Compile Include="Assets\Scripts\ReadCsv\ReadCsv.cs" />
      <Compile Include="Assets\Scripts\ResourcesManager\ResourcesManager.cs" />
-     <Compile Include="Assets\Scripts\UIBaseManager\EventController.cs" />
-     <Compile Include="Assets\Scripts\UIBaseManager\EventDispatcher.cs" />
-     <Compile Include="Assets\Scripts\UIBaseManager\EventException.cs" />
      <Compile Include="Assets\Scripts\UIBaseManager\UIManager.cs" />
      <Compile Include="Assets\Scripts\WindowData\WindowsBasePanel.cs" />
      <Compile Include="Assets\Scripts\WindowData\WindowsID.cs" />

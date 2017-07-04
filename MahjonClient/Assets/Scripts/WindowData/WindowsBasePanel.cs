@@ -5,62 +5,82 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
-public class WindowsBasePanel : MonoBehaviour {
+public class WindowsBasePanel : MonoBehaviour
+{
 
-    public UIWindowsData WindowData_;
+    public eWindowsID WindowID;
     public int Depth_ = 0;
     public System.DateTime CloseTime_;
 
-    void Awake() {
+    void Awake()
+    {
         OnAwake();
+        OnRegisterEvent();
     }
 
-    void OnEnable() {
-        OnInitWindow();
+    void OnEnable()
+    {
+        OnEnableWindow();
     }
 
     // Use this for initialization
-    void Start() {
+    void Start()
+    {
         OnStart();
     }
 
     // Update is called once per frame
-    void Update() {
+    void Update()
+    {
         OnUpdate();
     }
 
-    void OnDisable() {
-
+    void OnDisable()
+    {
+        
     }
 
-    void OnDestroy() {
-
+    void OnDestroy()
+    {
+        OnRemoveEvent();
     }
 
-    public virtual void OnAwake() {
-
+    public virtual void OnAwake()
+    {
+        
     }
 
     //每次激活窗口时执行
-    public virtual void OnInitWindow() {
+    public virtual void OnEnableWindow()
+    {
 
     }
 
     //打开窗口时执行
-    public virtual void OnStart() {
+    public virtual void OnStart()
+    {
 
     }
 
-    public virtual void OnUpdate() {
+    public virtual void OnUpdate()
+    {
 
     }
 
-    public void CloseWindow() {
+    public virtual void OnRegisterEvent()
+    {
+
+    }
+
+    public virtual void OnRemoveEvent()
+    {
+
+    }
+
+    public void CloseWindow()
+    {
         this.CloseTime_ = System.DateTime.Now;
         this.gameObject.SetActive(false);
     }
-
-
-
 
 }
