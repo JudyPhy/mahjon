@@ -34,6 +34,11 @@ public class NetworkManager : MonoBehaviour
         RegisterAllNetworkMsgHandler();
     }
 
+    private void Start()
+    {
+        NetworkManager.Instance.ConnectGameServer("127.0.0.1", 3563);
+    }
+
     //初始化socket连接
     private void InitNetwork()
     {
@@ -55,8 +60,9 @@ public class NetworkManager : MonoBehaviour
     //注册需要处理的消息函数
     public void RegisterAllNetworkMsgHandler()
     {
-        //进入游戏反馈
-        RegisterMessageHandler((int)MsgDef.C2GSEnterGame, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomInfo);
+        RegisterMessageHandler((int)MsgDef.GS2CLoginRet, GameMsgHandler.Instance.RevMsgGS2CLoginRet);
+        RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
+        RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomInfo, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomInfo);
     }
 
     private void RegisterMessageHandler(int pid, PacketHandle hander)
@@ -156,7 +162,7 @@ public class NetworkManager : MonoBehaviour
         else
         {
             Debug.Log("游戏服务器连接成功，跳转主场景");
-            UIManager.Instance.ShowMainWindow<MainUI>(eWindowsID.MainUI);
+            UIManager.Instance.ShowMainWindow<Panel_Login>(eWindowsID.LoginUI);
         }
     }
 

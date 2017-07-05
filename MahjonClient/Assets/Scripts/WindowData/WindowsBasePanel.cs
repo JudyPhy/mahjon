@@ -37,7 +37,7 @@ public class WindowsBasePanel : MonoBehaviour
 
     void OnDisable()
     {
-        
+        OnDisableWindow();
     }
 
     void OnDestroy()
@@ -46,34 +46,31 @@ public class WindowsBasePanel : MonoBehaviour
     }
 
     public virtual void OnAwake()
-    {
-        
+    {        
     }
-
-    //每次激活窗口时执行
+    
     public virtual void OnEnableWindow()
     {
     }
-
-    //打开窗口时执行
+    
     public virtual void OnStart()
     {
-
     }
 
     public virtual void OnUpdate()
     {
+    }
 
+    public virtual void OnDisableWindow()
+    {
     }
 
     public virtual void OnRegisterEvent()
     {
-
     }
 
     public virtual void OnRemoveEvent()
     {
-
     }
 
     public void CloseWindow()

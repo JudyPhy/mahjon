@@ -6,34 +6,24 @@ using EventTransmit;
 public class RoleInfo
 {
     private int _oid;
-    public int OID {
-        get {
-            return _oid;
-        }
+    public int OID
+    {
+        get { return _oid; }
     }
     private string _nickName;
     public string NickName
     {
-        get
-        {
-            return _nickName;
-        }
+        get { return _nickName; }
     }
     private string _headIcon;
     public string HeadIcon
     {
-        get
-        {
-            return _headIcon;
-        }
+        get { return _headIcon; }
     }
     private int _lev;
     public int Lev
     {
-        get
-        {
-            return _lev;
-        }
+        get { return _lev; }
     }
 
     public RoleInfo(pb.RoleInfo role)
@@ -43,30 +33,13 @@ public class RoleInfo
         _headIcon = role.headIcon;
         _lev = role.lev;
     }
-}
 
-public class SideInfo
-{
-    private pb.BattleSide _side;
-    public pb.BattleSide Side
+    public RoleInfo(pb.PlayerInfo player)
     {
-        get
-        {
-            return _side;
-        }
-    }
-    private RoleInfo _playerInfo;
-    public RoleInfo PlayerInfo {
-        get {
-            return _playerInfo;
-        }
-    }
-    private Pai pai;
-
-    public void updateRoleInfo(pb.RoleInfo role)
-    {
-        _side = role.side;
-        _playerInfo = new RoleInfo(role);
+        _oid = player.oid;
+        _nickName = player.nickName;
+        _headIcon = player.headIcon;
+        _lev = player.lev;
     }
 }
 
@@ -81,18 +54,14 @@ public class Pai
         _side = side;
     }
 
-    public int Id {
-        get {
-            return _id;
-        }
+    public int Id
+    {
+        get { return _id; }
     }
 
     public pb.BattleSide Side
     {
-        get
-        {
-            return _side;
-        }
+        get { return _side; }
     }
 }
 
@@ -109,63 +78,103 @@ public class BattleManager
         }
     }
 
-    private Dictionary<pb.BattleSide, SideInfo> _playerPaiInfoDict = new Dictionary<pb.BattleSide, SideInfo>();
+    private pb.GameMode _gameMode;
+    public pb.GameMode GameMode
+    {
+        get { return _gameMode; }
+    }
+
+    private int _roomId;
+    public int RoomID
+    {
+        get { return _roomId; }
+    }
+    private Dictionary<int, SideInfo> _playerPaiInfoDict = new Dictionary<int, SideInfo>();
+
+    public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
+    {
+        _gameMode = msg.mode;
+        _roomId = msg.roomId;
+        switch (msg.mode)
+        {
+            case pb.GameMode.CreateRoom:
+                UIManager.Instance.ShowMainWindow<PanelBattle>(eWindowsID.BattleUI);
+                break;
+            default:
+                break;
+        }
+    }
 
     public void UpdatePlayerInfo(pb.GS2CUpdateRoomInfo msg)
     {
-        for (int i = 0; i < msg.players.Count; i++)
+        switch (msg.status)
         {
-            pb.RoleInfo role = msg.players[i];
-            if (_playerPaiInfoDict.ContainsKey(role.side))
-            {
-                _playerPaiInfoDict[role.side].updateRoleInfo(role);
-            }
-            else
-            {
-                SideInfo info = new SideInfo();
-                info.updateRoleInfo(role);
-            }
+            case pb.GS2CUpdateRoomInfo.Status.ADD:
+                for (int i = 0; i < msg.player.Count; i++)
+                {
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    {
+                        Debug.LogError("Dict has contained the player [" + msg.player[i].nickName + "], don't need add.");
+                    }
+                    else
+                    {
+                        SideInfo info = new SideInfo();
+                        info.updateRoleInfo(msg.player[i]);
+                        _playerPaiInfoDict.Add(msg.player[i].oid, info);
+                        EventDispatcher.TriggerEvent<pb.RoleInfo>(EventDefine.AddRoleToRoom, msg.player[i]);
+                    }
+                }
+                break;
+            case pb.GS2CUpdateRoomInfo.Status.REMOVE:
+                for (int i = 0; i < msg.player.Count; i++)
+                {
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    {
+                        _playerPaiInfoDict.Remove(msg.player[i].oid);
+                    }
+                    else
+                    {
+                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].nickName + "], can't remove.");
+                    }
+                }
+                break;
+            case pb.GS2CUpdateRoomInfo.Status.UPDATE:
+                for (int i = 0; i < msg.player.Count; i++)
+                {
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    {
+                        _playerPaiInfoDict[msg.player[i].oid].updateRoleInfo(msg.player[i]);
+                    }
+                    else
+                    {
+                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].nickName + "], can't update.");
+                    }
+                }
+                break;
+            default:
+                break;
         }
-        EventDispatcher.TriggerEvent(EventDefine.UpdateRoleInfo);
     }
 
-    private List<pb.BattleSide> getSideSort(pb.BattleSide firstSide)
+    public int GetSideIndexFromSelf(pb.BattleSide side)
     {
-        List<pb.BattleSide> list = new List<pb.BattleSide>();
-        pb.BattleSide curSide = firstSide;
-        do
+        if (_playerPaiInfoDict.ContainsKey(Player.Instance.RoleInfo.OID))
         {
-            list.Add(curSide);
-            curSide = curSide + 1;
-            if (curSide > pb.BattleSide.north)
+            pb.BattleSide curSide = _playerPaiInfoDict[Player.Instance.RoleInfo.OID].Side;
+            int index = 0;
+            while (curSide != side)
             {
-                curSide = pb.BattleSide.east;
+                curSide++;
+                index++;
+                if (curSide > pb.BattleSide.north)
+                {
+                    curSide = pb.BattleSide.east;
+                }
             }
+            Debug.Log("index=" + index.ToString());
+            return index;
         }
-        while (curSide != firstSide);
-        Debug.Log("sorted side list count=" + list.Count.ToString());
-        return list;
+        return -1;
     }
 
-    public List<RoleInfo> GetRoleInfo()
-    {
-        Dictionary<pb.BattleSide, RoleInfo> infoDict = new Dictionary<pb.BattleSide, RoleInfo>();
-        pb.BattleSide selfSide = pb.BattleSide.east;
-        foreach (SideInfo value in _playerPaiInfoDict.Values)
-        {
-            infoDict.Add(value.Side, value.PlayerInfo);
-            if (Player.Instance.OID == value.PlayerInfo.OID)
-            {
-                selfSide = value.Side;
-            }
-        }
-        List<RoleInfo> list = new List<RoleInfo>();
-        List<pb.BattleSide> sortedSideList = getSideSort(selfSide);
-        //for (int i=0;i< sortedSideList.Count)
-        {
-          //  if (infoDict.ContainsKey())
-            //list.Add()
-        }
-        return list;
-    }
 }

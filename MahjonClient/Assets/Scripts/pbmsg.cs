@@ -93,6 +93,110 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"PlayerInfo")]
+  public partial class PlayerInfo : global::ProtoBuf.IExtensible
+  {
+    public PlayerInfo() {}
+    
+    private int _oid;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"oid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int oid
+    {
+      get { return _oid; }
+      set { _oid = value; }
+    }
+    private string _nickName;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string nickName
+    {
+      get { return _nickName; }
+      set { _nickName = value; }
+    }
+    private string _headIcon;
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"headIcon", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string headIcon
+    {
+      get { return _headIcon; }
+      set { _headIcon = value; }
+    }
+    private int _lev;
+    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int lev
+    {
+      get { return _lev; }
+      set { _lev = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSLogin")]
+  public partial class C2GSLogin : global::ProtoBuf.IExtensible
+  {
+    public C2GSLogin() {}
+    
+    private string _nickName;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string nickName
+    {
+      get { return _nickName; }
+      set { _nickName = value; }
+    }
+    private string _password;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"password", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string password
+    {
+      get { return _password; }
+      set { _password = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CLoginRet")]
+  public partial class GS2CLoginRet : global::ProtoBuf.IExtensible
+  {
+    public GS2CLoginRet() {}
+    
+    private pb.GS2CLoginRet.ErrorCode _errorCode;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"errorCode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GS2CLoginRet.ErrorCode errorCode
+    {
+      get { return _errorCode; }
+      set { _errorCode = value; }
+    }
+    private pb.PlayerInfo _playerInfo = null;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"playerInfo", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(null)]
+    public pb.PlayerInfo playerInfo
+    {
+      get { return _playerInfo; }
+      set { _playerInfo = value; }
+    }
+    [global::ProtoBuf.ProtoContract(Name=@"ErrorCode")]
+    public enum ErrorCode
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
+      SUCCESS = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"NICKNAME_ERROR", Value=2)]
+      NICKNAME_ERROR = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"PASSWORD_ERROR", Value=3)]
+      PASSWORD_ERROR = 3,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"FAIL", Value=4)]
+      FAIL = 4
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSEnterGame")]
   public partial class C2GSEnterGame : global::ProtoBuf.IExtensible
   {
@@ -125,18 +229,94 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CEnterGameRet")]
+  public partial class GS2CEnterGameRet : global::ProtoBuf.IExtensible
+  {
+    public GS2CEnterGameRet() {}
+    
+    private pb.GS2CEnterGameRet.ErrorCode _errorCode;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"errorCode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GS2CEnterGameRet.ErrorCode errorCode
+    {
+      get { return _errorCode; }
+      set { _errorCode = value; }
+    }
+    private pb.GameMode _mode;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"mode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GameMode mode
+    {
+      get { return _mode; }
+      set { _mode = value; }
+    }
+    private int _roomId;
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int roomId
+    {
+      get { return _roomId; }
+      set { _roomId = value; }
+    }
+    [global::ProtoBuf.ProtoContract(Name=@"ErrorCode")]
+    public enum ErrorCode
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
+      SUCCESS = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"FAIL", Value=2)]
+      FAIL = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"PLAYER_COUNT_LIMITE", Value=3)]
+      PLAYER_COUNT_LIMITE = 3
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateRoomInfo")]
   public partial class GS2CUpdateRoomInfo : global::ProtoBuf.IExtensible
   {
     public GS2CUpdateRoomInfo() {}
     
-    private readonly global::System.Collections.Generic.List<pb.RoleInfo> _players = new global::System.Collections.Generic.List<pb.RoleInfo>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"players", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    public global::System.Collections.Generic.List<pb.RoleInfo> players
+    private readonly global::System.Collections.Generic.List<pb.RoleInfo> _player = new global::System.Collections.Generic.List<pb.RoleInfo>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"player", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public global::System.Collections.Generic.List<pb.RoleInfo> player
     {
-      get { return _players; }
+      get { return _player; }
     }
   
+    private pb.GS2CUpdateRoomInfo.Status _status;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"status", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GS2CUpdateRoomInfo.Status status
+    {
+      get { return _status; }
+      set { _status = value; }
+    }
+    [global::ProtoBuf.ProtoContract(Name=@"Status")]
+    public enum Status
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"ADD", Value=1)]
+      ADD = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"REMOVE", Value=2)]
+      REMOVE = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"UPDATE", Value=3)]
+      UPDATE = 3
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CBattleStart")]
+  public partial class GS2CBattleStart : global::ProtoBuf.IExtensible
+  {
+    public GS2CBattleStart() {}
+    
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }

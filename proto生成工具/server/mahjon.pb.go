@@ -11,8 +11,13 @@ It is generated from these files:
 It has these top-level messages:
 	CardInfo
 	RoleInfo
+	PlayerInfo
+	C2GSLogin
+	GS2CLoginRet
 	C2GSEnterGame
+	GS2CEnterGameRet
 	GS2CUpdateRoomInfo
+	GS2CBattleStart
 	GS2CDealCard
 */
 package pb
@@ -141,6 +146,117 @@ func (x *CardStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type GS2CLoginRet_ErrorCode int32
+
+const (
+	GS2CLoginRet_SUCCESS        GS2CLoginRet_ErrorCode = 1
+	GS2CLoginRet_NICKNAME_ERROR GS2CLoginRet_ErrorCode = 2
+	GS2CLoginRet_PASSWORD_ERROR GS2CLoginRet_ErrorCode = 3
+	GS2CLoginRet_FAIL           GS2CLoginRet_ErrorCode = 4
+)
+
+var GS2CLoginRet_ErrorCode_name = map[int32]string{
+	1: "SUCCESS",
+	2: "NICKNAME_ERROR",
+	3: "PASSWORD_ERROR",
+	4: "FAIL",
+}
+var GS2CLoginRet_ErrorCode_value = map[string]int32{
+	"SUCCESS":        1,
+	"NICKNAME_ERROR": 2,
+	"PASSWORD_ERROR": 3,
+	"FAIL":           4,
+}
+
+func (x GS2CLoginRet_ErrorCode) Enum() *GS2CLoginRet_ErrorCode {
+	p := new(GS2CLoginRet_ErrorCode)
+	*p = x
+	return p
+}
+func (x GS2CLoginRet_ErrorCode) String() string {
+	return proto.EnumName(GS2CLoginRet_ErrorCode_name, int32(x))
+}
+func (x *GS2CLoginRet_ErrorCode) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GS2CLoginRet_ErrorCode_value, data, "GS2CLoginRet_ErrorCode")
+	if err != nil {
+		return err
+	}
+	*x = GS2CLoginRet_ErrorCode(value)
+	return nil
+}
+
+type GS2CEnterGameRet_ErrorCode int32
+
+const (
+	GS2CEnterGameRet_SUCCESS             GS2CEnterGameRet_ErrorCode = 1
+	GS2CEnterGameRet_FAIL                GS2CEnterGameRet_ErrorCode = 2
+	GS2CEnterGameRet_PLAYER_COUNT_LIMITE GS2CEnterGameRet_ErrorCode = 3
+)
+
+var GS2CEnterGameRet_ErrorCode_name = map[int32]string{
+	1: "SUCCESS",
+	2: "FAIL",
+	3: "PLAYER_COUNT_LIMITE",
+}
+var GS2CEnterGameRet_ErrorCode_value = map[string]int32{
+	"SUCCESS":             1,
+	"FAIL":                2,
+	"PLAYER_COUNT_LIMITE": 3,
+}
+
+func (x GS2CEnterGameRet_ErrorCode) Enum() *GS2CEnterGameRet_ErrorCode {
+	p := new(GS2CEnterGameRet_ErrorCode)
+	*p = x
+	return p
+}
+func (x GS2CEnterGameRet_ErrorCode) String() string {
+	return proto.EnumName(GS2CEnterGameRet_ErrorCode_name, int32(x))
+}
+func (x *GS2CEnterGameRet_ErrorCode) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GS2CEnterGameRet_ErrorCode_value, data, "GS2CEnterGameRet_ErrorCode")
+	if err != nil {
+		return err
+	}
+	*x = GS2CEnterGameRet_ErrorCode(value)
+	return nil
+}
+
+type GS2CUpdateRoomInfo_Status int32
+
+const (
+	GS2CUpdateRoomInfo_ADD    GS2CUpdateRoomInfo_Status = 1
+	GS2CUpdateRoomInfo_REMOVE GS2CUpdateRoomInfo_Status = 2
+	GS2CUpdateRoomInfo_UPDATE GS2CUpdateRoomInfo_Status = 3
+)
+
+var GS2CUpdateRoomInfo_Status_name = map[int32]string{
+	1: "ADD",
+	2: "REMOVE",
+	3: "UPDATE",
+}
+var GS2CUpdateRoomInfo_Status_value = map[string]int32{
+	"ADD":    1,
+	"REMOVE": 2,
+	"UPDATE": 3,
+}
+
+func (x GS2CUpdateRoomInfo_Status) Enum() *GS2CUpdateRoomInfo_Status {
+	p := new(GS2CUpdateRoomInfo_Status)
+	*p = x
+	return p
+}
+func (x GS2CUpdateRoomInfo_Status) String() string {
+	return proto.EnumName(GS2CUpdateRoomInfo_Status_name, int32(x))
+}
+func (x *GS2CUpdateRoomInfo_Status) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GS2CUpdateRoomInfo_Status_value, data, "GS2CUpdateRoomInfo_Status")
+	if err != nil {
+		return err
+	}
+	*x = GS2CUpdateRoomInfo_Status(value)
+	return nil
+}
+
 type CardInfo struct {
 	CardId           *int32      `protobuf:"varint,1,req" json:"CardId,omitempty"`
 	PlayerId         *int32      `protobuf:"varint,2,req" json:"PlayerId,omitempty"`
@@ -229,7 +345,95 @@ func (m *RoleInfo) GetIsOwner() bool {
 	return false
 }
 
+type PlayerInfo struct {
+	Oid              *int32  `protobuf:"varint,1,req,name=oid" json:"oid,omitempty"`
+	NickName         *string `protobuf:"bytes,2,req,name=nickName" json:"nickName,omitempty"`
+	HeadIcon         *string `protobuf:"bytes,3,req,name=headIcon" json:"headIcon,omitempty"`
+	Lev              *int32  `protobuf:"varint,4,req,name=lev" json:"lev,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *PlayerInfo) Reset()         { *m = PlayerInfo{} }
+func (m *PlayerInfo) String() string { return proto.CompactTextString(m) }
+func (*PlayerInfo) ProtoMessage()    {}
+
+func (m *PlayerInfo) GetOid() int32 {
+	if m != nil && m.Oid != nil {
+		return *m.Oid
+	}
+	return 0
+}
+
+func (m *PlayerInfo) GetNickName() string {
+	if m != nil && m.NickName != nil {
+		return *m.NickName
+	}
+	return ""
+}
+
+func (m *PlayerInfo) GetHeadIcon() string {
+	if m != nil && m.HeadIcon != nil {
+		return *m.HeadIcon
+	}
+	return ""
+}
+
+func (m *PlayerInfo) GetLev() int32 {
+	if m != nil && m.Lev != nil {
+		return *m.Lev
+	}
+	return 0
+}
+
 // ///////////////////////////////////////////////////////////////////
+type C2GSLogin struct {
+	NickName         *string `protobuf:"bytes,1,req,name=nickName" json:"nickName,omitempty"`
+	Password         *string `protobuf:"bytes,2,req,name=password" json:"password,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *C2GSLogin) Reset()         { *m = C2GSLogin{} }
+func (m *C2GSLogin) String() string { return proto.CompactTextString(m) }
+func (*C2GSLogin) ProtoMessage()    {}
+
+func (m *C2GSLogin) GetNickName() string {
+	if m != nil && m.NickName != nil {
+		return *m.NickName
+	}
+	return ""
+}
+
+func (m *C2GSLogin) GetPassword() string {
+	if m != nil && m.Password != nil {
+		return *m.Password
+	}
+	return ""
+}
+
+type GS2CLoginRet struct {
+	ErrorCode        *GS2CLoginRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CLoginRet_ErrorCode" json:"errorCode,omitempty"`
+	PlayerInfo       *PlayerInfo             `protobuf:"bytes,2,opt,name=playerInfo" json:"playerInfo,omitempty"`
+	XXX_unrecognized []byte                  `json:"-"`
+}
+
+func (m *GS2CLoginRet) Reset()         { *m = GS2CLoginRet{} }
+func (m *GS2CLoginRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CLoginRet) ProtoMessage()    {}
+
+func (m *GS2CLoginRet) GetErrorCode() GS2CLoginRet_ErrorCode {
+	if m != nil && m.ErrorCode != nil {
+		return *m.ErrorCode
+	}
+	return GS2CLoginRet_SUCCESS
+}
+
+func (m *GS2CLoginRet) GetPlayerInfo() *PlayerInfo {
+	if m != nil {
+		return m.PlayerInfo
+	}
+	return nil
+}
+
 type C2GSEnterGame struct {
 	PlayerId         *int32    `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
 	Mode             *GameMode `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
@@ -262,21 +466,69 @@ func (m *C2GSEnterGame) GetRoomId() int32 {
 	return 0
 }
 
+type GS2CEnterGameRet struct {
+	ErrorCode        *GS2CEnterGameRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CEnterGameRet_ErrorCode" json:"errorCode,omitempty"`
+	Mode             *GameMode                   `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
+	RoomId           *int32                      `protobuf:"varint,3,req,name=roomId" json:"roomId,omitempty"`
+	XXX_unrecognized []byte                      `json:"-"`
+}
+
+func (m *GS2CEnterGameRet) Reset()         { *m = GS2CEnterGameRet{} }
+func (m *GS2CEnterGameRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CEnterGameRet) ProtoMessage()    {}
+
+func (m *GS2CEnterGameRet) GetErrorCode() GS2CEnterGameRet_ErrorCode {
+	if m != nil && m.ErrorCode != nil {
+		return *m.ErrorCode
+	}
+	return GS2CEnterGameRet_SUCCESS
+}
+
+func (m *GS2CEnterGameRet) GetMode() GameMode {
+	if m != nil && m.Mode != nil {
+		return *m.Mode
+	}
+	return GameMode_JoinRoom
+}
+
+func (m *GS2CEnterGameRet) GetRoomId() int32 {
+	if m != nil && m.RoomId != nil {
+		return *m.RoomId
+	}
+	return 0
+}
+
 type GS2CUpdateRoomInfo struct {
-	Players          []*RoleInfo `protobuf:"bytes,1,rep,name=players" json:"players,omitempty"`
-	XXX_unrecognized []byte      `json:"-"`
+	Player           []*RoleInfo                `protobuf:"bytes,1,rep,name=player" json:"player,omitempty"`
+	Status           *GS2CUpdateRoomInfo_Status `protobuf:"varint,2,req,name=status,enum=pb.GS2CUpdateRoomInfo_Status" json:"status,omitempty"`
+	XXX_unrecognized []byte                     `json:"-"`
 }
 
 func (m *GS2CUpdateRoomInfo) Reset()         { *m = GS2CUpdateRoomInfo{} }
 func (m *GS2CUpdateRoomInfo) String() string { return proto.CompactTextString(m) }
 func (*GS2CUpdateRoomInfo) ProtoMessage()    {}
 
-func (m *GS2CUpdateRoomInfo) GetPlayers() []*RoleInfo {
+func (m *GS2CUpdateRoomInfo) GetPlayer() []*RoleInfo {
 	if m != nil {
-		return m.Players
+		return m.Player
 	}
 	return nil
 }
+
+func (m *GS2CUpdateRoomInfo) GetStatus() GS2CUpdateRoomInfo_Status {
+	if m != nil && m.Status != nil {
+		return *m.Status
+	}
+	return GS2CUpdateRoomInfo_ADD
+}
+
+type GS2CBattleStart struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *GS2CBattleStart) Reset()         { *m = GS2CBattleStart{} }
+func (m *GS2CBattleStart) String() string { return proto.CompactTextString(m) }
+func (*GS2CBattleStart) ProtoMessage()    {}
 
 type GS2CDealCard struct {
 	CardList         []*CardInfo `protobuf:"bytes,1,rep" json:"CardList,omitempty"`
@@ -306,4 +558,7 @@ func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
+	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
+	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)
+	proto.RegisterEnum("pb.GS2CUpdateRoomInfo_Status", GS2CUpdateRoomInfo_Status_name, GS2CUpdateRoomInfo_Status_value)
 }

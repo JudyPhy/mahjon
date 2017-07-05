@@ -44,7 +44,34 @@ message RoleInfo
 	required bool isOwner = 6;
 }
 
+message PlayerInfo
+{
+	required int32 oid = 1;
+	required string nickName = 2;
+	required string headIcon = 3;
+	required int32 lev = 4;
+}
+
 /////////////////////////////////////////////////////////////////////
+message C2GSLogin
+{
+	required string nickName = 1;
+    required string password = 2;
+}
+
+message GS2CLoginRet
+{
+	enum ErrorCode
+	{
+		SUCCESS = 1;
+		NICKNAME_ERROR = 2;
+		PASSWORD_ERROR = 3;
+		FAIL = 4;
+	}
+	required ErrorCode errorCode = 1;
+	optional PlayerInfo playerInfo = 2;
+}
+
 message C2GSEnterGame
 {
 	required int32 playerId = 1;
@@ -52,9 +79,31 @@ message C2GSEnterGame
 	optional int32 roomId = 3;	
 }
 
+message GS2CEnterGameRet
+{
+	enum ErrorCode{
+		SUCCESS = 1; 
+		FAIL = 2;
+		PLAYER_COUNT_LIMITE = 3; // 人满
+	}
+    required ErrorCode errorCode = 1;	
+	required GameMode mode = 2;
+	required int32 roomId = 3;
+}
+
 message GS2CUpdateRoomInfo
 {
-    repeated RoleInfo players = 1;
+	enum Status{
+		ADD = 1;
+		REMOVE = 2;
+		UPDATE = 3;
+	}
+    repeated RoleInfo player = 1;
+	required Status status = 2;
+}
+
+message GS2CBattleStart
+{
 }
 
 message GS2CDealCard

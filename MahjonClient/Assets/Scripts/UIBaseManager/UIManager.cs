@@ -77,15 +77,6 @@ public class UIManager : MonoBehaviour
         this.DeletingWindowsDict_.Add(windowId, this.CurShowingWindow_);
     }
 
-    //prefabPath后期会改为资源列表中的路径
-    public T AddItemToList<T>(string prefabPath, GameObject parentObj)
-    {
-        GameObject obj = ResourcesManager.Instance.GetUIPrefabs(prefabPath);
-        obj.AddComponent(typeof(T));
-        AddGameObject(parentObj, obj);
-        return obj.GetComponent<T>();
-    }
-
     private void Update()
     {
         if (!this.IsShowingWindow_)
@@ -103,7 +94,7 @@ public class UIManager : MonoBehaviour
             }
         }
     }
-    private static T AddChild<T>(GameObject parent)
+    public static T AddChild<T>(GameObject parent)
     {
         string prefabName = typeof(T).Name;
         string prefabPath = ResourcesManager.Instance.GetResPath(prefabName);

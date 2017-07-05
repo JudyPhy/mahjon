@@ -183,7 +183,9 @@
      <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_pai_hide.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\Item_role.cs" />
      <Compile Include="Assets\Scripts\BattleUI\PanelBattle.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\SideInfo.cs" />
      <Compile Include="Assets\Scripts\Effects\EffectDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\UIDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\iTween.cs" />

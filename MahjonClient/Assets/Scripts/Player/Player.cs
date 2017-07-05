@@ -16,12 +16,10 @@ public class Player
         }
     }
 
-    private int _oid;
-    public int OID
+    private RoleInfo _info;
+    public RoleInfo RoleInfo
     {
-        get
-        {
-            return _oid;
-        }
+        set { _info = value; }
+        get { return _info; }
     }
 }

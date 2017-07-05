@@ -16,6 +16,13 @@ public class MainUI : WindowsBasePanel
     public override void OnAwake()
     {
         base.OnAwake();
+        _btnEnterRoom = transform.FindChild("").GetComponent<UIButton>();
+        _btnCreateRoom = transform.FindChild("").GetComponent<UIButton>();
+        _btnQuickGame = transform.FindChild("").GetComponent<UIButton>();
+
+        _panel_inputRoomID = transform.FindChild("").gameObject;
+        _inputRoomID = transform.FindChild("").GetComponent<UIInput>();
+        _btnEnsureEnterRoom = transform.FindChild("").GetComponent<UIButton>();
 
         UIEventListener.Get(_btnEnterRoom.gameObject).onClick = OnClikEnterRoom;
         UIEventListener.Get(_btnEnsureEnterRoom.gameObject).onClick = OnClikEnsureEnterRoom;
@@ -31,19 +38,16 @@ public class MainUI : WindowsBasePanel
     private void OnClikEnsureEnterRoom(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.JoinRoom);
-        UIManager.Instance.ShowMainWindow<PanelBattle>(eWindowsID.BattleUI);
     }
 
     private void OnClikCreateRoom(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.CreateRoom);
-        UIManager.Instance.ShowMainWindow<PanelBattle>(eWindowsID.BattleUI);
     }
 
     private void OnClikQuickGame(GameObject go)
     {
-        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.QuickEnter);
-        UIManager.Instance.ShowMainWindow<PanelBattle>(eWindowsID.BattleUI);
+        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.QuickEnter);        
     }
 
 }

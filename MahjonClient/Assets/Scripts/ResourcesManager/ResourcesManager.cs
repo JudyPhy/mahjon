@@ -24,30 +24,16 @@ public class ResourcesManager {
 
     public string GetResPath(string resName) {        
         switch (resName) {
-            case "GameStartPanel":
-                return "Prefab/GameStartPanel";
-            case "LoginPanel":
-                return "Prefab/LoginPanel";
-            case "LoadingUI":
-                return "Prefab/LoadingUI";
-            case "CreateRoleUI":
-                return "Prefab/CreateRoleUI";
-            case "Warrior":
-                return "Model/Warrior";
-            case "Assassin":
-                return "Model/Assassin";
-            case "Armourer":
-                return "Model/Armourer";
-            case "BattlePanel":
-                return "Prefabs/UI/Battle/BattlePanel";
-            case "MainPanel":
-                return "Prefabs/UI/Main/MainPanel";
-            case "SelecteRoleItem":
-                return "Prefabs/UI/SelectRole/SelectRoleItem";
-            case "SelectRolePanel":
-                return "Prefabs/UI/SelectRole/SelectRolePanel";
-            case "OfflineBattlePanel":
-                return "Prefabs/UI/Battle/OfflineBattlePanel";
+            case "Panel_Login":
+                return "Prefabs/UI/Panel_Login";
+            case "MainUI":
+                return "Prefabs/UI/MainUI";
+            case "PanelBattle":
+                return "Prefabs/UI/PanelBattle";
+            case "Item_role":
+                return "Prefabs/UI/Item_role";
+            default:
+                break;
         }
         return "";
     }
