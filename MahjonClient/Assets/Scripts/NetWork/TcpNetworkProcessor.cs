@@ -25,7 +25,7 @@ public sealed class TcpNetworkProcessor
     public int ID_;
     private string IPAddr_;
     private ushort Port_;
-    private int BufferMaxSize = 65535;      //接收/发送缓冲区容量上限
+    private int BufferMaxSize = 65535;      //接收/发送缓冲区容量上限(64kb)
     //收发线程
     private Thread SendThread_;
     private Thread RecvThread_;
@@ -42,7 +42,7 @@ public sealed class TcpNetworkProcessor
     //当前连接状态
     public e_SocketState SocketState_;
     //拆包
-    public const int PacketHeadSize = 8; //消息包包头,长度2个字节
+    public const int PacketHeadSize = 4; //消息包包头,消息长度2字节 + 消息id 2字节
     private byte[] MsgIncompleteBuffer_ = null;     //临时存储区（接收到不完整消息时存储）
     //长连接心跳时刻
     private DateTime RecvHeartTickTime_;
@@ -311,7 +311,7 @@ public sealed class TcpNetworkProcessor
                 break;
             }
             //剩余未拆包消息大于包头，说明没接收完，等待后面消息到来
-            byte[] array = { msgBuffer_[0], msgBuffer_[1], msgBuffer_[2], msgBuffer_[3] };  //包头前4个字节是消息长度
+            byte[] array = { msgBuffer_[0], msgBuffer_[1] };  //包头前2个字节是消息长度
             int packageSize = ConvertByteArrayToInt(array);
             if (packageSize > msgLength - curPos)
             {
@@ -323,7 +323,7 @@ public sealed class TcpNetworkProcessor
             }
             byte[] msgPackage = new byte[packageSize];
             Buffer.BlockCopy(msgBuffer_, curPos, msgPackage, 0, packageSize);
-            byte[] array2 = { msgBuffer_[4], msgBuffer_[5], msgBuffer_[6], msgBuffer_[7] };  //包头后4个字节是消息ID
+            byte[] array2 = { msgBuffer_[3], msgBuffer_[4] };  //包头后2个字节是消息ID
             int pid = ConvertByteArrayToInt(array2);
             int protoBuffSize = packageSize - PacketHeadSize;
             byte[] protoBuffer = new byte[protoBuffSize];
@@ -390,12 +390,12 @@ public sealed class TcpNetworkProcessor
         byte[] tcpMessageBuffer = new byte[packetSize];
 
         //1th step: set message length  
-        byte[] packetSizeBytes = BitConverter.GetBytes(packetSize);
+        byte[] packetSizeBytes = BitConverter.GetBytes(packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
         Buffer.BlockCopy(packetSizeBytes, 0, tcpMessageBuffer, 0, packetSizeBytes.Length);
 
         //2th step: set message id
         byte[] pidBytes = BitConverter.GetBytes(id);
-        Buffer.BlockCopy(pidBytes, 0, tcpMessageBuffer, 4, pidBytes.Length);
+        Buffer.BlockCopy(pidBytes, 0, tcpMessageBuffer, 2, pidBytes.Length);
 
         //3th step: set protobuf messsage
         Buffer.BlockCopy(protobufBuffer, 0, tcpMessageBuffer, PacketHeadSize, protobufBuffer.Length);
