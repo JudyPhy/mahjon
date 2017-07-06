@@ -23,20 +23,20 @@ public class PanelBattle : WindowsBasePanel
     public override void OnRegisterEvent()
     {
         base.OnRegisterEvent();
-        EventDispatcher.AddEventListener<pb.RoleInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
+        EventDispatcher.AddEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
     }
 
     public override void OnRemoveEvent()
     {
         base.OnRemoveEvent();
-        EventDispatcher.RemoveEventListener<pb.RoleInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
+        EventDispatcher.RemoveEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
     }
 
-    private Item_role getRoleItem(pb.RoleInfo role)
+    private Item_role getRoleItem(pb.BattlePlayerInfo role)
     {
         for (int i = 0; i < _roleList.Count; i++)
         {
-            if (_roleList[i].gameObject.activeSelf && _roleList[i].RoleInfo.side == role.side)
+            if (_roleList[i].gameObject.activeSelf && _roleList[i].BattlePlayerInfo.side == role.side)
             {
                 return _roleList[i];
             }
@@ -46,19 +46,19 @@ public class PanelBattle : WindowsBasePanel
             if (!_roleList[i].gameObject.activeSelf)
             {
                 _roleList[i].gameObject.SetActive(true);
-                _roleList[i].RoleInfo = role;
+                _roleList[i].BattlePlayerInfo = role;
                 return _roleList[i];
             }
         }
         Item_role script = UIManager.AddChild<Item_role>(_playerRoot);
-        script.RoleInfo = role;
+        script.BattlePlayerInfo = role;
         _roleList.Add(script);
         return script;
     }
 
-    private void AddRoleToRoom(pb.RoleInfo role)
+    private void AddRoleToRoom(pb.BattlePlayerInfo role)
     {
-        Debug.Log("AddRoleToRoom=>" + role.nickName);
+        Debug.Log("AddRoleToRoom=>" + role.player.nickName);
         Item_role itemScript = getRoleItem(role);
         if (itemScript != null)
         {
@@ -66,7 +66,7 @@ public class PanelBattle : WindowsBasePanel
         }
         else
         {
-            Debug.LogError("player " + role.nickName + " item obj is null.");
+            Debug.LogError("player " + role.player.nickName + " item obj is null.");
         }
     }
 

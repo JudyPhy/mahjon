@@ -16,8 +16,8 @@ public class Player
         }
     }
 
-    private RoleInfo _info;
-    public RoleInfo RoleInfo
+    private PlayerInfo _info;
+    public PlayerInfo PlayerInfo
     {
         set { _info = value; }
         get { return _info; }

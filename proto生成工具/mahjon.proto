@@ -27,21 +27,26 @@ enum CardStatus
 	dicard =5;
 }
 
-message CardInfo
+enum DisacardStatus
 {
-	required int32 CardId = 1;
-    required int32 PlayerId = 2;
-	required CardStatus Status =3;
+	default = 1;
+	peng = 2;
+	gang = 3;
+	ting = 4;
 }
 
-message RoleInfo
+message CardInfo
+{
+	required int32 playerId = 1;
+	required int32 CardId = 2;
+	required CardStatus Status = 3;
+}
+
+message BattlePlayerInfo
 {
 	required BattleSide side = 1;
-	required int32 oid = 2;
-	required string nickName = 3;
-	required string headIcon = 4;
-	required int32 lev = 5;
-	required bool isOwner = 6;
+	required bool isOwner = 2;
+	required PlayerInfo player = 3;
 }
 
 message PlayerInfo
@@ -74,9 +79,8 @@ message GS2CLoginRet
 
 message C2GSEnterGame
 {
-	required int32 playerId = 1;
-    required GameMode mode = 2;
-	optional int32 roomId = 3;	
+    required GameMode mode = 1;
+	optional int32 roomId = 2;	
 }
 
 message GS2CEnterGameRet
@@ -98,16 +102,51 @@ message GS2CUpdateRoomInfo
 		REMOVE = 2;
 		UPDATE = 3;
 	}
-    repeated RoleInfo player = 1;
+    repeated BattlePlayerInfo player = 1;
 	required Status status = 2;
 }
 
 message GS2CBattleStart
 {
+	required int32 dealerId = 1;
+	repeated CardInfo cardList = 2;
+}
+
+message GS2CDiscardTimeOut
+{
+}
+
+message C2GSDiscard
+{
+	required int32 cardId = 1;
+	required DisacardStatus status = 2;
+}
+
+message GS2CDiscardRet
+{
+	enum ErrorCode{
+		SUCCESS = 1; 
+		FAIL = 2;
+	}
+	required ErrorCode errorCode = 1;
+	repeated CardInfo card = 2;
 }
 
 message GS2CDealCard
 {
-    repeated CardInfo CardList = 1;
-	required BattleSide startSide = 2;
+	required int32 playerId = 1;
+	required CardInfo card = 2;
 }
+
+message C2GSWin
+{
+	required int32 playerId = 1;
+}
+
+message GS2CWinRet
+{
+	required int32 playerId = 2;
+}
+
+
+

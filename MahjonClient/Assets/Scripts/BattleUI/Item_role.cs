@@ -6,11 +6,11 @@ public class Item_role : MonoBehaviour {
 
     private Vector3[] _roleItemPos = { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0) };
 
-    private pb.RoleInfo _roleInfo;
-    public pb.RoleInfo RoleInfo
+    private pb.BattlePlayerInfo _battlePlayerInfo;
+    public pb.BattlePlayerInfo BattlePlayerInfo
     {
-        set { _roleInfo = value; }
-        get { return _roleInfo; }
+        set { _battlePlayerInfo = value; }
+        get { return _battlePlayerInfo; }
     }
 
     private UILabel _nameText;
@@ -26,9 +26,9 @@ public class Item_role : MonoBehaviour {
 
     public void UpdateUI()
     {
-        _nameText.text = _roleInfo.nickName;
-        _levText.text = _roleInfo.lev.ToString();
-        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_roleInfo.side);
+        _nameText.text = _battlePlayerInfo.player.nickName;
+        _levText.text = _battlePlayerInfo.player.lev.ToString();
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_battlePlayerInfo.side);
         if (sideIndex >= 0 && sideIndex < _roleItemPos.Length)
         {
             transform.localPosition = _roleItemPos[sideIndex];

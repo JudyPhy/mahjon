@@ -25,12 +25,12 @@ public class GameMsgHandler
         NetworkManager.Instance.SendToGS((int)MsgDef.C2GSLogin, msg);
     }
 
-    public void SendMsgC2GSEnterGame(pb.GameMode mode)
+    public void SendMsgC2GSEnterGame(pb.GameMode mode, int roomId = 0)
     {
         Debug.Log("SendMsgC2GSEnterGame==>> [" + mode + "]");
         pb.C2GSEnterGame msg = new pb.C2GSEnterGame();
-        msg.playerId = 1;
         msg.mode = mode;
+        msg.roomId = roomId;
         NetworkManager.Instance.SendToGS((int)MsgDef.C2GSEnterGame, msg);
     }
 
@@ -47,7 +47,7 @@ public class GameMsgHandler
         switch (msg.errorCode)
         {
             case pb.GS2CLoginRet.ErrorCode.SUCCESS:
-                Player.Instance.RoleInfo = new RoleInfo(msg.playerInfo);
+                Player.Instance.PlayerInfo = new PlayerInfo(msg.playerInfo);
                 UIManager.Instance.ShowMainWindow<MainUI>(eWindowsID.MainUI);
                 break;
             case pb.GS2CLoginRet.ErrorCode.FAIL:

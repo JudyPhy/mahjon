@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
-public class RoleInfo
+public class PlayerInfo
 {
     private int _oid;
     public int OID
@@ -26,15 +26,7 @@ public class RoleInfo
         get { return _lev; }
     }
 
-    public RoleInfo(pb.RoleInfo role)
-    {
-        _oid = role.oid;
-        _nickName = role.nickName;
-        _headIcon = role.headIcon;
-        _lev = role.lev;
-    }
-
-    public RoleInfo(pb.PlayerInfo player)
+    public PlayerInfo(pb.PlayerInfo player)
     {
         _oid = player.oid;
         _nickName = player.nickName;
@@ -112,42 +104,42 @@ public class BattleManager
             case pb.GS2CUpdateRoomInfo.Status.ADD:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
                     {
-                        Debug.LogError("Dict has contained the player [" + msg.player[i].nickName + "], don't need add.");
+                        Debug.LogError("Dict has contained the player [" + msg.player[i].player.nickName + "], don't need add.");
                     }
                     else
                     {
                         SideInfo info = new SideInfo();
-                        info.updateRoleInfo(msg.player[i]);
-                        _playerPaiInfoDict.Add(msg.player[i].oid, info);
-                        EventDispatcher.TriggerEvent<pb.RoleInfo>(EventDefine.AddRoleToRoom, msg.player[i]);
+                        info.UpdateBattlePlayerInfo(msg.player[i]);
+                        _playerPaiInfoDict.Add(msg.player[i].player.oid, info);
+                        EventDispatcher.TriggerEvent<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, msg.player[i]);
                     }
                 }
                 break;
             case pb.GS2CUpdateRoomInfo.Status.REMOVE:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
                     {
-                        _playerPaiInfoDict.Remove(msg.player[i].oid);
+                        _playerPaiInfoDict.Remove(msg.player[i].player.oid);
                     }
                     else
                     {
-                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].nickName + "], can't remove.");
+                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].player.nickName + "], can't remove.");
                     }
                 }
                 break;
             case pb.GS2CUpdateRoomInfo.Status.UPDATE:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].oid))
+                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
                     {
-                        _playerPaiInfoDict[msg.player[i].oid].updateRoleInfo(msg.player[i]);
+                        _playerPaiInfoDict[msg.player[i].player.oid].UpdateBattlePlayerInfo(msg.player[i]);
                     }
                     else
                     {
-                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].nickName + "], can't update.");
+                        Debug.LogError("Dict doesn't contain the player [" + msg.player[i].player.nickName + "], can't update.");
                     }
                 }
                 break;
@@ -158,9 +150,9 @@ public class BattleManager
 
     public int GetSideIndexFromSelf(pb.BattleSide side)
     {
-        if (_playerPaiInfoDict.ContainsKey(Player.Instance.RoleInfo.OID))
+        if (_playerPaiInfoDict.ContainsKey(Player.Instance.PlayerInfo.OID))
         {
-            pb.BattleSide curSide = _playerPaiInfoDict[Player.Instance.RoleInfo.OID].Side;
+            pb.BattleSide curSide = _playerPaiInfoDict[Player.Instance.PlayerInfo.OID].Side;
             int index = 0;
             while (curSide != side)
             {

@@ -10,7 +10,7 @@ It is generated from these files:
 
 It has these top-level messages:
 	CardInfo
-	RoleInfo
+	BattlePlayerInfo
 	PlayerInfo
 	C2GSLogin
 	GS2CLoginRet
@@ -18,7 +18,12 @@ It has these top-level messages:
 	GS2CEnterGameRet
 	GS2CUpdateRoomInfo
 	GS2CBattleStart
+	GS2CDiscardTimeOut
+	C2GSDiscard
+	GS2CDiscardRet
 	GS2CDealCard
+	C2GSWin
+	GS2CWinRet
 */
 package pb
 
@@ -146,6 +151,45 @@ func (x *CardStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type DisacardStatus int32
+
+const (
+	DisacardStatus_default DisacardStatus = 1
+	DisacardStatus_peng    DisacardStatus = 2
+	DisacardStatus_gang    DisacardStatus = 3
+	DisacardStatus_ting    DisacardStatus = 4
+)
+
+var DisacardStatus_name = map[int32]string{
+	1: "default",
+	2: "peng",
+	3: "gang",
+	4: "ting",
+}
+var DisacardStatus_value = map[string]int32{
+	"default": 1,
+	"peng":    2,
+	"gang":    3,
+	"ting":    4,
+}
+
+func (x DisacardStatus) Enum() *DisacardStatus {
+	p := new(DisacardStatus)
+	*p = x
+	return p
+}
+func (x DisacardStatus) String() string {
+	return proto.EnumName(DisacardStatus_name, int32(x))
+}
+func (x *DisacardStatus) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(DisacardStatus_value, data, "DisacardStatus")
+	if err != nil {
+		return err
+	}
+	*x = DisacardStatus(value)
+	return nil
+}
+
 type GS2CLoginRet_ErrorCode int32
 
 const (
@@ -257,9 +301,42 @@ func (x *GS2CUpdateRoomInfo_Status) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type GS2CDiscardRet_ErrorCode int32
+
+const (
+	GS2CDiscardRet_SUCCESS GS2CDiscardRet_ErrorCode = 1
+	GS2CDiscardRet_FAIL    GS2CDiscardRet_ErrorCode = 2
+)
+
+var GS2CDiscardRet_ErrorCode_name = map[int32]string{
+	1: "SUCCESS",
+	2: "FAIL",
+}
+var GS2CDiscardRet_ErrorCode_value = map[string]int32{
+	"SUCCESS": 1,
+	"FAIL":    2,
+}
+
+func (x GS2CDiscardRet_ErrorCode) Enum() *GS2CDiscardRet_ErrorCode {
+	p := new(GS2CDiscardRet_ErrorCode)
+	*p = x
+	return p
+}
+func (x GS2CDiscardRet_ErrorCode) String() string {
+	return proto.EnumName(GS2CDiscardRet_ErrorCode_name, int32(x))
+}
+func (x *GS2CDiscardRet_ErrorCode) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GS2CDiscardRet_ErrorCode_value, data, "GS2CDiscardRet_ErrorCode")
+	if err != nil {
+		return err
+	}
+	*x = GS2CDiscardRet_ErrorCode(value)
+	return nil
+}
+
 type CardInfo struct {
-	CardId           *int32      `protobuf:"varint,1,req" json:"CardId,omitempty"`
-	PlayerId         *int32      `protobuf:"varint,2,req" json:"PlayerId,omitempty"`
+	PlayerId         *int32      `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
+	CardId           *int32      `protobuf:"varint,2,req" json:"CardId,omitempty"`
 	Status           *CardStatus `protobuf:"varint,3,req,enum=pb.CardStatus" json:"Status,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
@@ -268,16 +345,16 @@ func (m *CardInfo) Reset()         { *m = CardInfo{} }
 func (m *CardInfo) String() string { return proto.CompactTextString(m) }
 func (*CardInfo) ProtoMessage()    {}
 
-func (m *CardInfo) GetCardId() int32 {
-	if m != nil && m.CardId != nil {
-		return *m.CardId
+func (m *CardInfo) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
 	}
 	return 0
 }
 
-func (m *CardInfo) GetPlayerId() int32 {
-	if m != nil && m.PlayerId != nil {
-		return *m.PlayerId
+func (m *CardInfo) GetCardId() int32 {
+	if m != nil && m.CardId != nil {
+		return *m.CardId
 	}
 	return 0
 }
@@ -289,60 +366,36 @@ func (m *CardInfo) GetStatus() CardStatus {
 	return CardStatus_noDeal
 }
 
-type RoleInfo struct {
+type BattlePlayerInfo struct {
 	Side             *BattleSide `protobuf:"varint,1,req,name=side,enum=pb.BattleSide" json:"side,omitempty"`
-	Oid              *int32      `protobuf:"varint,2,req,name=oid" json:"oid,omitempty"`
-	NickName         *string     `protobuf:"bytes,3,req,name=nickName" json:"nickName,omitempty"`
-	HeadIcon         *string     `protobuf:"bytes,4,req,name=headIcon" json:"headIcon,omitempty"`
-	Lev              *int32      `protobuf:"varint,5,req,name=lev" json:"lev,omitempty"`
-	IsOwner          *bool       `protobuf:"varint,6,req,name=isOwner" json:"isOwner,omitempty"`
+	IsOwner          *bool       `protobuf:"varint,2,req,name=isOwner" json:"isOwner,omitempty"`
+	Player           *PlayerInfo `protobuf:"bytes,3,req,name=player" json:"player,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
-func (m *RoleInfo) Reset()         { *m = RoleInfo{} }
-func (m *RoleInfo) String() string { return proto.CompactTextString(m) }
-func (*RoleInfo) ProtoMessage()    {}
+func (m *BattlePlayerInfo) Reset()         { *m = BattlePlayerInfo{} }
+func (m *BattlePlayerInfo) String() string { return proto.CompactTextString(m) }
+func (*BattlePlayerInfo) ProtoMessage()    {}
 
-func (m *RoleInfo) GetSide() BattleSide {
+func (m *BattlePlayerInfo) GetSide() BattleSide {
 	if m != nil && m.Side != nil {
 		return *m.Side
 	}
 	return BattleSide_east
 }
 
-func (m *RoleInfo) GetOid() int32 {
-	if m != nil && m.Oid != nil {
-		return *m.Oid
-	}
-	return 0
-}
-
-func (m *RoleInfo) GetNickName() string {
-	if m != nil && m.NickName != nil {
-		return *m.NickName
-	}
-	return ""
-}
-
-func (m *RoleInfo) GetHeadIcon() string {
-	if m != nil && m.HeadIcon != nil {
-		return *m.HeadIcon
-	}
-	return ""
-}
-
-func (m *RoleInfo) GetLev() int32 {
-	if m != nil && m.Lev != nil {
-		return *m.Lev
-	}
-	return 0
-}
-
-func (m *RoleInfo) GetIsOwner() bool {
+func (m *BattlePlayerInfo) GetIsOwner() bool {
 	if m != nil && m.IsOwner != nil {
 		return *m.IsOwner
 	}
 	return false
+}
+
+func (m *BattlePlayerInfo) GetPlayer() *PlayerInfo {
+	if m != nil {
+		return m.Player
+	}
+	return nil
 }
 
 type PlayerInfo struct {
@@ -435,22 +488,14 @@ func (m *GS2CLoginRet) GetPlayerInfo() *PlayerInfo {
 }
 
 type C2GSEnterGame struct {
-	PlayerId         *int32    `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
-	Mode             *GameMode `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
-	RoomId           *int32    `protobuf:"varint,3,opt,name=roomId" json:"roomId,omitempty"`
+	Mode             *GameMode `protobuf:"varint,1,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
+	RoomId           *int32    `protobuf:"varint,2,opt,name=roomId" json:"roomId,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
 func (m *C2GSEnterGame) Reset()         { *m = C2GSEnterGame{} }
 func (m *C2GSEnterGame) String() string { return proto.CompactTextString(m) }
 func (*C2GSEnterGame) ProtoMessage()    {}
-
-func (m *C2GSEnterGame) GetPlayerId() int32 {
-	if m != nil && m.PlayerId != nil {
-		return *m.PlayerId
-	}
-	return 0
-}
 
 func (m *C2GSEnterGame) GetMode() GameMode {
 	if m != nil && m.Mode != nil {
@@ -499,7 +544,7 @@ func (m *GS2CEnterGameRet) GetRoomId() int32 {
 }
 
 type GS2CUpdateRoomInfo struct {
-	Player           []*RoleInfo                `protobuf:"bytes,1,rep,name=player" json:"player,omitempty"`
+	Player           []*BattlePlayerInfo        `protobuf:"bytes,1,rep,name=player" json:"player,omitempty"`
 	Status           *GS2CUpdateRoomInfo_Status `protobuf:"varint,2,req,name=status,enum=pb.GS2CUpdateRoomInfo_Status" json:"status,omitempty"`
 	XXX_unrecognized []byte                     `json:"-"`
 }
@@ -508,7 +553,7 @@ func (m *GS2CUpdateRoomInfo) Reset()         { *m = GS2CUpdateRoomInfo{} }
 func (m *GS2CUpdateRoomInfo) String() string { return proto.CompactTextString(m) }
 func (*GS2CUpdateRoomInfo) ProtoMessage()    {}
 
-func (m *GS2CUpdateRoomInfo) GetPlayer() []*RoleInfo {
+func (m *GS2CUpdateRoomInfo) GetPlayer() []*BattlePlayerInfo {
 	if m != nil {
 		return m.Player
 	}
@@ -523,42 +568,148 @@ func (m *GS2CUpdateRoomInfo) GetStatus() GS2CUpdateRoomInfo_Status {
 }
 
 type GS2CBattleStart struct {
-	XXX_unrecognized []byte `json:"-"`
+	DealerId         *int32      `protobuf:"varint,1,req,name=dealerId" json:"dealerId,omitempty"`
+	CardList         []*CardInfo `protobuf:"bytes,2,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
 }
 
 func (m *GS2CBattleStart) Reset()         { *m = GS2CBattleStart{} }
 func (m *GS2CBattleStart) String() string { return proto.CompactTextString(m) }
 func (*GS2CBattleStart) ProtoMessage()    {}
 
-type GS2CDealCard struct {
-	CardList         []*CardInfo `protobuf:"bytes,1,rep" json:"CardList,omitempty"`
-	StartSide        *BattleSide `protobuf:"varint,2,req,name=startSide,enum=pb.BattleSide" json:"startSide,omitempty"`
-	XXX_unrecognized []byte      `json:"-"`
+func (m *GS2CBattleStart) GetDealerId() int32 {
+	if m != nil && m.DealerId != nil {
+		return *m.DealerId
+	}
+	return 0
 }
 
-func (m *GS2CDealCard) Reset()         { *m = GS2CDealCard{} }
-func (m *GS2CDealCard) String() string { return proto.CompactTextString(m) }
-func (*GS2CDealCard) ProtoMessage()    {}
-
-func (m *GS2CDealCard) GetCardList() []*CardInfo {
+func (m *GS2CBattleStart) GetCardList() []*CardInfo {
 	if m != nil {
 		return m.CardList
 	}
 	return nil
 }
 
-func (m *GS2CDealCard) GetStartSide() BattleSide {
-	if m != nil && m.StartSide != nil {
-		return *m.StartSide
+type GS2CDiscardTimeOut struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *GS2CDiscardTimeOut) Reset()         { *m = GS2CDiscardTimeOut{} }
+func (m *GS2CDiscardTimeOut) String() string { return proto.CompactTextString(m) }
+func (*GS2CDiscardTimeOut) ProtoMessage()    {}
+
+type C2GSDiscard struct {
+	CardId           *int32          `protobuf:"varint,1,req,name=cardId" json:"cardId,omitempty"`
+	Status           *DisacardStatus `protobuf:"varint,2,req,name=status,enum=pb.DisacardStatus" json:"status,omitempty"`
+	XXX_unrecognized []byte          `json:"-"`
+}
+
+func (m *C2GSDiscard) Reset()         { *m = C2GSDiscard{} }
+func (m *C2GSDiscard) String() string { return proto.CompactTextString(m) }
+func (*C2GSDiscard) ProtoMessage()    {}
+
+func (m *C2GSDiscard) GetCardId() int32 {
+	if m != nil && m.CardId != nil {
+		return *m.CardId
 	}
-	return BattleSide_east
+	return 0
+}
+
+func (m *C2GSDiscard) GetStatus() DisacardStatus {
+	if m != nil && m.Status != nil {
+		return *m.Status
+	}
+	return DisacardStatus_default
+}
+
+type GS2CDiscardRet struct {
+	ErrorCode        *GS2CDiscardRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CDiscardRet_ErrorCode" json:"errorCode,omitempty"`
+	Card             []*CardInfo               `protobuf:"bytes,2,rep,name=card" json:"card,omitempty"`
+	XXX_unrecognized []byte                    `json:"-"`
+}
+
+func (m *GS2CDiscardRet) Reset()         { *m = GS2CDiscardRet{} }
+func (m *GS2CDiscardRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CDiscardRet) ProtoMessage()    {}
+
+func (m *GS2CDiscardRet) GetErrorCode() GS2CDiscardRet_ErrorCode {
+	if m != nil && m.ErrorCode != nil {
+		return *m.ErrorCode
+	}
+	return GS2CDiscardRet_SUCCESS
+}
+
+func (m *GS2CDiscardRet) GetCard() []*CardInfo {
+	if m != nil {
+		return m.Card
+	}
+	return nil
+}
+
+type GS2CDealCard struct {
+	PlayerId         *int32    `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
+	Card             *CardInfo `protobuf:"bytes,2,req,name=card" json:"card,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (m *GS2CDealCard) Reset()         { *m = GS2CDealCard{} }
+func (m *GS2CDealCard) String() string { return proto.CompactTextString(m) }
+func (*GS2CDealCard) ProtoMessage()    {}
+
+func (m *GS2CDealCard) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
+}
+
+func (m *GS2CDealCard) GetCard() *CardInfo {
+	if m != nil {
+		return m.Card
+	}
+	return nil
+}
+
+type C2GSWin struct {
+	PlayerId         *int32 `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *C2GSWin) Reset()         { *m = C2GSWin{} }
+func (m *C2GSWin) String() string { return proto.CompactTextString(m) }
+func (*C2GSWin) ProtoMessage()    {}
+
+func (m *C2GSWin) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
+}
+
+type GS2CWinRet struct {
+	PlayerId         *int32 `protobuf:"varint,2,req,name=playerId" json:"playerId,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *GS2CWinRet) Reset()         { *m = GS2CWinRet{} }
+func (m *GS2CWinRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CWinRet) ProtoMessage()    {}
+
+func (m *GS2CWinRet) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
 }
 
 func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
+	proto.RegisterEnum("pb.DisacardStatus", DisacardStatus_name, DisacardStatus_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CUpdateRoomInfo_Status", GS2CUpdateRoomInfo_Status_name, GS2CUpdateRoomInfo_Status_value)
+	proto.RegisterEnum("pb.GS2CDiscardRet_ErrorCode", GS2CDiscardRet_ErrorCode_name, GS2CDiscardRet_ErrorCode_value)
 }

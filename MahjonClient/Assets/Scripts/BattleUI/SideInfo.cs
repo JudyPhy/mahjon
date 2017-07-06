@@ -11,17 +11,24 @@ public class SideInfo
         get { return _side; }
     }
 
-    private RoleInfo _playerInfo;
-    public RoleInfo PlayerInfo
+    private bool _isOwner;
+    public bool IsOwner
+    {
+        get { return _isOwner; }
+    }
+
+    private PlayerInfo _playerInfo;
+    public PlayerInfo PlayerInfo
     {
         get { return _playerInfo; }
     }
 
     private Pai pai;
 
-    public void updateRoleInfo(pb.RoleInfo role)
+    public void UpdateBattlePlayerInfo(pb.BattlePlayerInfo role)
     {
         _side = role.side;
-        _playerInfo = new RoleInfo(role);
+        _isOwner = role.isOwner;
+        _playerInfo = new PlayerInfo(role.player);
     }
 }
