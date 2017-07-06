@@ -38,22 +38,17 @@ public class PlayerInfo
 public class Pai
 {
     private int _id;
-    private pb.BattleSide _side;
-
-    public Pai(int id, pb.BattleSide side)
-    {
-        _id = id;
-        _side = side;
-    }
-
     public int Id
     {
+        set { _id = value; }
         get { return _id; }
     }
 
-    public pb.BattleSide Side
+    private pb.CardStatus _status;
+    public pb.CardStatus Status
     {
-        get { return _side; }
+        set { _status = value; }
+        get { return _status; }
     }
 }
 
@@ -167,6 +162,39 @@ public class BattleManager
             return index;
         }
         return -1;
+    }
+
+    private void ClearTable()
+    {
+        foreach (int playerId in _playerPaiInfoDict.Keys)
+        {
+            _playerPaiInfoDict[playerId].ClearPai();
+        }
+    }
+
+    public void PrepareGameStart(pb.GS2CBattleStart msg)
+    {
+        for (int i = 0; i < msg.cardList.Count; i++)
+        {
+            pb.CardInfo card = msg.cardList[i];
+            if (_playerPaiInfoDict.ContainsKey(card.playerId))
+            {
+                _playerPaiInfoDict[card.playerId].AddPai(card);
+            }
+        }
+
+        foreach (int playerId in _playerPaiInfoDict.Keys)
+        {
+            List<Pai> list = _playerPaiInfoDict[playerId].GetPaiList();
+            Debug.LogError("player[" + _playerPaiInfoDict[playerId].PlayerInfo.NickName + "] has " + list.Count.ToString() + " cards when game start.");
+        }
+
+        EventDispatcher.TriggerEvent<int>(EventDefine.PlayGameStartAni, msg.dealerId);
+    }
+
+    private void UpdatePaiInfo(List<pb.CardInfo> list)
+    {
+
     }
 
 }

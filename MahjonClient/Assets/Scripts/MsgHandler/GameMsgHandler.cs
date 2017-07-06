@@ -6,9 +6,12 @@ public class GameMsgHandler
 {
 
     private static GameMsgHandler instance;
-    public static GameMsgHandler Instance {
-        get {
-            if (instance == null) {
+    public static GameMsgHandler Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
                 instance = new GameMsgHandler();
             }
             return instance;
@@ -82,6 +85,15 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateRoomInfo msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateRoomInfo>(stream);
         BattleManager.Instance.UpdatePlayerInfo(msg);
+    }
+
+
+    public void RevMsgGS2CBattleStart(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CBattleStart");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
+        BattleManager.Instance.PrepareGameStart(msg);
     }
 
     #endregion

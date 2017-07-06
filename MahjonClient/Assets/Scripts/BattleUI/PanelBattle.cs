@@ -24,12 +24,14 @@ public class PanelBattle : WindowsBasePanel
     {
         base.OnRegisterEvent();
         EventDispatcher.AddEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
+        EventDispatcher.AddEventListener<int>(EventDefine.PlayGameStartAni, PlayGameStartAni);
     }
 
     public override void OnRemoveEvent()
     {
         base.OnRemoveEvent();
         EventDispatcher.RemoveEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
+        EventDispatcher.RemoveEventListener<int>(EventDefine.PlayGameStartAni, PlayGameStartAni);
     }
 
     private Item_role getRoleItem(pb.BattlePlayerInfo role)
@@ -70,5 +72,9 @@ public class PanelBattle : WindowsBasePanel
         }
     }
 
+    private void PlayGameStartAni(int dealerId)
+    {
+
+    }
 
 }

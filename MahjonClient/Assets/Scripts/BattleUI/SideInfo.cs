@@ -23,7 +23,7 @@ public class SideInfo
         get { return _playerInfo; }
     }
 
-    private Pai pai;
+    private List<Pai> _paiList = new List<Pai>();
 
     public void UpdateBattlePlayerInfo(pb.BattlePlayerInfo role)
     {
@@ -31,4 +31,23 @@ public class SideInfo
         _isOwner = role.isOwner;
         _playerInfo = new PlayerInfo(role.player);
     }
+
+    public List<Pai> GetPaiList()
+    {
+        return _paiList;
+    }
+
+    public void ClearPai()
+    {
+        _paiList.Clear();
+    }
+
+    public void AddPai(pb.CardInfo card)
+    {
+        Pai pai = new Pai();
+        pai.Id = card.CardId;
+        pai.Status = card.Status;
+        _paiList.Add(pai);
+    }
+
 }
