@@ -4,7 +4,7 @@ using System.Collections;
 public enum MsgDef
 {
     None = 1,
-    C2GSLogin = 10000,
+    C2GSLogin = 0,
     GS2CLoginRet,
     C2GSEnterGame,
     GS2CEnterGameRet,

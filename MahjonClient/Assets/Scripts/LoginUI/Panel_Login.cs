@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Panel_Login : WindowsBasePanel
 {
-    private UIInput _nickNameInput;
+    private UIInput _accountInput;
     private UIInput _passwordInput;
     private GameObject _btnEnterGame;
 
     public override void OnAwake()
     {
         base.OnAwake();
-        _nickNameInput = transform.FindChild("").GetComponent<UIInput>();
-        _passwordInput = transform.FindChild("").GetComponent<UIInput>();
+        _accountInput = transform.FindChild("AccountInput").GetComponent<UIInput>();
+        _passwordInput = transform.FindChild("PasswordInput").GetComponent<UIInput>();
         _btnEnterGame = transform.FindChild("btn_enterGame").gameObject;
 
         UIEventListener.Get(_btnEnterGame).onClick = OnEnterGame;
@@ -21,7 +21,7 @@ public class Panel_Login : WindowsBasePanel
     private void OnEnterGame(GameObject go)
     {
         Debug.Log("OnEnterGame");
-        if (string.IsNullOrEmpty(_nickNameInput.value))
+        if (string.IsNullOrEmpty(_accountInput.value))
         {
             return;
         }
@@ -29,6 +29,6 @@ public class Panel_Login : WindowsBasePanel
         {
             return;
         }
-        GameMsgHandler.Instance.SendMsgC2GSLogin(_nickNameInput.value, _passwordInput.value);
+        GameMsgHandler.Instance.SendMsgC2GSLogin(_accountInput.value, _passwordInput.value);
     }
 }
