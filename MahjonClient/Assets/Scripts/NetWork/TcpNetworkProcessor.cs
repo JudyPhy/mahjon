@@ -390,11 +390,13 @@ public sealed class TcpNetworkProcessor
         byte[] tcpMessageBuffer = new byte[packetSize];
 
         //1th step: set message length  
-        byte[] packetSizeBytes = BitConverter.GetBytes(packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
+        int bigEndian_packetSize = IPAddress.HostToNetworkOrder(packetSize);
+        byte[] packetSizeBytes = BitConverter.GetBytes(bigEndian_packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
         Buffer.BlockCopy(packetSizeBytes, 0, tcpMessageBuffer, 0, packetSizeBytes.Length);
 
         //2th step: set message id
-        byte[] pidBytes = BitConverter.GetBytes(id);
+        int bigEndian_id = IPAddress.HostToNetworkOrder(id);
+        byte[] pidBytes = BitConverter.GetBytes(bigEndian_id);
         Buffer.BlockCopy(pidBytes, 0, tcpMessageBuffer, 2, pidBytes.Length);
 
         //3th step: set protobuf messsage

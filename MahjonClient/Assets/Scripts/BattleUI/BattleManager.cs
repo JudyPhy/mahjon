@@ -142,7 +142,7 @@ public class BattleManager
                 break;
         }
     }
-
+    
     public int GetSideIndexFromSelf(pb.BattleSide side)
     {
         if (_playerPaiInfoDict.ContainsKey(Player.Instance.PlayerInfo.OID))
