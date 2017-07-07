@@ -390,17 +390,26 @@ public sealed class TcpNetworkProcessor
         byte[] tcpMessageBuffer = new byte[packetSize];
 
         //1th step: set message length  
-        int bigEndian_packetSize = IPAddress.HostToNetworkOrder(packetSize);
-        byte[] packetSizeBytes = BitConverter.GetBytes(bigEndian_packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
+        //int bigEndian_packetSize = IPAddress.HostToNetworkOrder(packetSize);
+        byte[] packetSizeBytes = BitConverter.GetBytes(packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
+        Array.Reverse(packetSizeBytes);
         Buffer.BlockCopy(packetSizeBytes, 0, tcpMessageBuffer, 0, packetSizeBytes.Length);
 
         //2th step: set message id
-        int bigEndian_id = IPAddress.HostToNetworkOrder(id);
-        byte[] pidBytes = BitConverter.GetBytes(bigEndian_id);
+        //int bigEndian_id = IPAddress.HostToNetworkOrder(id);
+        byte[] pidBytes = BitConverter.GetBytes(id);
+        Array.Reverse(pidBytes);
         Buffer.BlockCopy(pidBytes, 0, tcpMessageBuffer, 2, pidBytes.Length);
 
         //3th step: set protobuf messsage
         Buffer.BlockCopy(protobufBuffer, 0, tcpMessageBuffer, PacketHeadSize, protobufBuffer.Length);
+
+        string str = "tcpMessageBuffer:";
+        for (int i = 0; i < tcpMessageBuffer.Length; i++)
+        {
+            str += tcpMessageBuffer[i] + ", ";
+        }
+        Debug.LogError(str);
 
         //send
         //enqueue msg package 
