@@ -3,38 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
-public class PlayerInfo
-{
-    private int _oid;
-    public int OID
-    {
-        get { return _oid; }
-    }
-    private string _nickName;
-    public string NickName
-    {
-        get { return _nickName; }
-    }
-    private string _headIcon;
-    public string HeadIcon
-    {
-        get { return _headIcon; }
-    }
-    private int _lev;
-    public int Lev
-    {
-        get { return _lev; }
-    }
-
-    public PlayerInfo(pb.PlayerInfo player)
-    {
-        _oid = player.oid;
-        _nickName = player.nickName;
-        _headIcon = player.headIcon;
-        _lev = player.lev;
-    }
-}
-
 public class Pai
 {
     private int _id;
@@ -71,8 +39,8 @@ public class BattleManager
         get { return _gameMode; }
     }
 
-    private int _roomId;
-    public int RoomID
+    private string _roomId;
+    public string RoomID
     {
         get { return _roomId; }
     }
@@ -80,12 +48,13 @@ public class BattleManager
 
     public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
     {
+        Debug.LogError("PrepareEnterGame=> _gameMode=" + msg.mode.ToString() + ", _roomId=" + msg.roomId);
         _gameMode = msg.mode;
         _roomId = msg.roomId;
         switch (msg.mode)
         {
             case pb.GameMode.CreateRoom:
-                UIManager.Instance.ShowMainWindow<PanelBattle>(eWindowsID.BattleUI);
+                UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
                 break;
             default:
                 break;

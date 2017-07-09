@@ -184,8 +184,9 @@
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_pai_hide.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_role.cs" />
-     <Compile Include="Assets\Scripts\BattleUI\PanelBattle.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\Panel_battle.cs" />
      <Compile Include="Assets\Scripts\BattleUI\SideInfo.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\SidePai.cs" />
      <Compile Include="Assets\Scripts\Effects\EffectDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\UIDepth.cs" />
      <Compile Include="Assets\Scripts\Effects\iTween.cs" />
@@ -201,6 +202,7 @@
      <Compile Include="Assets\Scripts\LitJson\JsonWriter.cs" />
      <Compile Include="Assets\Scripts\LitJson\Lexer.cs" />
      <Compile Include="Assets\Scripts\LitJson\ParserToken.cs" />
+     <Compile Include="Assets\Scripts\Loading\Panel_loading.cs" />
      <Compile Include="Assets\Scripts\LoginUI\Panel_Login.cs" />
      <Compile Include="Assets\Scripts\MainUI\MainUI.cs" />
      <Compile Include="Assets\Scripts\MsgHandler\GameMsgHandler.cs" />
@@ -212,6 +214,8 @@
      <Compile Include="Assets\Scripts\ReadCsv\ConfigData.cs" />
      <Compile Include="Assets\Scripts\ReadCsv\ReadCsv.cs" />
      <Compile Include="Assets\Scripts\ResourcesManager\ResourcesManager.cs" />
+     <Compile Include="Assets\Scripts\Tips\Panel_Tips.cs" />
+     <Compile Include="Assets\Scripts\Tips\TextTips.cs" />
      <Compile Include="Assets\Scripts\UIBaseManager\UIManager.cs" />
      <Compile Include="Assets\Scripts\WindowData\WindowsBasePanel.cs" />
      <Compile Include="Assets\Scripts\WindowData\WindowsID.cs" />
@@ -347,9 +351,6 @@
      <None Include="Assets\NGUI\Examples\Atlases\SciFi\SciFi Font - Normal.txt" />
      <None Include="Assets\NGUI\Examples\Models\Orc Armor\Orc Armor.shader" />
      <None Include="Assets\NGUI\Examples\Resources\Localization.txt" />
- <Reference Include="UnityEngine.Advertisements">
- <HintPath>D:/Tool/Unity5.5.0f3/Editor/Data/UnityExtensions/Unity/Advertisements/UnityEngine.Advertisements.dll</HintPath>
- </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
@@ -364,9 +365,6 @@
  </Reference>
  <Reference Include="UnityEngine.HoloLens">
  <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.Purchasing">
- <HintPath>D:/Tool/Unity5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityPurchasing/UnityEngine.Purchasing.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.VR">
  <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>

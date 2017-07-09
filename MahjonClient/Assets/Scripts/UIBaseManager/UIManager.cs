@@ -14,6 +14,8 @@ public class UIManager : MonoBehaviour
     private bool IsShowingWindow_ = false;
     //等待删除的窗口
     public Dictionary<eWindowsID, WindowsBasePanel> DeletingWindowsDict_ = new Dictionary<eWindowsID, WindowsBasePanel>();
+    //当前提示窗口
+    private Panel_Tips _curTipsWindow;
 
     void Awake()
     {
@@ -77,6 +79,22 @@ public class UIManager : MonoBehaviour
         this.DeletingWindowsDict_.Add(windowId, this.CurShowingWindow_);
     }
 
+    public void ShowTips(TipsType type, params object[] args)
+    {
+        if (_curTipsWindow == null)
+        {
+            _curTipsWindow = AddChild<Panel_Tips>(_centerRoot);
+        }
+        switch (type)
+        {
+            case TipsType.text:
+                _curTipsWindow.ShowTextTips((string)args[0]);
+                break;
+            default:
+                break;
+        }
+    }
+
     private void Update()
     {
         if (!this.IsShowingWindow_)
@@ -114,6 +132,16 @@ public class UIManager : MonoBehaviour
         obj.transform.localEulerAngles = Vector3.zero;
         obj.transform.localPosition = Vector3.zero;
         obj.transform.localScale = Vector3.one;
+    }
+
+    public static GameObject AddGameObject(string prefabPath, GameObject parent)
+    {
+        GameObject obj = ResourcesManager.Instance.GetUIPrefabs(prefabPath);
+        if (obj != null)
+        {
+            AddGameObject(parent, obj);
+        }
+        return obj;
     }
 
 }

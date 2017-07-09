@@ -13,20 +13,21 @@ public class Panel_Login : WindowsBasePanel
         base.OnAwake();
         _accountInput = transform.FindChild("AccountInput").GetComponent<UIInput>();
         _passwordInput = transform.FindChild("PasswordInput").GetComponent<UIInput>();
-        _btnEnterGame = transform.FindChild("btn_enterGame").gameObject;
+        _btnEnterGame = transform.FindChild("EnterButton").gameObject;
 
         UIEventListener.Get(_btnEnterGame).onClick = OnEnterGame;
     }
 
     private void OnEnterGame(GameObject go)
     {
-        Debug.Log("OnEnterGame");
         if (string.IsNullOrEmpty(_accountInput.value))
         {
+            UIManager.Instance.ShowTips(TipsType.text, "账号不能为空");
             return;
         }
         if (string.IsNullOrEmpty(_passwordInput.value))
         {
+            UIManager.Instance.ShowTips(TipsType.text, "密码不能为空");
             return;
         }
         GameMsgHandler.Instance.SendMsgC2GSLogin(_accountInput.value, _passwordInput.value);

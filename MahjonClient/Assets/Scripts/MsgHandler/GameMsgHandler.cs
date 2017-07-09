@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.IO;
+using System;
 
 public class GameMsgHandler
 {
@@ -19,22 +20,23 @@ public class GameMsgHandler
     }
 
     #region C->GS
-    public void SendMsgC2GSLogin(string nickName, string password)
+    public void SendMsgC2GSLogin(string account, string password)
     {
-        Debug.Log("SendMsgC2GSLogin==>> nickName[" + nickName + "], password[" + password + "]");
+        Debug.Log("==>> login req time=" + Time.deltaTime);
+        Debug.Log("SendMsgC2GSLogin==>> account[" + account + "], password[" + password + "]");
         pb.C2GSLogin msg = new pb.C2GSLogin();
-        msg.nickName = nickName;
+        msg.account = account;
         msg.password = password;
-        NetworkManager.Instance.SendToGS((int)MsgDef.C2GSLogin, msg);
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSLogin, msg);
     }
 
-    public void SendMsgC2GSEnterGame(pb.GameMode mode, int roomId = 0)
+    public void SendMsgC2GSEnterGame(pb.GameMode mode, string roomId = "")
     {
         Debug.Log("SendMsgC2GSEnterGame==>> [" + mode + "]");
         pb.C2GSEnterGame msg = new pb.C2GSEnterGame();
         msg.mode = mode;
         msg.roomId = roomId;
-        NetworkManager.Instance.SendToGS((int)MsgDef.C2GSEnterGame, msg);
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSEnterGame, msg);
     }
 
     #endregion
@@ -44,6 +46,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CLoginRet(int pid, byte[] msgBuf, int msgSize)
     {
+        Debug.Log("==>> login recv time=" + Time.deltaTime);
         Debug.Log("==>> RevMsgGS2CLoginRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CLoginRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CLoginRet>(stream);
@@ -64,7 +67,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CEnterGameRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CEnterGameRet");
+        Debug.Log("==>> RevMsgGS2CEnterGameRet, recv time=" + Time.deltaTime);
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CEnterGameRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CEnterGameRet>(stream);
         switch (msg.errorCode)

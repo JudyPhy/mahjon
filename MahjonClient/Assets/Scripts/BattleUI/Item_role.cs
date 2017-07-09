@@ -27,7 +27,7 @@ public class Item_role : MonoBehaviour {
     public void UpdateUI()
     {
         _nameText.text = _battlePlayerInfo.player.nickName;
-        _levText.text = _battlePlayerInfo.player.lev.ToString();
+        _levText.text = _battlePlayerInfo.player.gold.ToString();
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_battlePlayerInfo.side);
         if (sideIndex >= 0 && sideIndex < _roleItemPos.Length)
         {

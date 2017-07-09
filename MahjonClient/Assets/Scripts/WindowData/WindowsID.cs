@@ -5,6 +5,7 @@ using System.Collections;
 public enum eWindowsID
 {
     LoginUI = 1,
+    LoadingUI,
     MainUI,
     BattleUI,
 }

@@ -226,7 +226,7 @@ public sealed class TcpNetworkProcessor
                 }
                 try
                 {
-                    byte[] buffer = new byte[8192];
+                    byte[] buffer = new byte[4096];
                     //ProcessAsyncRecv方法中会一直等待服务端回发消息
                     //如果没有回发会一直在这里等着。
                     int buffSize = this.NativeSocket_.Receive(buffer);
@@ -286,6 +286,13 @@ public sealed class TcpNetworkProcessor
         if (this.MsgIncompleteBuffer_ == null)
         {
             msgBuffer_ = buffer;
+
+            /*string str = "recv msg:";
+            for (int i = 0; i < msgBuffer_.Length; i++)
+            {
+                str += msgBuffer_[i] + ", ";
+            }
+            Debug.LogError(str);*/
         }
         else
         {
@@ -311,9 +318,9 @@ public sealed class TcpNetworkProcessor
                 break;
             }
             //剩余未拆包消息大于包头，说明没接收完，等待后面消息到来
-            byte[] array = { msgBuffer_[0], msgBuffer_[1] };  //包头前2个字节是消息长度
-            int packageSize = ConvertByteArrayToInt(array);
-            if (packageSize > msgLength - curPos)
+            byte[] array = { msgBuffer_[0], msgBuffer_[1] };  //包头前2个字节是（proto消息+id）总长度
+            int sizePackage = ConvertByteArrayToInt(array) + 2;
+            if (sizePackage > msgLength - curPos)
             {
                 int remainByteCount = msgLength - curPos;
                 byte[] incompleteBuffer = new byte[remainByteCount];
@@ -321,15 +328,17 @@ public sealed class TcpNetworkProcessor
                 this.MsgIncompleteBuffer_ = incompleteBuffer;
                 break;
             }
-            byte[] msgPackage = new byte[packageSize];
-            Buffer.BlockCopy(msgBuffer_, curPos, msgPackage, 0, packageSize);
-            byte[] array2 = { msgBuffer_[3], msgBuffer_[4] };  //包头后2个字节是消息ID
+                        
+            byte[] array2 = { msgBuffer_[2], msgBuffer_[3] };  //包头后2个字节是消息ID
             int pid = ConvertByteArrayToInt(array2);
-            int protoBuffSize = packageSize - PacketHeadSize;
+
+            byte[] protobufMsg = new byte[sizePackage];
+            Buffer.BlockCopy(msgBuffer_, curPos, protobufMsg, 0, sizePackage);
+            int protoBuffSize = sizePackage - PacketHeadSize;
             byte[] protoBuffer = new byte[protoBuffSize];
-            Buffer.BlockCopy(msgPackage, PacketHeadSize, protoBuffer, 0, protoBuffSize);
+            Buffer.BlockCopy(protobufMsg, PacketHeadSize, protoBuffer, 0, protoBuffSize);
             BuildMessage(protoBuffer, protoBuffSize, pid);
-            curPos += packageSize;
+            curPos += sizePackage;
         }
     }
 
@@ -374,7 +383,7 @@ public sealed class TcpNetworkProcessor
     }
 
     //发送消息
-    public bool Send(int id, System.Object msg)
+    public bool Send(UInt16 id, System.Object msg)
     {
         if (!(msg is ProtoBuf.IExtensible))
         {
@@ -386,30 +395,29 @@ public sealed class TcpNetworkProcessor
         byte[] protobufBuffer = stream.ToArray();
 
         //prepare fill send msgbuffer
-        int packetSize = PacketHeadSize + protobufBuffer.Length;
-        byte[] tcpMessageBuffer = new byte[packetSize];
+        byte[] tcpMessageBuffer = new byte[protobufBuffer.Length + PacketHeadSize];
 
-        //1th step: set message length  
-        //int bigEndian_packetSize = IPAddress.HostToNetworkOrder(packetSize);
-        byte[] packetSizeBytes = BitConverter.GetBytes(packetSize);  // BitConverter.GetBytes返回长度为2的字节数组
+        //1th step: set message length 
+        UInt16 msgLen = (UInt16)(protobufBuffer.Length + 2);
+        byte[] packetSizeBytes = BitConverter.GetBytes(msgLen);
         Array.Reverse(packetSizeBytes);
         Buffer.BlockCopy(packetSizeBytes, 0, tcpMessageBuffer, 0, packetSizeBytes.Length);
 
         //2th step: set message id
-        //int bigEndian_id = IPAddress.HostToNetworkOrder(id);
         byte[] pidBytes = BitConverter.GetBytes(id);
         Array.Reverse(pidBytes);
         Buffer.BlockCopy(pidBytes, 0, tcpMessageBuffer, 2, pidBytes.Length);
 
         //3th step: set protobuf messsage
+        //Array.Reverse(protobufBuffer);
         Buffer.BlockCopy(protobufBuffer, 0, tcpMessageBuffer, PacketHeadSize, protobufBuffer.Length);
 
-        string str = "tcpMessageBuffer:";
+        /*string str = "tcpMessageBuffer:";
         for (int i = 0; i < tcpMessageBuffer.Length; i++)
         {
             str += tcpMessageBuffer[i] + ", ";
         }
-        Debug.LogError(str);
+        Debug.LogError(str);*/
 
         //send
         //enqueue msg package 

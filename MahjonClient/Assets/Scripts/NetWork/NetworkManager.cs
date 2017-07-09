@@ -36,7 +36,7 @@ public class NetworkManager : MonoBehaviour
 
     private void Start()
     {
-        NetworkManager.Instance.ConnectGameServer("127.0.0.1", 3563);
+        NetworkManager.Instance.ConnectGameServer("192.168.1.7", 3563);
     }
 
     //初始化socket连接
@@ -207,7 +207,7 @@ public class NetworkManager : MonoBehaviour
 
 
     // 发送消息到游戏服务器
-    public bool SendToGS(int id, System.Object msg)
+    public bool SendToGS(UInt16 id, System.Object msg)
     {
         if (null == this.GameServerTcpConnect_ || !this.GameServerTcpConnect_.IsConnected())
         {
@@ -217,19 +217,20 @@ public class NetworkManager : MonoBehaviour
         return this.GameServerTcpConnect_.Send(id, msg);
     }
 
-    //断开网关
-    public void DisconnectGateServer()
+    //断开游戏服务器
+    public void DisconnectGameServer()
     {
-        if (null != this.GateServerTcpConnect_)
+        if (null != this.GameServerTcpConnect_)
         {
-            this.GateServerTcpConnect_.DisConnect();
+            this.GameServerTcpConnect_.DisConnect();
         }
     }
 
 
     private void OnDestroy()
     {
-        DisconnectGateServer();
+        DisconnectGameServer();
     }
+    
 
 }

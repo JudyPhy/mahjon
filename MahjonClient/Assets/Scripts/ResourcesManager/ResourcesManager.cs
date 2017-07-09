@@ -22,20 +22,16 @@ public class ResourcesManager {
         return path;
     }
 
-    public string GetResPath(string resName) {        
-        switch (resName) {
-            case "Panel_Login":
-                return "Prefabs/UI/Panel_Login";
-            case "MainUI":
-                return "Prefabs/UI/MainUI";
-            case "PanelBattle":
-                return "Prefabs/UI/PanelBattle";
-            case "Item_role":
-                return "Prefabs/UI/Item_role";
+    public string GetResPath(string resName)
+    {
+        switch (resName)
+        {
+            case "SidePai":
+                return "3d/model/" + resName;
             default:
                 break;
         }
-        return "";
+        return "Prefabs/UI/" + resName;
     }
 
     public GameObject GetUIPrefabs(string path) {
