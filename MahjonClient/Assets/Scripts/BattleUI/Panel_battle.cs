@@ -26,16 +26,16 @@ public class Panel_battle : WindowsBasePanel
 
     // table
     private Animation _tableAni;
-    private List<SidePai> _sidePaiList = new List<SidePai>(); //从自己方位(0)开始，顺时针旋转
+    private List<SidePai> _sidePaiWallList = new List<SidePai>(); //从自己方位(0)开始，顺时针旋转
 
     // players
     private GameObject _playerRoot;
     private List<Item_role> _roleItemList = new List<Item_role>();
-    private List<pb.BattleSide> _sortedSideListFromSelf = new List<pb.BattleSide>(); //从自己方位(0)开始，顺时针旋转
-    private Vector3[] _roleItemPos = { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0) }; //从自己方位开始顺时针旋转
+    private List<pb.BattleSide> _sortedSideListFromSelf = new List<pb.BattleSide>(); //从自己方位(0)开始，顺时针旋转    
 
     // side pai
-
+    private Dictionary<pb.BattleSide, List<Item_pai>> _sidePaiDict = new Dictionary<pb.BattleSide, List<Item_pai>>();
+    private Dictionary<pb.BattleSide, GameObject> _sideItemPaiRoot = new Dictionary<pb.BattleSide, GameObject>();
         
     private int[] _shaiziValue = new int[2];
 
@@ -50,11 +50,18 @@ public class Panel_battle : WindowsBasePanel
         {
             SidePai pai = UIManager.AddChild<SidePai>(_tableRoot);
             pai.UpdatePai(i);
-            _sidePaiList.Add(pai);
+            _sidePaiWallList.Add(pai);
         }
 
         // players info
         _playerRoot = transform.FindChild("").gameObject;
+
+        //pai
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject root = transform.FindChild("").gameObject;
+            _sideItemPaiRoot.Add((pb.BattleSide)(i + 1), root);
+        }
     }
 
     public override void OnStart()
@@ -101,6 +108,7 @@ public class Panel_battle : WindowsBasePanel
             playerList.Add(player);
         }
         Debug.Log("UpdateRoleInRoom=> current player count:" + playerList.Count);
+        Vector3[] _roleItemPos = { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0) };
         for (int i = 0; i < playerList.Count; i++)
         {
             if (playerList[i] == null)
@@ -125,16 +133,17 @@ public class Panel_battle : WindowsBasePanel
 
     private void PlayTableAni()
     {
+        Debug.Log("play table ani start...");
         _tableAni.Play();
         Invoke("PaiShownAni", 0.5f);
     }
 
     private void PaiShownAni()
     {
-        for (int i = 0; i < _sidePaiList.Count; i++)
+        for (int i = 0; i < _sidePaiWallList.Count; i++)
         {
-            _sidePaiList[i].gameObject.SetActive(true);
-            iTween.MoveTo(_sidePaiList[i].gameObject, iTween.Hash("y", -0.32f, "islocal", true, "easytype", iTween.EaseType.linear,
+            _sidePaiWallList[i].gameObject.SetActive(true);
+            iTween.MoveTo(_sidePaiWallList[i].gameObject, iTween.Hash("y", -0.32f, "islocal", true, "easytype", iTween.EaseType.linear,
                 "time", 2.5f));
         }
         Invoke("PlayTableAniOver", 2.5f);
@@ -147,29 +156,22 @@ public class Panel_battle : WindowsBasePanel
 
     private void PlayShaiZiAni()
     {
+        Debug.Log("play shaizi ani start...");
         _shaiziValue[0] = Random.Range(1, 6);
         _shaiziValue[1] = Random.Range(1, 6);
     }
-
-    //顺时针摸牌
+    
     private void PlayStartDrawPaiAni()
     {
+        Debug.Log("play draw pai ani start...");
         HidePaiInWallByGameStart();
-        DealPaiByGameStart();
+        DrawPaiByGameStart();
     }
 
     private void HidePaiInWallByGameStart()
     {
         pb.BattleSide dealerSide = BattleManager.Instance.GetDealerSide();
-        int curSidePaiIndex = -1;
-        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
-        {
-            if (dealerSide == _sortedSideListFromSelf[i])
-            {
-                curSidePaiIndex = i;
-                break;
-            }
-        }
+        int curSidePaiIndex = GetSideIndexFromSelf(dealerSide);
         if (curSidePaiIndex == -1)
         {
             Debug.LogError("dealer side is none.");
@@ -179,7 +181,7 @@ public class Panel_battle : WindowsBasePanel
         int drawPaiCount = 0;
         while (drawPaiCount < 13 * 4 + 1)
         {
-            bool hideSuc = _sidePaiList[curSidePaiIndex].HideDrawStartPai(drawOffsetIndex);
+            bool hideSuc = _sidePaiWallList[curSidePaiIndex].HideDrawStartPai(drawOffsetIndex);
             if (hideSuc)
             {
                 drawPaiCount++;
@@ -189,7 +191,7 @@ public class Panel_battle : WindowsBasePanel
             {
                 curSidePaiIndex++;
                 drawOffsetIndex = 0;
-                if (curSidePaiIndex >= _sidePaiList.Count)
+                if (curSidePaiIndex >= _sidePaiWallList.Count)
                 {
                     curSidePaiIndex = 0;
                 }
@@ -197,12 +199,46 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private void DealPaiByGameStart()
+    private int GetSideIndexFromSelf(pb.BattleSide side)
     {
         for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
+            if (side == _sortedSideListFromSelf[i])
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private Item_pai GetItemPaiBySide(pb.BattleSide side, int index)
+    {
+        List<Item_pai> itemList = _sidePaiDict[side];
+        if (index < itemList.Count)
+        {
+            return itemList[index];
+        }
+        Item_pai script = UIManager.AddChild<Item_pai>(_sideItemPaiRoot[side]);
+        itemList.Add(script);
+        return script;
+    }
+
+    private void DrawPaiByGameStart()
+    {
+        float[] xoffset = { };
+        float[] yoffset = { };
+        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
+        {
             List<Pai> list = BattleManager.Instance.GetPaiListBySide(_sortedSideListFromSelf[i]);
-            
+            int sideIndex = GetSideIndexFromSelf(_sortedSideListFromSelf[i]);
+            float xInterval = 0;
+            float yInterval = 0;
+            for (int index_pai = 0; index_pai < list.Count; index_pai++)
+            {
+                Item_pai item = GetItemPaiBySide(_sortedSideListFromSelf[i], index_pai);
+                item.UpdateUI(list[index_pai]);
+                item.transform.localPosition = new Vector3(xoffset[sideIndex] + index_pai * xInterval, yoffset[sideIndex] + index_pai * yInterval, 0);
+            }
         }
     }
 

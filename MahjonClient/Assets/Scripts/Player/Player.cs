@@ -46,7 +46,6 @@ public class PlayerInfo
 
 public class Player
 {
-
     private static Player _instance;
     public static Player Instance
     {

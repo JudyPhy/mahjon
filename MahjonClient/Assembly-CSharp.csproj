@@ -182,6 +182,7 @@
      <Compile Include="Assets\NGUI\Scripts\UI\UITooltip.cs" />
      <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\Item_pai.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_pai_hide.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_role.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Panel_battle.cs" />
