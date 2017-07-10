@@ -603,12 +603,20 @@ func (m *GS2CBattleStart) GetCardList() []*CardInfo {
 }
 
 type GS2CDiscardTimeOut struct {
+	PlayerId         *int32 `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
 func (m *GS2CDiscardTimeOut) Reset()         { *m = GS2CDiscardTimeOut{} }
 func (m *GS2CDiscardTimeOut) String() string { return proto.CompactTextString(m) }
 func (*GS2CDiscardTimeOut) ProtoMessage()    {}
+
+func (m *GS2CDiscardTimeOut) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
+}
 
 type C2GSDiscard struct {
 	CardId           *int32          `protobuf:"varint,1,req,name=cardId" json:"cardId,omitempty"`

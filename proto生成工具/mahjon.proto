@@ -116,6 +116,7 @@ message GS2CBattleStart
 
 message GS2CDiscardTimeOut
 {
+	required int32 playerId = 1;
 }
 
 message C2GSDiscard

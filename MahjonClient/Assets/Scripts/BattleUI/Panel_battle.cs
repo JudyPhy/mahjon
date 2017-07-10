@@ -18,6 +18,8 @@ public enum BattleProcess
     PlayStartDrawAniStart,
     PlayingStartDrawAni,
     PlayStartDrawAniOver,
+
+    GameStart,
 }
 
 public class Panel_battle : WindowsBasePanel
@@ -270,9 +272,9 @@ public class Panel_battle : WindowsBasePanel
                 _battleProcess = BattleProcess.PlayingStartDrawAni;
                 PlayStartDrawPaiAni();
                 break;
-            /*case BattleProcess.PlayDealPaiAniOver:
-                _battleProcess = BattleProcess.PlayDealPaiAniStart;
-                break;*/
+            case BattleProcess.PlayStartDrawAniOver:
+                _battleProcess = BattleProcess.GameStart;
+                break;
             default:
                 break;
         }

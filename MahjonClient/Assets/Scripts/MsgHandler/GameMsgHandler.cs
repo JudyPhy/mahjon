@@ -99,5 +99,13 @@ public class GameMsgHandler
         BattleManager.Instance.PrepareGameStart(msg);
     }
 
+    public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CDiscardTimeOut");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CDiscardTimeOut msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardTimeOut>(stream);
+        BattleManager.Instance.DiscardTimeOut(msg.playerId);
+    }
+
     #endregion
 }

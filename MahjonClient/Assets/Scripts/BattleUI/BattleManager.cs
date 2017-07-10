@@ -187,4 +187,9 @@ public class BattleManager
         return new List<Pai>();
     }
 
+    public void DiscardTimeOut(int playerId)
+    {
+
+    }
+
 }
