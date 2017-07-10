@@ -1,5 +1,0 @@
-D:\Project\U3D\MJ\MJ\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
-<<<<<<< HEAD
-=======
-D:\Project\U3D\MahjonClient\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
->>>>>>> 52ad724b41d9e08573258ee6687202786d75ae50
