@@ -3,23 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
-public class Pai
-{
-    private int _id;
-    public int Id
-    {
-        set { _id = value; }
-        get { return _id; }
-    }
-
-    private pb.CardStatus _status;
-    public pb.CardStatus Status
-    {
-        set { _status = value; }
-        get { return _status; }
-    }
-}
-
 public class BattleManager
 {
     private static BattleManager _instance;
@@ -34,17 +17,11 @@ public class BattleManager
     }
 
     private pb.GameMode _gameMode;
-    public pb.GameMode GameMode
-    {
-        get { return _gameMode; }
-    }
-
     private string _roomId;
-    public string RoomID
-    {
-        get { return _roomId; }
-    }
-    private Dictionary<int, SideInfo> _playerPaiInfoDict = new Dictionary<int, SideInfo>();
+    public bool IsWaitingEnterRoomRet = false;
+    private int _dealerId;
+
+    private List<SideInfo> _playerPaiInfoList = new List<SideInfo>();
 
     public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
     {
@@ -54,11 +31,25 @@ public class BattleManager
         switch (msg.mode)
         {
             case pb.GameMode.CreateRoom:
-                UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
+                BattleManager.Instance.IsWaitingEnterRoomRet = false;
                 break;
             default:
                 break;
         }
+    }
+
+    private int getPlayerIndexInList(int playerId)
+    {
+        int index = -1;
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == playerId)
+            {
+                index = i;
+                break;
+            }
+        }
+        return index;
     }
 
     public void UpdatePlayerInfo(pb.GS2CUpdateRoomInfo msg)
@@ -68,25 +59,26 @@ public class BattleManager
             case pb.GS2CUpdateRoomInfo.Status.ADD:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
+                    if (getPlayerIndexInList(msg.player[i].player.oid) != -1)
                     {
-                        Debug.LogError("Dict has contained the player [" + msg.player[i].player.nickName + "], don't need add.");
+                        Debug.LogError("List has contained the player [" + msg.player[i].player.nickName + "], don't need add.");
                     }
                     else
                     {
                         SideInfo info = new SideInfo();
                         info.UpdateBattlePlayerInfo(msg.player[i]);
-                        _playerPaiInfoDict.Add(msg.player[i].player.oid, info);
-                        EventDispatcher.TriggerEvent<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, msg.player[i]);
+                        _playerPaiInfoList.Add(info);
+                        EventDispatcher.TriggerEvent(EventDefine.UpdateRoleInRoom);
                     }
                 }
                 break;
             case pb.GS2CUpdateRoomInfo.Status.REMOVE:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
+                    int index = getPlayerIndexInList(msg.player[i].player.oid);
+                    if (index != -1)
                     {
-                        _playerPaiInfoDict.Remove(msg.player[i].player.oid);
+                        _playerPaiInfoList.RemoveAt(index);
                     }
                     else
                     {
@@ -97,9 +89,10 @@ public class BattleManager
             case pb.GS2CUpdateRoomInfo.Status.UPDATE:
                 for (int i = 0; i < msg.player.Count; i++)
                 {
-                    if (_playerPaiInfoDict.ContainsKey(msg.player[i].player.oid))
+                    int index = getPlayerIndexInList(msg.player[i].player.oid);
+                    if (index != -1)
                     {
-                        _playerPaiInfoDict[msg.player[i].player.oid].UpdateBattlePlayerInfo(msg.player[i]);
+                        _playerPaiInfoList[index].UpdateBattlePlayerInfo(msg.player[i]);
                     }
                     else
                     {
@@ -111,59 +104,87 @@ public class BattleManager
                 break;
         }
     }
-    
-    public int GetSideIndexFromSelf(pb.BattleSide side)
+
+    public List<pb.BattleSide> GetSortSideListFromSelf()
     {
-        if (_playerPaiInfoDict.ContainsKey(Player.Instance.PlayerInfo.OID))
+        pb.BattleSide selfSide = GetSelfSide();
+        pb.BattleSide curSide = selfSide;
+        List<pb.BattleSide> sideSortList = new List<pb.BattleSide>();
+        do
         {
-            pb.BattleSide curSide = _playerPaiInfoDict[Player.Instance.PlayerInfo.OID].Side;
-            int index = 0;
-            while (curSide != side)
+            sideSortList.Add(curSide);
+            curSide++;
+            if (curSide >= pb.BattleSide.north)
             {
-                curSide++;
-                index++;
-                if (curSide > pb.BattleSide.north)
-                {
-                    curSide = pb.BattleSide.east;
-                }
+                curSide = pb.BattleSide.east;
             }
-            Debug.Log("index=" + index.ToString());
-            return index;
-        }
-        return -1;
+        } while (curSide != selfSide);
+        return sideSortList;
     }
 
-    private void ClearTable()
+    public PlayerInfo GetPlayerInfoBySide(pb.BattleSide side)
     {
-        foreach (int playerId in _playerPaiInfoDict.Keys)
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
-            _playerPaiInfoDict[playerId].ClearPai();
+            if (_playerPaiInfoList[i].Side == side)
+            {
+                return _playerPaiInfoList[i].PlayerInfo;
+            }
         }
+        return null;
+    }
+
+    private pb.BattleSide GetSelfSide()
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == Player.Instance.PlayerInfo.OID)
+            {
+                return _playerPaiInfoList[i].Side;
+            }
+        }
+        return pb.BattleSide.none;
     }
 
     public void PrepareGameStart(pb.GS2CBattleStart msg)
     {
+        _dealerId = msg.dealerId;
         for (int i = 0; i < msg.cardList.Count; i++)
         {
             pb.CardInfo card = msg.cardList[i];
-            if (_playerPaiInfoDict.ContainsKey(card.playerId))
+            for (int j = 0; j < _playerPaiInfoList.Count; j++)
             {
-                _playerPaiInfoDict[card.playerId].AddPai(card);
+                if (_playerPaiInfoList[j].PlayerInfo.OID == card.playerId)
+                {
+                    _playerPaiInfoList[j].AddPai(card);
+                }
             }
         }
-
-        foreach (int playerId in _playerPaiInfoDict.Keys)
-        {
-            List<Pai> list = _playerPaiInfoDict[playerId].GetPaiList();
-            Debug.LogError("player[" + _playerPaiInfoDict[playerId].PlayerInfo.NickName + "] has " + list.Count.ToString() + " cards when game start.");
-        }
-
-        EventDispatcher.TriggerEvent<int>(EventDefine.PlayGameStartAni, msg.dealerId);
+        EventDispatcher.TriggerEvent(EventDefine.PlayGameStartAni);
     }
 
-    private void UpdatePaiInfo(List<pb.CardInfo> list)
+    public pb.BattleSide GetDealerSide()
     {
-
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == _dealerId)
+            {
+                return _playerPaiInfoList[i].Side;
+            }
+        }
+        return pb.BattleSide.none;
+    }
+    
+    public List<Pai> GetPaiListBySide(pb.BattleSide side)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].Side == side)
+            {
+                return _playerPaiInfoList[i].GetPaiList();
+            }
+        }
+        return new List<Pai>();
     }
 
 }

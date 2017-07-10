@@ -98,12 +98,19 @@ namespace pb
       get { return _headIcon; }
       set { _headIcon = value; }
     }
-    private int _lev;
-    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"lev", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int lev
+    private int _gold;
+    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"gold", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int gold
     {
-      get { return _lev; }
-      set { _lev = value; }
+      get { return _gold; }
+      set { _gold = value; }
+    }
+    private int _diamond;
+    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"diamond", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int diamond
+    {
+      get { return _diamond; }
+      set { _diamond = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
@@ -115,12 +122,12 @@ namespace pb
   {
     public C2GSLogin() {}
     
-    private string _nickName;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"nickName", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    public string nickName
+    private string _account;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"account", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string account
     {
-      get { return _nickName; }
-      set { _nickName = value; }
+      get { return _account; }
+      set { _account = value; }
     }
     private string _password;
     [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"password", DataFormat = global::ProtoBuf.DataFormat.Default)]
@@ -188,10 +195,10 @@ namespace pb
       get { return _mode; }
       set { _mode = value; }
     }
-    private int _roomId = default(int);
-    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    [global::System.ComponentModel.DefaultValue(default(int))]
-    public int roomId
+    private string _roomId = "";
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue("")]
+    public string roomId
     {
       get { return _roomId; }
       set { _roomId = value; }
@@ -220,9 +227,9 @@ namespace pb
       get { return _mode; }
       set { _mode = value; }
     }
-    private int _roomId;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int roomId
+    private string _roomId;
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public string roomId
     {
       get { return _roomId; }
       set { _roomId = value; }
@@ -463,7 +470,10 @@ namespace pb
       west = 3,
             
       [global::ProtoBuf.ProtoEnum(Name=@"north", Value=4)]
-      north = 4
+      north = 4,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"none", Value=5)]
+      none = 5
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"CardStatus")]

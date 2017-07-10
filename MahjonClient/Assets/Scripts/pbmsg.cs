@@ -470,7 +470,10 @@ namespace pb
       west = 3,
             
       [global::ProtoBuf.ProtoEnum(Name=@"north", Value=4)]
-      north = 4
+      north = 4,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"none", Value=5)]
+      none = 5
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"CardStatus")]

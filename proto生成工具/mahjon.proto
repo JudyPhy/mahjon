@@ -5,26 +5,27 @@ package pb;
 
 enum GameMode
 {
-    JoinRoom =1;
-	CreateRoom =2;
-	QuickEnter =3;
+    JoinRoom = 1;
+	CreateRoom = 2;
+	QuickEnter = 3;
 }
 
 enum BattleSide
 {
-	east =1;
-	south =2;
-	west =3;
-	north =4;
+	east = 1;
+	south = 2;
+	west = 3;
+	north = 4;
+	none = 5;
 }
 
 enum CardStatus
 {
-	noDeal =1;
-	inHand =2;
-	bePeng =3;
-	beGang =4;
-	dicard =5;
+	noDeal = 1;
+	inHand = 2;
+	bePeng = 3;
+	beGang = 4;
+	dicard = 5;
 }
 
 enum DisacardStatus
@@ -54,13 +55,14 @@ message PlayerInfo
 	required int32 oid = 1;
 	required string nickName = 2;
 	required string headIcon = 3;
-	required int32 lev = 4;
+	required int32 gold = 4;
+	required int32 diamond = 5;
 }
 
 /////////////////////////////////////////////////////////////////////
 message C2GSLogin
 {
-	required string nickName = 1;
+	required string account = 1;
     required string password = 2;
 }
 
@@ -80,7 +82,7 @@ message GS2CLoginRet
 message C2GSEnterGame
 {
     required GameMode mode = 1;
-	optional int32 roomId = 2;	
+	optional string roomId = 2;	
 }
 
 message GS2CEnterGameRet
@@ -92,7 +94,7 @@ message GS2CEnterGameRet
 	}
     required ErrorCode errorCode = 1;	
 	required GameMode mode = 2;
-	required int32 roomId = 3;
+	required string roomId = 3;
 }
 
 message GS2CUpdateRoomInfo

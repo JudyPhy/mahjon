@@ -2,41 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item_role : MonoBehaviour {
-
-    private Vector3[] _roleItemPos = { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0) };
-
-    private pb.BattlePlayerInfo _battlePlayerInfo;
-    public pb.BattlePlayerInfo BattlePlayerInfo
-    {
-        set { _battlePlayerInfo = value; }
-        get { return _battlePlayerInfo; }
-    }
-
+public class Item_role : MonoBehaviour
+{
     private UILabel _nameText;
     private UISprite _headIcon;
-    private UILabel _levText;
+    private UILabel _goldText;
+
+    private PlayerInfo _playerInfo;
+    public PlayerInfo PlayerInfo
+    {
+        get { return _playerInfo; }
+    }
 
     void Awake()
     {
         _nameText = transform.FindChild("").GetComponent<UILabel>();
         _headIcon = transform.FindChild("").GetComponent<UISprite>();
-        _levText = transform.FindChild("").GetComponent<UILabel>();
+        _goldText = transform.FindChild("").GetComponent<UILabel>();
     }
 
-    public void UpdateUI()
+    public void UpdateUI(PlayerInfo player)
     {
-        _nameText.text = _battlePlayerInfo.player.nickName;
-        _levText.text = _battlePlayerInfo.player.gold.ToString();
-        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_battlePlayerInfo.side);
-        if (sideIndex >= 0 && sideIndex < _roleItemPos.Length)
-        {
-            transform.localPosition = _roleItemPos[sideIndex];
-        }
+        _playerInfo = player;
+        _nameText.text = _playerInfo.NickName;
+        _headIcon.spriteName = _playerInfo.HeadIcon;
+        _headIcon.MakePixelPerfect();
+        _goldText.text = _playerInfo.Gold.ToString();
     }
 
     // Update is called once per frame
-    void Update () {
-		
-	}
+    void Update()
+    {
+
+    }
 }

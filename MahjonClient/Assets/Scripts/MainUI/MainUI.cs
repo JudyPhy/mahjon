@@ -101,6 +101,7 @@ public class MainUI : WindowsBasePanel
     private void OnClikCreateRoom(GameObject go)
     {
         GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.CreateRoom);
+        BattleManager.Instance.IsWaitingEnterRoomRet = true;
         UIManager.Instance.ShowMainWindow<Panel_loading>(eWindowsID.LoadingUI);
     }
 

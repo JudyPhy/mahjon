@@ -8,6 +8,7 @@ public class Panel_loading : WindowsBasePanel
 
     private UILabel _tips;
     private DateTime _curTime;
+    private bool _loadResOver = false;
 
     public override void OnAwake()
     {
@@ -20,6 +21,18 @@ public class Panel_loading : WindowsBasePanel
     {
         base.OnStart();
         _curTime = DateTime.Now;
+        StartCoroutine(LoadTable());
+    }
+
+    private IEnumerator LoadTable()
+    {
+        GameObject root = GameObject.Find("TableRoot");
+        GameObject table = UIManager.AddGameObject("3d/model/table", root);
+        Animation ani = table.GetComponent<Animation>();
+        ani.Stop();
+        _loadResOver = true;        
+
+        yield return 0;
     }
 
     private bool IsOverTime()
@@ -35,6 +48,11 @@ public class Panel_loading : WindowsBasePanel
     public override void OnUpdate()
     {
         base.OnUpdate();
+        if (_loadResOver)
+        {
+            UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
+            return;
+        }
         if (IsOverTime())
         {
             _curTime = DateTime.Now;

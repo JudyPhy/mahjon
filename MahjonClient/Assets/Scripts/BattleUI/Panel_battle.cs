@@ -3,24 +3,48 @@ using System.Collections;
 using System.Collections.Generic;
 using EventTransmit;
 
+public enum BattleProcess
+{
+    Default,
+
+    PlayTableAniStart,
+    PlayingTableAni,
+    PlayingTableAniOver,
+
+    PlayShaiZiAniStart,
+    PlayingShaiZiAni,
+    PlayShaiZiAniOver,
+
+    PlayStartDrawAniStart,
+    PlayingStartDrawAni,
+    PlayStartDrawAniOver,
+}
+
 public class Panel_battle : WindowsBasePanel
 {
-    // table
-    private GameObject _tableRoot;
-    private Animation _tableAni;
-    private List<SidePai> _sidePaiList = new List<SidePai>(); //从自己方位开始顺时针旋转
+    private BattleProcess _battleProcess = BattleProcess.Default;
 
+    // table
+    private Animation _tableAni;
+    private List<SidePai> _sidePaiList = new List<SidePai>(); //从自己方位(0)开始，顺时针旋转
+
+    // players
     private GameObject _playerRoot;
-    private GameObject _prepareContainer;
-    private List<Item_role> _roleList = new List<Item_role>();
+    private List<Item_role> _roleItemList = new List<Item_role>();
+    private List<pb.BattleSide> _sortedSideListFromSelf = new List<pb.BattleSide>(); //从自己方位(0)开始，顺时针旋转
+    private Vector3[] _roleItemPos = { new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0) }; //从自己方位开始顺时针旋转
+
+    // side pai
+
+        
+    private int[] _shaiziValue = new int[2];
 
     public override void OnAwake()
     {
         base.OnAwake();
         // table
-        _tableRoot = GameObject.Find("TableRoot"); //find时必须激活预制
-        GameObject table = UIManager.AddGameObject("3d/model/table", _tableRoot);
-        _tableAni = table.GetComponent<Animation>();
+        GameObject _tableRoot = GameObject.Find("TableRoot");
+        _tableAni = _tableRoot.transform.FindChild("table").GetComponent<Animation>();
         _tableAni.Stop();
         for (int i = 0; i < 4; i++)
         {
@@ -29,16 +53,77 @@ public class Panel_battle : WindowsBasePanel
             _sidePaiList.Add(pai);
         }
 
+        // players info
         _playerRoot = transform.FindChild("").gameObject;
     }
 
     public override void OnStart()
     {
         base.OnStart();
-        PlayGameStartAni();
+        UpdateRoleInRoom();
+    }
+
+    public override void OnRegisterEvent()
+    {
+        base.OnRegisterEvent();
+        EventDispatcher.AddEventListener(EventDefine.UpdateRoleInRoom, UpdateRoleInRoom);
+        EventDispatcher.AddEventListener(EventDefine.PlayGameStartAni, PlayGameStartAni);
+    }
+
+    public override void OnRemoveEvent()
+    {
+        base.OnRemoveEvent();
+        EventDispatcher.RemoveEventListener(EventDefine.UpdateRoleInRoom, UpdateRoleInRoom);
+        EventDispatcher.RemoveEventListener(EventDefine.PlayGameStartAni, PlayGameStartAni);
+    }
+
+    private Item_role getRoleItem(int index)
+    {
+        if (index < _roleItemList.Count)
+        {
+            return _roleItemList[index];
+        }
+        else
+        {
+            Item_role script = UIManager.AddChild<Item_role>(_playerRoot);
+            _roleItemList.Add(script);
+            return script;
+        }
+    }
+
+    private void UpdateRoleInRoom()
+    {
+        _sortedSideListFromSelf = BattleManager.Instance.GetSortSideListFromSelf();
+        List<PlayerInfo> playerList = new List<PlayerInfo>();
+        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
+        {
+            PlayerInfo player = BattleManager.Instance.GetPlayerInfoBySide(_sortedSideListFromSelf[i]);
+            playerList.Add(player);
+        }
+        Debug.Log("UpdateRoleInRoom=> current player count:" + playerList.Count);
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if (playerList[i] == null)
+                continue;
+            Item_role itemScript = getRoleItem(i);
+            if (itemScript != null)
+            {
+                itemScript.UpdateUI(playerList[i]);
+                itemScript.gameObject.transform.localPosition = _roleItemPos[i];
+            }
+            else
+            {
+                Debug.LogError("get roleItem failed.");
+            }
+        }
     }
 
     private void PlayGameStartAni()
+    {
+        _battleProcess = BattleProcess.PlayTableAniStart;
+    }
+
+    private void PlayTableAni()
     {
         _tableAni.Play();
         Invoke("PaiShownAni", 0.5f);
@@ -52,63 +137,109 @@ public class Panel_battle : WindowsBasePanel
             iTween.MoveTo(_sidePaiList[i].gameObject, iTween.Hash("y", -0.32f, "islocal", true, "easytype", iTween.EaseType.linear,
                 "time", 2.5f));
         }
+        Invoke("PlayTableAniOver", 2.5f);
     }
 
-    public override void OnRegisterEvent()
+    private void PlayTableAniOver()
     {
-        base.OnRegisterEvent();
-        EventDispatcher.AddEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
-        EventDispatcher.AddEventListener<int>(EventDefine.PlayGameStartAni, PlayGameStartAni);
+        _battleProcess = BattleProcess.PlayingTableAniOver;
     }
 
-    public override void OnRemoveEvent()
+    private void PlayShaiZiAni()
     {
-        base.OnRemoveEvent();
-        EventDispatcher.RemoveEventListener<pb.BattlePlayerInfo>(EventDefine.AddRoleToRoom, AddRoleToRoom);
-        EventDispatcher.RemoveEventListener<int>(EventDefine.PlayGameStartAni, PlayGameStartAni);
+        _shaiziValue[0] = Random.Range(1, 6);
+        _shaiziValue[1] = Random.Range(1, 6);
     }
 
-    private Item_role getRoleItem(pb.BattlePlayerInfo role)
+    //顺时针摸牌
+    private void PlayStartDrawPaiAni()
     {
-        for (int i = 0; i < _roleList.Count; i++)
+        HidePaiInWallByGameStart();
+        DealPaiByGameStart();
+    }
+
+    private void HidePaiInWallByGameStart()
+    {
+        pb.BattleSide dealerSide = BattleManager.Instance.GetDealerSide();
+        int curSidePaiIndex = -1;
+        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
-            if (_roleList[i].gameObject.activeSelf && _roleList[i].BattlePlayerInfo.side == role.side)
+            if (dealerSide == _sortedSideListFromSelf[i])
             {
-                return _roleList[i];
+                curSidePaiIndex = i;
+                break;
             }
         }
-        for (int i = 0; i < _roleList.Count; i++)
+        if (curSidePaiIndex == -1)
         {
-            if (!_roleList[i].gameObject.activeSelf)
+            Debug.LogError("dealer side is none.");
+            return;
+        }
+        int drawOffsetIndex = Mathf.Min(_shaiziValue[0], _shaiziValue[1]) * 2 + 1;
+        int drawPaiCount = 0;
+        while (drawPaiCount < 13 * 4 + 1)
+        {
+            bool hideSuc = _sidePaiList[curSidePaiIndex].HideDrawStartPai(drawOffsetIndex);
+            if (hideSuc)
             {
-                _roleList[i].gameObject.SetActive(true);
-                _roleList[i].BattlePlayerInfo = role;
-                return _roleList[i];
+                drawPaiCount++;
+                drawOffsetIndex++;
+            }
+            else
+            {
+                curSidePaiIndex++;
+                drawOffsetIndex = 0;
+                if (curSidePaiIndex >= _sidePaiList.Count)
+                {
+                    curSidePaiIndex = 0;
+                }
             }
         }
-        Item_role script = UIManager.AddChild<Item_role>(_playerRoot);
-        script.BattlePlayerInfo = role;
-        _roleList.Add(script);
-        return script;
     }
 
-    private void AddRoleToRoom(pb.BattlePlayerInfo role)
+    private void DealPaiByGameStart()
     {
-        Debug.Log("AddRoleToRoom=>" + role.player.nickName);
-        Item_role itemScript = getRoleItem(role);
-        if (itemScript != null)
+        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
-            itemScript.UpdateUI();
-        }
-        else
-        {
-            Debug.LogError("player " + role.player.nickName + " item obj is null.");
+            List<Pai> list = BattleManager.Instance.GetPaiListBySide(_sortedSideListFromSelf[i]);
+            
         }
     }
 
-    private void PlayGameStartAni(int dealerId)
+    public override void OnUpdate()
     {
+        base.OnUpdate();
+        ProcessBattle();
+    }
 
+    private void ProcessBattle()
+    {
+        switch (_battleProcess)
+        {
+            case BattleProcess.PlayTableAniStart:
+                _battleProcess = BattleProcess.PlayingTableAni;
+                PlayTableAni();
+                break;
+            case BattleProcess.PlayingTableAniOver:
+                _battleProcess = BattleProcess.PlayShaiZiAniStart;
+                break;
+            case BattleProcess.PlayShaiZiAniStart:
+                _battleProcess = BattleProcess.PlayingShaiZiAni;
+                PlayShaiZiAni();
+                break;
+            case BattleProcess.PlayShaiZiAniOver:
+                _battleProcess = BattleProcess.PlayStartDrawAniStart;
+                break;
+            case BattleProcess.PlayStartDrawAniStart:
+                _battleProcess = BattleProcess.PlayingStartDrawAni;
+                PlayStartDrawPaiAni();
+                break;
+            /*case BattleProcess.PlayDealPaiAniOver:
+                _battleProcess = BattleProcess.PlayDealPaiAniStart;
+                break;*/
+            default:
+                break;
+        }
     }
 
 }

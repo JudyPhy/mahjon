@@ -77,6 +77,7 @@ const (
 	BattleSide_south BattleSide = 2
 	BattleSide_west  BattleSide = 3
 	BattleSide_north BattleSide = 4
+	BattleSide_none  BattleSide = 5
 )
 
 var BattleSide_name = map[int32]string{
@@ -84,12 +85,14 @@ var BattleSide_name = map[int32]string{
 	2: "south",
 	3: "west",
 	4: "north",
+	5: "none",
 }
 var BattleSide_value = map[string]int32{
 	"east":  1,
 	"south": 2,
 	"west":  3,
 	"north": 4,
+	"none":  5,
 }
 
 func (x BattleSide) Enum() *BattleSide {
@@ -402,7 +405,8 @@ type PlayerInfo struct {
 	Oid              *int32  `protobuf:"varint,1,req,name=oid" json:"oid,omitempty"`
 	NickName         *string `protobuf:"bytes,2,req,name=nickName" json:"nickName,omitempty"`
 	HeadIcon         *string `protobuf:"bytes,3,req,name=headIcon" json:"headIcon,omitempty"`
-	Lev              *int32  `protobuf:"varint,4,req,name=lev" json:"lev,omitempty"`
+	Gold             *int32  `protobuf:"varint,4,req,name=gold" json:"gold,omitempty"`
+	Diamond          *int32  `protobuf:"varint,5,req,name=diamond" json:"diamond,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -431,16 +435,23 @@ func (m *PlayerInfo) GetHeadIcon() string {
 	return ""
 }
 
-func (m *PlayerInfo) GetLev() int32 {
-	if m != nil && m.Lev != nil {
-		return *m.Lev
+func (m *PlayerInfo) GetGold() int32 {
+	if m != nil && m.Gold != nil {
+		return *m.Gold
+	}
+	return 0
+}
+
+func (m *PlayerInfo) GetDiamond() int32 {
+	if m != nil && m.Diamond != nil {
+		return *m.Diamond
 	}
 	return 0
 }
 
 // ///////////////////////////////////////////////////////////////////
 type C2GSLogin struct {
-	NickName         *string `protobuf:"bytes,1,req,name=nickName" json:"nickName,omitempty"`
+	Account          *string `protobuf:"bytes,1,req,name=account" json:"account,omitempty"`
 	Password         *string `protobuf:"bytes,2,req,name=password" json:"password,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
@@ -449,9 +460,9 @@ func (m *C2GSLogin) Reset()         { *m = C2GSLogin{} }
 func (m *C2GSLogin) String() string { return proto.CompactTextString(m) }
 func (*C2GSLogin) ProtoMessage()    {}
 
-func (m *C2GSLogin) GetNickName() string {
-	if m != nil && m.NickName != nil {
-		return *m.NickName
+func (m *C2GSLogin) GetAccount() string {
+	if m != nil && m.Account != nil {
+		return *m.Account
 	}
 	return ""
 }
@@ -489,7 +500,7 @@ func (m *GS2CLoginRet) GetPlayerInfo() *PlayerInfo {
 
 type C2GSEnterGame struct {
 	Mode             *GameMode `protobuf:"varint,1,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
-	RoomId           *int32    `protobuf:"varint,2,opt,name=roomId" json:"roomId,omitempty"`
+	RoomId           *string   `protobuf:"bytes,2,opt,name=roomId" json:"roomId,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
@@ -504,17 +515,17 @@ func (m *C2GSEnterGame) GetMode() GameMode {
 	return GameMode_JoinRoom
 }
 
-func (m *C2GSEnterGame) GetRoomId() int32 {
+func (m *C2GSEnterGame) GetRoomId() string {
 	if m != nil && m.RoomId != nil {
 		return *m.RoomId
 	}
-	return 0
+	return ""
 }
 
 type GS2CEnterGameRet struct {
 	ErrorCode        *GS2CEnterGameRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CEnterGameRet_ErrorCode" json:"errorCode,omitempty"`
 	Mode             *GameMode                   `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
-	RoomId           *int32                      `protobuf:"varint,3,req,name=roomId" json:"roomId,omitempty"`
+	RoomId           *string                     `protobuf:"bytes,3,req,name=roomId" json:"roomId,omitempty"`
 	XXX_unrecognized []byte                      `json:"-"`
 }
 
@@ -536,11 +547,11 @@ func (m *GS2CEnterGameRet) GetMode() GameMode {
 	return GameMode_JoinRoom
 }
 
-func (m *GS2CEnterGameRet) GetRoomId() int32 {
+func (m *GS2CEnterGameRet) GetRoomId() string {
 	if m != nil && m.RoomId != nil {
 		return *m.RoomId
 	}
-	return 0
+	return ""
 }
 
 type GS2CUpdateRoomInfo struct {
