@@ -18,11 +18,12 @@ func main() {
 	lconf.ConsolePort = conf.Server.ConsolePort
 	lconf.ProfilePath = conf.Server.ProfilePath
 
+	roomMgr.Init()
+
 	leaf.Run(
 		game.Module,
 		gate.Module,
 		login.Module,
 	)
 
-	roomMgr.Init()
 }

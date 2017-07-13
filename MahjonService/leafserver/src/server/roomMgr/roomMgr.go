@@ -5,6 +5,7 @@ import (
 	"server/pb"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/name5566/leaf/gate"
@@ -20,19 +21,23 @@ type RoomInfo struct {
 	playerList []*RoomPlayerInfo
 }
 
-// ------------------
-// | roomId | chans |
-// ------------------
+// ---------------------
+// | roomId | RoomInfo |
+// ---------------------
 var RoomChanDict map[string]*RoomInfo
+var lock_dict sync.Mutex
 
 func Init() {
-	log.Debug("init serverChanMgr...")
+	log.Debug("init roomMgr...")
+	ChanPlayerDict = make(map[gate.Agent]*PlayerInfo)
 	RoomChanDict = make(map[string]*RoomInfo)
 }
 
 func ReqNewRoom(a gate.Agent) string {
 	log.Debug("ReqNewRoom")
 	newRoomId := getRandomRoomId(6)
+	lock_dict.Lock()
+	defer lock_dict.Unlock()
 	for {
 		_, ok := RoomChanDict[newRoomId]
 		if ok {
@@ -71,6 +76,10 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	//battlePlayerInfo
 	battlePlayer := &pb.BattlePlayerInfo{}
 	chanPlayer := getPlayerBtAgent(a)
+	if chanPlayer == nil {
+		log.Error("player has not logined, can't add to room.")
+		return false
+	}
 	sideList := getLeftSideList(roomId)
 	battlePlayer.Side = getRandomSideBySideList(sideList)
 	battlePlayer.IsOwner = &isOwner
@@ -87,9 +96,23 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	roomPlayer.player = battlePlayer
 
 	//room
-	room := &RoomInfo{}
-	room.playerList = append(room.playerList, roomPlayer)
-	RoomChanDict[roomId] = room
+	lock_dict.Lock()
+	defer lock_dict.Unlock()
+	if _, ok := RoomChanDict[roomId]; ok {
+		RoomChanDict[roomId].playerList = append(RoomChanDict[roomId].playerList, roomPlayer)
+	} else {
+		room := &RoomInfo{}
+		room.playerList = append(room.playerList, roomPlayer)
+		RoomChanDict[roomId] = room
+	}
+
+	// send update room playr event
+	data := &pb.GS2CUpdateRoomInfo{}
+	data.Player = append(data.Player, battlePlayer)
+	data.Status = pb.GS2CUpdateRoomInfo_ADD.Enum()
+	for n, value := range RoomChanDict[roomId].playerList {
+		value.agent.WriteMsg(data)
+	}
 
 	return true
 }
@@ -111,6 +134,8 @@ func OutRoom(roomId string, a gate.Agent) {
 
 func getLeftSideList(roomId string) []pb.BattleSide {
 	origList := []pb.BattleSide{pb.BattleSide_east, pb.BattleSide_south, pb.BattleSide_west, pb.BattleSide_north}
+	lock_dict.Lock()
+	defer lock_dict.Unlock()
 	if _, ok := RoomChanDict[roomId]; ok {
 		result := []pb.BattleSide{}
 		for n, value := range origList {

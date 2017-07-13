@@ -33,16 +33,20 @@ func recvC2GSLogin(args []interface{}) {
 		Gold:     proto.Int32(99),
 		Diamond:  proto.Int32(100)}
 
+	log.Error("000000")
 	chanPlayer := roomMgr.NewPlayer(player)
 	roomMgr.AddChanPlayerInfo(a, chanPlayer)
 
 	//ret to client
-	if _, ok := roomMgr.ChanPlayerDict[a]; !ok {
-		ret := &pb.GS2CLoginRet{
-			ErrorCode:  pb.GS2CLoginRet_SUCCESS.Enum(),
-			PlayerInfo: player}
-		a.WriteMsg(ret)
+	log.Error("1111111")
+	/*ret := &pb.GS2CLoginRet{}
+	if _, ok := roomMgr.ChanPlayerDict[a]; ok {
+		log.Error("2222222222")
+		ret.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
+		ret.PlayerInfo = player
 	} else {
-		log.Error("the agent has logined.")
+		log.Error("the agent not login success.")
+		ret.ErrorCode = pb.GS2CLoginRet_FAIL.Enum()
 	}
+	a.WriteMsg(ret)*/
 }
