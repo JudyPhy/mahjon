@@ -41,10 +41,12 @@ func ReqNewRoom(a gate.Agent) string {
 	for {
 		_, ok := RoomChanDict[newRoomId]
 		if ok {
-			//exist
 			newRoomId = getRandomRoomId(6)
 		} else {
-			addPlayerToRoom(newRoomId, a, true)
+			result := addPlayerToRoom(newRoomId, a, true)
+			if !result {
+				log.Error("add player to room fail.")
+			}
 			break
 		}
 	}
@@ -56,17 +58,17 @@ func getRandomRoomId(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	rs := make([]string, length)
 	for start := 0; start < length; start++ {
-		t := rand.Intn(3)
-		if t == 0 {
-			//0~9数字
-			rs = append(rs, strconv.Itoa(rand.Intn(10)))
-		} else if t == 1 {
+		//t := rand.Intn(3)
+		//if t == 0 {
+		//0~9数字
+		rs = append(rs, strconv.Itoa(rand.Intn(10)))
+		/*} else if t == 1 {
 			//26个小写字母
 			rs = append(rs, string(rand.Intn(26)+65))
 		} else if t == 2 {
 			//26个大写字母
 			rs = append(rs, string(rand.Intn(26)+97))
-		}
+		}*/
 	}
 	return strings.Join(rs, "") //使用""拼接rs切片
 }
@@ -80,8 +82,11 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 		log.Error("player has not logined, can't add to room.")
 		return false
 	}
+	log.Debug("11111")
 	sideList := getLeftSideList(roomId)
+	log.Debug("22222")
 	battlePlayer.Side = getRandomSideBySideList(sideList)
+	log.Debug("33333")
 	battlePlayer.IsOwner = &isOwner
 	battlePlayer.Player = &pb.PlayerInfo{}
 	battlePlayer.Player.Oid = &chanPlayer._oid
@@ -91,11 +96,13 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	battlePlayer.Player.Diamond = &chanPlayer._diamond
 
 	//roomPlayer
+	log.Debug("444")
 	roomPlayer := &RoomPlayerInfo{}
 	roomPlayer.agent = a
 	roomPlayer.player = battlePlayer
 
 	//room
+	log.Debug("prepare room info")
 	lock_dict.Lock()
 	defer lock_dict.Unlock()
 	if _, ok := RoomChanDict[roomId]; ok {
@@ -107,10 +114,12 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	}
 
 	// send update room playr event
+	log.Debug("send room player info to client")
 	data := &pb.GS2CUpdateRoomInfo{}
 	data.Player = append(data.Player, battlePlayer)
 	data.Status = pb.GS2CUpdateRoomInfo_ADD.Enum()
 	for n, value := range RoomChanDict[roomId].playerList {
+		log.Debug("n=", n)
 		value.agent.WriteMsg(data)
 	}
 
@@ -161,6 +170,7 @@ func getLeftSideList(roomId string) []pb.BattleSide {
 }
 
 func getRandomSideBySideList(sideList []pb.BattleSide) *pb.BattleSide {
+	log.Debug("getRandomSideBySideList, left side list count=", len(sideList))
 	rand.Seed(time.Now().Unix())
 	rnd := rand.Intn(len(sideList))
 	return &sideList[rnd]

@@ -19,7 +19,7 @@ func init() {
 }
 
 func recvC2GSLogin(args []interface{}) {
-	log.Debug("recvC2GSLogin")
+	log.Debug("recvC2GSLogin=>")
 	m := args[0].(*pb.C2GSLogin)
 	log.Debug("Account=", m.GetAccount())
 	a := args[1].(gate.Agent)
@@ -33,20 +33,18 @@ func recvC2GSLogin(args []interface{}) {
 		Gold:     proto.Int32(99),
 		Diamond:  proto.Int32(100)}
 
-	log.Error("000000")
 	chanPlayer := roomMgr.NewPlayer(player)
 	roomMgr.AddChanPlayerInfo(a, chanPlayer)
 
 	//ret to client
-	log.Error("1111111")
-	/*ret := &pb.GS2CLoginRet{}
+	ret := &pb.GS2CLoginRet{}
 	if _, ok := roomMgr.ChanPlayerDict[a]; ok {
-		log.Error("2222222222")
+		log.Error("the agent login success.")
 		ret.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
 		ret.PlayerInfo = player
 	} else {
-		log.Error("the agent not login success.")
+		log.Error("the agent login fail.")
 		ret.ErrorCode = pb.GS2CLoginRet_FAIL.Enum()
 	}
-	a.WriteMsg(ret)*/
+	a.WriteMsg(ret)
 }
