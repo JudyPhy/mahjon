@@ -10,6 +10,12 @@ import (
 	"github.com/name5566/leaf/log"
 )
 
+type testAgent int
+
+func (t *testAgent) SetUserData() {
+
+}
+
 func handleMsg(m interface{}, h interface{}) {
 	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
 }

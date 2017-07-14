@@ -74,11 +74,23 @@ func getRandomRoomId(length int) string {
 
 func getPbPlayerInfo(playerchan *PlayerInfo) *pb.PlayerInfo {
 	player := &pb.PlayerInfo{}
-	player.Oid = proto.Int32(playerchan._oid)
-	player.NickName = proto.String(playerchan._nickName)
-	player.HeadIcon = proto.String(playerchan._headIcon)
-	player.Gold = proto.Int32(playerchan._gold)
-	player.Diamond = proto.Int32(playerchan._diamond)
+	player.Oid = proto.Int32(playerchan.oid)
+	player.NickName = proto.String(playerchan.nickName)
+	player.HeadIcon = proto.String(playerchan.headIcon)
+	player.Gold = proto.Int32(playerchan.gold)
+	player.Diamond = proto.Int32(playerchan.diamond)
+	return player
+}
+
+func newRobotPlayer(roomId string) *PlayerInfo {
+	log.Debug("newRobotPlayer")
+	player := &PlayerInfo{}
+	player.oid = strconv.Atoi(roomId) + len(Rooms.roomMap[roomId].playerList)
+	log.Debug("robot oid=%d", player.oid)
+	player.nickName = "robot"
+	player.headIcon = ""
+	player.gold = 0
+	player.diamond = 0
 	return player
 }
 
@@ -88,10 +100,9 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	//battlePlayerInfo
 	chanPlayer := getPlayerBtAgent(a)
 	if chanPlayer == nil {
-		log.Error("player has not logined, can't add to room.")
-		return false
+		log.Error("player has not logined, use robot player.")
+		chanPlayer = newRobotPlayer(roomId)
 	}
-	log.Debug("=============>chanPlayer oid:", chanPlayer._oid)
 	battlePlayer := &pb.BattlePlayerInfo{}
 	sideList := getLeftSideList(roomId)
 	battlePlayer.Side = getRandomSideBySideList(sideList)
@@ -160,6 +171,11 @@ func getRandomSideBySideList(sideList []pb.BattleSide) *pb.BattleSide {
 	return &sideList[rnd]
 }
 
+func TestGetSide(roomId string) *pb.BattleSide {
+	leftList := getLeftSideList(roomId)
+	return getRandomSideBySideList(leftList)
+}
+
 func OutRoom(roomId string, a gate.Agent) {
 	log.Debug("out room=", roomId)
 	Rooms.lock.Lock()
@@ -176,7 +192,7 @@ func OutRoom(roomId string, a gate.Agent) {
 				battlePlayer := &pb.BattlePlayerInfo{}
 				playerInfo := getPlayerBtAgent(a)
 				battlePlayer.Player = &pb.PlayerInfo{}
-				battlePlayer.Player.Oid = proto.Int32(playerInfo._oid)
+				battlePlayer.Player.Oid = proto.Int32(playerInfo.oid)
 				data := &pb.GS2CUpdateRoomInfo{}
 				data.Player = append(data.Player, battlePlayer)
 				data.Status = pb.GS2CUpdateRoomInfo_REMOVE.Enum()
@@ -194,5 +210,20 @@ func OutRoom(roomId string, a gate.Agent) {
 }
 
 func JoinRoom(roomId string, a gate.Agent) *pb.GS2CEnterGameRet_ErrorCode {
-	return pb.GS2CEnterGameRet_SUCCESS.Enum()
+	memberCount := len(Rooms.roomMap)
+	if memberCount >= 4 {
+		return pb.GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
+	}
+	Rooms.lock.Lock()
+	result := addPlayerToRoom(roomId, a, false)
+	Rooms.lock.Unlock()
+	if result {
+		return pb.GS2CEnterGameRet_SUCCESS.Enum()
+	} else {
+		return pb.GS2CEnterGameRet_FAIL.Enum()
+	}
+}
+
+func GetDealerId() int32 {
+	return 0
 }

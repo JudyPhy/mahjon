@@ -35,7 +35,7 @@ public class PlayerInfo
     }
 
     public PlayerInfo(pb.PlayerInfo player)
-    {
+    {        
         _oid = player.oid;
         _nickName = player.nickName;
         _headIcon = player.headIcon;

@@ -9,12 +9,12 @@ import (
 )
 
 type PlayerInfo struct {
-	_oid      int32
-	_nickName string
-	_headIcon string
-	_gold     int32
-	_diamond  int32
-	_roomId   string
+	oid      int32
+	nickName string
+	headIcon string
+	gold     int32
+	diamond  int32
+	roomId   string
 }
 
 // ----------------------
@@ -28,25 +28,23 @@ type ChanPlayer struct {
 var ChanPlayerStruct *ChanPlayer
 
 func NewPlayer(player *pb.PlayerInfo) *PlayerInfo {
-	log.Debug("=============>NewPlayer:", player.GetOid())
 	newPlayer := &PlayerInfo{}
-	newPlayer._oid = player.GetGold()
-	newPlayer._nickName = player.GetNickName()
-	newPlayer._headIcon = player.GetHeadIcon()
-	newPlayer._gold = player.GetGold()
-	newPlayer._diamond = player.GetDiamond()
-	newPlayer._roomId = ""
+	newPlayer.oid = player.GetOid()
+	newPlayer.nickName = player.GetNickName()
+	newPlayer.headIcon = player.GetHeadIcon()
+	newPlayer.gold = player.GetGold()
+	newPlayer.diamond = player.GetDiamond()
+	newPlayer.roomId = ""
 	return newPlayer
 }
 
 func AddChanPlayerInfo(a gate.Agent, player *PlayerInfo) {
 	log.Debug("AddChanPlayerInfo")
-	log.Debug("=============>AddChanPlayerInfo newPlayer oid:", player._oid)
 	ChanPlayerStruct.lock.Lock()
 	if _, ok := ChanPlayerStruct.aPlayerMap[a]; ok {
 		log.Error("the agent has existed, don't need add to dict.")
 	} else {
-		log.Debug("add new player agent, player=", player._nickName)
+		log.Debug("add new player agent, player=", player.nickName)
 		ChanPlayerStruct.aPlayerMap[a] = player
 	}
 	ChanPlayerStruct.lock.Unlock()
@@ -56,7 +54,7 @@ func DeleteChan(a gate.Agent) {
 	log.Debug("DeleteChan")
 	ChanPlayerStruct.lock.Lock()
 	if _, ok := ChanPlayerStruct.aPlayerMap[a]; ok {
-		if roomId := ChanPlayerStruct.aPlayerMap[a]._roomId; roomId != "" {
+		if roomId := ChanPlayerStruct.aPlayerMap[a].roomId; roomId != "" {
 			OutRoom(roomId, a)
 		}
 		delete(ChanPlayerStruct.aPlayerMap, a)
