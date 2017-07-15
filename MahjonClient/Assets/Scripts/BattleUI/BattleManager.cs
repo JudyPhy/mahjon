@@ -25,7 +25,7 @@ public class BattleManager
 
     public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
     {
-        Debug.LogError("PrepareEnterGame=> _gameMode=" + msg.mode.ToString() + ", _roomId=" + msg.roomId);
+        Debug.Log("PrepareEnterGame=> _gameMode=" + msg.mode.ToString() + ", _roomId=" + msg.roomId);
         _gameMode = msg.mode;
         _roomId = msg.roomId;
         switch (msg.mode)
@@ -54,6 +54,7 @@ public class BattleManager
 
     public void UpdatePlayerInfo(pb.GS2CUpdateRoomInfo msg)
     {
+        Debug.Log("UpdatePlayerInfo=> status:" + msg.status.ToString() + ", player count:" + msg.player.Count);
         switch (msg.status)
         {
             case pb.GS2CUpdateRoomInfo.Status.ADD:
@@ -68,6 +69,7 @@ public class BattleManager
                         SideInfo info = new SideInfo();
                         info.UpdateBattlePlayerInfo(msg.player[i]);
                         _playerPaiInfoList.Add(info);
+                        Debug.Log("add player to room, oid=" + info.PlayerInfo.OID);
                         EventDispatcher.TriggerEvent(EventDefine.UpdateRoleInRoom);
                     }
                 }
@@ -190,6 +192,18 @@ public class BattleManager
     public void DiscardTimeOut(int playerId)
     {
 
+    }
+
+    public bool HasRecvSelfPlayerInfo()
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == Player.Instance.PlayerInfo.OID)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

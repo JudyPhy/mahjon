@@ -22,7 +22,6 @@ public class GameMsgHandler
     #region C->GS
     public void SendMsgC2GSLogin(string account, string password)
     {
-        Debug.Log("==>> login req time=" + Time.deltaTime);
         Debug.Log("SendMsgC2GSLogin==>> account[" + account + "], password[" + password + "]");
         pb.C2GSLogin msg = new pb.C2GSLogin();
         msg.account = account;
@@ -46,13 +45,12 @@ public class GameMsgHandler
 
     public void RevMsgGS2CLoginRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> login recv time=" + Time.deltaTime);
         Debug.Log("==>> RevMsgGS2CLoginRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CLoginRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CLoginRet>(stream);
         switch (msg.errorCode)
         {
-            case pb.GS2CLoginRet.ErrorCode.SUCCESS:
+            case pb.GS2CLoginRet.ErrorCode.SUCCESS:                
                 Player.Instance.PlayerInfo = new PlayerInfo(msg.playerInfo);
                 UIManager.Instance.ShowMainWindow<MainUI>(eWindowsID.MainUI);
                 break;
@@ -67,7 +65,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CEnterGameRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CEnterGameRet, recv time=" + Time.deltaTime);
+        Debug.Log("==>> RevMsgGS2CEnterGameRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CEnterGameRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CEnterGameRet>(stream);
         switch (msg.errorCode)

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
@@ -24,22 +25,29 @@ type RoomInfo struct {
 // ---------------------
 // | roomId | RoomInfo |
 // ---------------------
-var RoomChanDict map[string]*RoomInfo
-var lock_dict sync.Mutex
+type RoomDict struct {
+	lock    sync.Mutex
+	roomMap map[string]*RoomInfo
+}
+
+var Rooms *RoomDict
 
 func Init() {
-	log.Debug("init roomMgr...")
-	ChanPlayerDict = make(map[gate.Agent]*PlayerInfo)
-	RoomChanDict = make(map[string]*RoomInfo)
+	log.Debug("init player map.")
+	ChanPlayerStruct = &ChanPlayer{}
+	ChanPlayerStruct.aPlayerMap = make(map[gate.Agent]*PlayerInfo)
+
+	log.Debug("init room map.")
+	Rooms = &RoomDict{}
+	Rooms.roomMap = make(map[string]*RoomInfo)
 }
 
 func ReqNewRoom(a gate.Agent) string {
 	log.Debug("ReqNewRoom")
 	newRoomId := getRandomRoomId(6)
-	lock_dict.Lock()
-	defer lock_dict.Unlock()
+	Rooms.lock.Lock()
 	for {
-		_, ok := RoomChanDict[newRoomId]
+		_, ok := Rooms.roomMap[newRoomId]
 		if ok {
 			newRoomId = getRandomRoomId(6)
 		} else {
@@ -50,6 +58,7 @@ func ReqNewRoom(a gate.Agent) string {
 			break
 		}
 	}
+	Rooms.lock.Unlock()
 	return newRoomId
 }
 
@@ -58,100 +67,86 @@ func getRandomRoomId(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	rs := make([]string, length)
 	for start := 0; start < length; start++ {
-		//t := rand.Intn(3)
-		//if t == 0 {
-		//0~9数字
 		rs = append(rs, strconv.Itoa(rand.Intn(10)))
-		/*} else if t == 1 {
-			//26个小写字母
-			rs = append(rs, string(rand.Intn(26)+65))
-		} else if t == 2 {
-			//26个大写字母
-			rs = append(rs, string(rand.Intn(26)+97))
-		}*/
 	}
 	return strings.Join(rs, "") //使用""拼接rs切片
 }
 
+func getPbPlayerInfo(playerchan *PlayerInfo) *pb.PlayerInfo {
+	player := &pb.PlayerInfo{}
+	player.Oid = proto.Int32(playerchan.oid)
+	player.NickName = proto.String(playerchan.nickName)
+	player.HeadIcon = proto.String(playerchan.headIcon)
+	player.Gold = proto.Int32(playerchan.gold)
+	player.Diamond = proto.Int32(playerchan.diamond)
+	return player
+}
+
+func newRobotPlayer(roomId string) *PlayerInfo {
+	log.Debug("newRobotPlayer")
+	player := &PlayerInfo{}
+	player.oid = strconv.Atoi(roomId) + len(Rooms.roomMap[roomId].playerList)
+	log.Debug("robot oid=%d", player.oid)
+	player.nickName = "robot"
+	player.headIcon = ""
+	player.gold = 0
+	player.diamond = 0
+	return player
+}
+
 func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	log.Debug("add player to room=", roomId)
+
 	//battlePlayerInfo
-	battlePlayer := &pb.BattlePlayerInfo{}
 	chanPlayer := getPlayerBtAgent(a)
 	if chanPlayer == nil {
-		log.Error("player has not logined, can't add to room.")
-		return false
+		log.Error("player has not logined, use robot player.")
+		chanPlayer = newRobotPlayer(roomId)
 	}
-	log.Debug("11111")
+	battlePlayer := &pb.BattlePlayerInfo{}
 	sideList := getLeftSideList(roomId)
-	log.Debug("22222")
 	battlePlayer.Side = getRandomSideBySideList(sideList)
-	log.Debug("33333")
 	battlePlayer.IsOwner = &isOwner
-	battlePlayer.Player = &pb.PlayerInfo{}
-	battlePlayer.Player.Oid = &chanPlayer._oid
-	battlePlayer.Player.NickName = &chanPlayer._nickName
-	battlePlayer.Player.HeadIcon = &chanPlayer._headIcon
-	battlePlayer.Player.Gold = &chanPlayer._gold
-	battlePlayer.Player.Diamond = &chanPlayer._diamond
+	battlePlayer.Player = getPbPlayerInfo(chanPlayer)
 
 	//roomPlayer
-	log.Debug("444")
 	roomPlayer := &RoomPlayerInfo{}
 	roomPlayer.agent = a
 	roomPlayer.player = battlePlayer
 
 	//room
 	log.Debug("prepare room info")
-	lock_dict.Lock()
-	defer lock_dict.Unlock()
-	if _, ok := RoomChanDict[roomId]; ok {
-		RoomChanDict[roomId].playerList = append(RoomChanDict[roomId].playerList, roomPlayer)
+	if _, ok := Rooms.roomMap[roomId]; ok {
+		Rooms.roomMap[roomId].playerList = append(Rooms.roomMap[roomId].playerList, roomPlayer)
 	} else {
 		room := &RoomInfo{}
 		room.playerList = append(room.playerList, roomPlayer)
-		RoomChanDict[roomId] = room
+		Rooms.roomMap[roomId] = room
 	}
 
 	// send update room playr event
-	log.Debug("send room player info to client")
+	log.Debug("send add room player info to client")
 	data := &pb.GS2CUpdateRoomInfo{}
 	data.Player = append(data.Player, battlePlayer)
 	data.Status = pb.GS2CUpdateRoomInfo_ADD.Enum()
-	for n, value := range RoomChanDict[roomId].playerList {
+	log.Debug("current plater count in room:", len(Rooms.roomMap[roomId].playerList))
+	for n, value := range Rooms.roomMap[roomId].playerList {
 		log.Debug("n=", n)
 		value.agent.WriteMsg(data)
 	}
-
+	log.Debug("send add player over")
 	return true
-}
-
-func OutRoom(roomId string, a gate.Agent) {
-	log.Debug("out room=", roomId)
-	/*if _, ok := RoomChanDict[roomId]; ok {
-		chanlist := RoomChanDict[roomId]
-		for n, value := range chanlist {
-			log.Debug("n=", n)
-			if value == a {
-				break
-			}
-		}
-	} else {
-		log.Error("room ", roomId, " not exist.")
-	}*/
 }
 
 func getLeftSideList(roomId string) []pb.BattleSide {
 	origList := []pb.BattleSide{pb.BattleSide_east, pb.BattleSide_south, pb.BattleSide_west, pb.BattleSide_north}
-	lock_dict.Lock()
-	defer lock_dict.Unlock()
-	if _, ok := RoomChanDict[roomId]; ok {
+	if _, ok := Rooms.roomMap[roomId]; ok {
 		result := []pb.BattleSide{}
 		for n, value := range origList {
 			log.Debug("n=", n)
 			curSide := value
 			isFind := false
-			for i, player := range RoomChanDict[roomId].playerList {
+			for i, player := range Rooms.roomMap[roomId].playerList {
 				log.Debug("i=", i)
 				if player.player.GetSide() == curSide {
 					isFind = true
@@ -176,6 +171,59 @@ func getRandomSideBySideList(sideList []pb.BattleSide) *pb.BattleSide {
 	return &sideList[rnd]
 }
 
+func TestGetSide(roomId string) *pb.BattleSide {
+	leftList := getLeftSideList(roomId)
+	return getRandomSideBySideList(leftList)
+}
+
+func OutRoom(roomId string, a gate.Agent) {
+	log.Debug("out room=", roomId)
+	Rooms.lock.Lock()
+	if _, ok := Rooms.roomMap[roomId]; ok {
+		chanlist := Rooms.roomMap[roomId].playerList
+		log.Debug("before=>player count in room", roomId, " :", len(Rooms.roomMap[roomId].playerList))
+		for n, value := range chanlist {
+			if value.agent == a {
+				chanlist = append(chanlist[:n], chanlist[n+1:]...)
+				log.Debug("after offline=>player count in room", roomId, " :", len(Rooms.roomMap[roomId].playerList))
+
+				//send remove player event to client
+				log.Debug("send remove room player info to client")
+				battlePlayer := &pb.BattlePlayerInfo{}
+				playerInfo := getPlayerBtAgent(a)
+				battlePlayer.Player = &pb.PlayerInfo{}
+				battlePlayer.Player.Oid = proto.Int32(playerInfo.oid)
+				data := &pb.GS2CUpdateRoomInfo{}
+				data.Player = append(data.Player, battlePlayer)
+				data.Status = pb.GS2CUpdateRoomInfo_REMOVE.Enum()
+				for n, value := range Rooms.roomMap[roomId].playerList {
+					log.Debug("n=", n)
+					value.agent.WriteMsg(data)
+				}
+				break
+			}
+		}
+	} else {
+		log.Error("room ", roomId, " not exist.")
+	}
+	Rooms.lock.Unlock()
+}
+
 func JoinRoom(roomId string, a gate.Agent) *pb.GS2CEnterGameRet_ErrorCode {
-	return pb.GS2CEnterGameRet_SUCCESS.Enum()
+	memberCount := len(Rooms.roomMap)
+	if memberCount >= 4 {
+		return pb.GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
+	}
+	Rooms.lock.Lock()
+	result := addPlayerToRoom(roomId, a, false)
+	Rooms.lock.Unlock()
+	if result {
+		return pb.GS2CEnterGameRet_SUCCESS.Enum()
+	} else {
+		return pb.GS2CEnterGameRet_FAIL.Enum()
+	}
+}
+
+func GetDealerId() int32 {
+	return 0
 }

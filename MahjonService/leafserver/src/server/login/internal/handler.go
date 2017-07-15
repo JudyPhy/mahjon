@@ -10,6 +10,12 @@ import (
 	"github.com/name5566/leaf/log"
 )
 
+type testAgent int
+
+func (t *testAgent) SetUserData() {
+
+}
+
 func handleMsg(m interface{}, h interface{}) {
 	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
 }
@@ -25,7 +31,7 @@ func recvC2GSLogin(args []interface{}) {
 	a := args[1].(gate.Agent)
 
 	// get data from db
-	var playerOid int32 = 1
+	var playerOid int32 = 10000
 	player := &pb.PlayerInfo{
 		Oid:      proto.Int32(playerOid),
 		NickName: proto.String(m.GetAccount()),
@@ -38,7 +44,7 @@ func recvC2GSLogin(args []interface{}) {
 
 	//ret to client
 	ret := &pb.GS2CLoginRet{}
-	if _, ok := roomMgr.ChanPlayerDict[a]; ok {
+	if roomMgr.HasLogined(a) {
 		log.Error("the agent login success.")
 		ret.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
 		ret.PlayerInfo = player

@@ -48,7 +48,7 @@ public class Panel_loading : WindowsBasePanel
     public override void OnUpdate()
     {
         base.OnUpdate();
-        if (_loadResOver)
+        if (_loadResOver&&BattleManager.Instance.HasRecvSelfPlayerInfo())
         {
             UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
             return;

@@ -45,8 +45,10 @@ func createRoomRet(a gate.Agent) {
 	ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
 	a.WriteMsg(ret)
 
-	// update room player
-	//result.UpdateRoomPlayerInfo()
+	//test: send other 3 player info
+	for i := 1; i < 4; i++ {
+		jointRoomRet(roomId, nil)
+	}
 }
 
 func jointRoomRet(roomId string, a gate.Agent) {
@@ -56,7 +58,10 @@ func jointRoomRet(roomId string, a gate.Agent) {
 	ret.RoomId = proto.String(roomId)
 	ret.ErrorCode = result
 	a.WriteMsg(ret)
+}
 
-	// update room player
-	//result.UpdateRoomPlayerInfo()
+func battleStart(roomId string) {
+	log.Debug("battle start...")
+	ret := &pb.GS2CBattleStart{}
+	ret.DealerId = proto.Int32(roomMgr.GetDealerId())
 }
