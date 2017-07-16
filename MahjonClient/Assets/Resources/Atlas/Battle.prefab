@@ -105,8 +105,60 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 1
-  - name: inhand_bg_b
+  - name: inhand_bg_back1
+    x: 459
+    y: 438
+    width: 49
+    height: 74
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: inhand_bg_back2
+    x: 459
+    y: 377
+    width: 41
+    height: 60
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 1
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: inhand_bg_back3
+    x: 319
+    y: 243
+    width: 41
+    height: 59
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: inhand_bg1
     x: 0
+    y: 110
+    width: 76
+    height: 112
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: inhand_bg2
+    x: 77
     y: 111
     width: 76
     height: 111
@@ -118,11 +170,24 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 1
     paddingBottom: 0
-  - name: PG_bg_b
+  - name: inhand_turnto
     x: 384
-    y: 400
-    width: 76
-    height: 112
+    y: 373
+    width: 74
+    height: 139
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: left
+    x: 361
+    y: 242
+    width: 26
+    height: 60
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -132,7 +197,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: PG_bg_s
-    x: 319
+    x: 390
     y: 302
     width: 48
     height: 70
@@ -144,9 +209,22 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 2
     paddingBottom: 0
+  - name: right
+    x: 155
+    y: 176
+    width: 24
+    height: 60
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: room_color1
-    x: 77
-    y: 153
+    x: 71
+    y: 40
     width: 70
     height: 69
     borderLeft: 0
@@ -159,7 +237,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: room_color2
     x: 0
-    y: 41
+    y: 40
     width: 70
     height: 69
     borderLeft: 0
@@ -171,8 +249,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: room_color3
-    x: 71
-    y: 41
+    x: 319
+    y: 303
     width: 70
     height: 69
     borderLeft: 0
@@ -184,8 +262,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: Status_Hu
-    x: 71
-    y: 2
+    x: 439
+    y: 287
     width: 38
     height: 38
     borderLeft: 0
@@ -197,8 +275,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: Status_ZiMo
-    x: 77
-    y: 114
+    x: 71
+    y: 1
     width: 72
     height: 38
     borderLeft: 0
@@ -210,8 +288,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: tileImage_17
-    x: 384
-    y: 375
+    x: 439
+    y: 262
     width: 60
     height: 24
     borderLeft: 0
@@ -222,35 +300,9 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: tileImage_195
-    x: 442
-    y: 312
-    width: 24
-    height: 60
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tileImage_23
-    x: 461
-    y: 377
-    width: 41
-    height: 60
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 1
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
   - name: tileImage_249
-    x: 368
-    y: 320
+    x: 390
+    y: 249
     width: 46
     height: 52
     borderLeft: 0
@@ -261,22 +313,9 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: tileImage_30
-    x: 415
-    y: 312
-    width: 26
-    height: 60
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
   - name: tileImage_43
     x: 0
-    y: 12
+    y: 11
     width: 61
     height: 28
     borderLeft: 0
@@ -287,35 +326,9 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: tileImage_52
-    x: 461
-    y: 438
-    width: 49
-    height: 74
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tileImage_55
-    x: 319
-    y: 242
-    width: 41
-    height: 59
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
   - name: zhuang
-    x: 368
-    y: 273
+    x: 439
+    y: 326
     width: 44
     height: 46
     borderLeft: 0

@@ -4,12 +4,11 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"math"
-	"reflect"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/chanrpc"
 	"github.com/name5566/leaf/log"
+	"math"
+	"reflect"
 )
 
 // -------------------------
@@ -174,7 +173,6 @@ func (p *Processor) Marshal(msg interface{}) ([][]byte, error) {
 		binary.BigEndian.PutUint16(id, _id)
 	}
 
-	fmt.Println("event id=", id)
 	// data
 	data, err := proto.Marshal(msg.(proto.Message))
 	return [][]byte{id, data}, err

@@ -18,10 +18,26 @@ public class BattleManager
 
     private pb.GameMode _gameMode;
     private string _roomId;
+    public string RoomID
+    {
+        get { return _roomId; }
+    }
     public bool IsWaitingEnterRoomRet = false;
     private int _dealerId;
+    public int DealerID
+    {
+        get { return _dealerId; }
+    }
 
     private List<SideInfo> _playerPaiInfoList = new List<SideInfo>();
+
+    //游戏中
+    private pb.BattleSide _curPlaySide;
+    public pb.BattleSide CurPlaySide
+    {
+        set { _curPlaySide = value; }
+        get { return _curPlaySide; }
+    }
 
     public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
     {
@@ -69,7 +85,7 @@ public class BattleManager
                         SideInfo info = new SideInfo();
                         info.UpdateBattlePlayerInfo(msg.player[i]);
                         _playerPaiInfoList.Add(info);
-                        Debug.Log("add player to room, oid=" + info.PlayerInfo.OID);
+                        Debug.Log("add player to room, oid=" + info.PlayerInfo.OID + ", side=" + msg.player[i].side);
                         EventDispatcher.TriggerEvent(EventDefine.UpdateRoleInRoom);
                     }
                 }
@@ -116,7 +132,7 @@ public class BattleManager
         {
             sideSortList.Add(curSide);
             curSide++;
-            if (curSide >= pb.BattleSide.north)
+            if (curSide > pb.BattleSide.north)
             {
                 curSide = pb.BattleSide.east;
             }
@@ -149,8 +165,7 @@ public class BattleManager
     }
 
     public void PrepareGameStart(pb.GS2CBattleStart msg)
-    {
-        _dealerId = msg.dealerId;
+    {        
         for (int i = 0; i < msg.cardList.Count; i++)
         {
             pb.CardInfo card = msg.cardList[i];
@@ -162,7 +177,40 @@ public class BattleManager
                 }
             }
         }
+        _dealerId = msg.dealerId;
+        Debug.Log("_dealerId=" + _dealerId);
         EventDispatcher.TriggerEvent(EventDefine.PlayGameStartAni);
+    }
+
+    public Pai GetPaiInfoByIndexAndSide(pb.BattleSide side, int index)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (side == _playerPaiInfoList[i].Side)
+            {
+                List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+                if (index < list.Count)
+                {
+                    return list[index];
+                }
+            }
+        }
+        return null;
+    }
+
+    public pb.BattleSide GetPaiDrawnSideByShaiZi(pb.BattleSide dealerSide, int shaiziValue)
+    {
+        pb.BattleSide curSide = dealerSide;
+        while (shaiziValue > 1)
+        {
+            curSide++;
+            if (curSide > pb.BattleSide.north)
+            {
+                curSide = pb.BattleSide.east;
+            }
+            shaiziValue--;
+        }
+        return curSide;
     }
 
     public pb.BattleSide GetDealerSide()

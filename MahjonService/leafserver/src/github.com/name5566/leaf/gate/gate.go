@@ -1,13 +1,12 @@
 package gate
 
 import (
-	"net"
-	"reflect"
-	"time"
-
 	"github.com/name5566/leaf/chanrpc"
 	"github.com/name5566/leaf/log"
 	"github.com/name5566/leaf/network"
+	"net"
+	"reflect"
+	"time"
 )
 
 type Gate struct {
@@ -97,6 +96,7 @@ func (a *agent) Run() {
 			log.Debug("read message: %v", err)
 			break
 		}
+
 		if a.gate.Processor != nil {
 			msg, err := a.gate.Processor.Unmarshal(data)
 			if err != nil {

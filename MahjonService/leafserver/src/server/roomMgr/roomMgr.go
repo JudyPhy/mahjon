@@ -14,11 +14,13 @@ import (
 )
 
 type RoomPlayerInfo struct {
-	agent  gate.Agent
-	player *pb.BattlePlayerInfo
+	agent   gate.Agent
+	isRobot bool
+	player  *pb.BattlePlayerInfo
 }
 
 type RoomInfo struct {
+	roomId     string
 	playerList []*RoomPlayerInfo
 }
 
@@ -82,35 +84,25 @@ func getPbPlayerInfo(playerchan *PlayerInfo) *pb.PlayerInfo {
 	return player
 }
 
-func newRobotPlayer(roomId string) *PlayerInfo {
-	log.Debug("newRobotPlayer")
-	player := &PlayerInfo{}
-	player.oid = strconv.Atoi(roomId) + len(Rooms.roomMap[roomId].playerList)
-	log.Debug("robot oid=%d", player.oid)
-	player.nickName = "robot"
-	player.headIcon = ""
-	player.gold = 0
-	player.diamond = 0
-	return player
-}
-
+//添加真实玩家到房间中
 func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	log.Debug("add player to room=", roomId)
 
 	//battlePlayerInfo
 	chanPlayer := getPlayerBtAgent(a)
 	if chanPlayer == nil {
-		log.Error("player has not logined, use robot player.")
-		chanPlayer = newRobotPlayer(roomId)
+		log.Error("player has not logined, can't add.")
+		return false
 	}
 	battlePlayer := &pb.BattlePlayerInfo{}
 	sideList := getLeftSideList(roomId)
 	battlePlayer.Side = getRandomSideBySideList(sideList)
-	battlePlayer.IsOwner = &isOwner
+	battlePlayer.IsOwner = proto.Bool(isOwner)
 	battlePlayer.Player = getPbPlayerInfo(chanPlayer)
 
 	//roomPlayer
 	roomPlayer := &RoomPlayerInfo{}
+	roomPlayer.isRobot = false
 	roomPlayer.agent = a
 	roomPlayer.player = battlePlayer
 
@@ -132,9 +124,10 @@ func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	log.Debug("current plater count in room:", len(Rooms.roomMap[roomId].playerList))
 	for n, value := range Rooms.roomMap[roomId].playerList {
 		log.Debug("n=", n)
-		value.agent.WriteMsg(data)
+		if !value.isRobot && value.agent != nil {
+			value.agent.WriteMsg(data)
+		}
 	}
-	log.Debug("send add player over")
 	return true
 }
 

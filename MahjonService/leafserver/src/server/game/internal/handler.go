@@ -45,9 +45,9 @@ func createRoomRet(a gate.Agent) {
 	ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
 	a.WriteMsg(ret)
 
-	//test: send other 3 player info
-	for i := 1; i < 4; i++ {
-		jointRoomRet(roomId, nil)
+	//test: add other 3 robot to room
+	for i := 0; i < 3; i++ {
+		roomMgr.AddRobotToRoom(roomId)
 	}
 }
 

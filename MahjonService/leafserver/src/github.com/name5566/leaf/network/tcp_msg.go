@@ -3,7 +3,6 @@ package network
 import (
 	"encoding/binary"
 	"errors"
-	//"fmt"
 	"io"
 	"math"
 )
@@ -97,24 +96,22 @@ func (p *MsgParser) Read(conn *TCPConn) ([]byte, error) {
 	} else if msgLen < p.minMsgLen {
 		return nil, errors.New("message too short")
 	}
-	var aa []byte
-	conn.Read(aa)
+
 	// data
 	msgData := make([]byte, msgLen)
 	if _, err := io.ReadFull(conn, msgData); err != nil {
 		return nil, err
 	}
+
 	return msgData, nil
 }
 
 // goroutine safe
 func (p *MsgParser) Write(conn *TCPConn, args ...[]byte) error {
-	//fmt.Println("tcp_msg.Write,", conn.RemoteAddr())
 	// get len
 	var msgLen uint32
 	for i := 0; i < len(args); i++ {
 		msgLen += uint32(len(args[i]))
-		//fmt.Println("msg byte,", args[i])
 	}
 
 	// check len

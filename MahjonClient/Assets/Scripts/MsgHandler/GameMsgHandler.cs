@@ -48,6 +48,7 @@ public class GameMsgHandler
         Debug.Log("==>> RevMsgGS2CLoginRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CLoginRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CLoginRet>(stream);
+        Debug.Log("errorCode=" + msg.errorCode.ToString());
         switch (msg.errorCode)
         {
             case pb.GS2CLoginRet.ErrorCode.SUCCESS:                
@@ -55,10 +56,15 @@ public class GameMsgHandler
                 UIManager.Instance.ShowMainWindow<MainUI>(eWindowsID.MainUI);
                 break;
             case pb.GS2CLoginRet.ErrorCode.FAIL:
+                UIManager.Instance.ShowTips(TipsType.text, "登陆失败");
                 break;
             case pb.GS2CLoginRet.ErrorCode.NICKNAME_ERROR:
+                UIManager.Instance.ShowTips(TipsType.text, "账号不存在");
                 break;
             case pb.GS2CLoginRet.ErrorCode.PASSWORD_ERROR:
+                UIManager.Instance.ShowTips(TipsType.text, "密码错误");
+                break;
+            default:
                 break;
         }
     }

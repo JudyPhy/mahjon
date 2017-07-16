@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class SidePai : MonoBehaviour
 {
-    private int _index; // 从自己方位开始顺时针旋转
+    private int _index; // 从自己方位开始逆时针旋转
     private pb.BattleSide _side;
     List<MeshRenderer> _paiList = new List<MeshRenderer>();
 
-    Vector3[] pos = { new Vector3(-0.314f, -0.4f, 0.005f), new Vector3(0.54f, -0.4f, 0.29f),
-            new Vector3(0.315f, -0.4f, 0.005f), new Vector3(-0.018f, -0.4f, 0.29f) };
-    Vector3[] angle = { Vector3.zero, new Vector3(0, 90, 0), new Vector3(0, -180, 0), new Vector3(0, 90, 0) };
+    Vector3[] pos = { new Vector3(-0.314f, -0.4f, 0.005f), new Vector3(0.02f, -0.4f, -0.3f),
+            new Vector3(0.315f, -0.4f, 0.005f), new Vector3(-0.018f, -0.4f, 0.3f) };
+    Vector3[] angle = { Vector3.zero, new Vector3(0, -90, 0), new Vector3(0, -180, 0), new Vector3(0, 90, 0) };
 
     private void Awake()
     {

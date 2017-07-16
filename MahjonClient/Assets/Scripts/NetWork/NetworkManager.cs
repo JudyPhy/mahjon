@@ -10,8 +10,8 @@ public class NetworkManager : MonoBehaviour
 
     private DateTime ProcessNetworkEventTime_;      //定时检测网络连接状态  
 
-    private string GateServerPath = "127.0.0.1";
-    private ushort GateServerPort = 13131;
+    private string GameServerPath = "192.168.1.7";   //"127.0.0.1" "192.168.1.7"
+    private ushort GameServerPort = 3563;
 
     //socket线程
     public TcpNetworkProcessor GateServerTcpConnect_ = new TcpNetworkProcessor();
@@ -36,7 +36,7 @@ public class NetworkManager : MonoBehaviour
 
     private void Start()
     {
-        NetworkManager.Instance.ConnectGameServer("127.0.0.1", 3563);
+        NetworkManager.Instance.ConnectGameServer(GameServerPath, GameServerPort);
     }
 
     //初始化socket连接

@@ -1,10 +1,9 @@
 package network
 
 import (
+	"github.com/name5566/leaf/log"
 	"net"
 	"sync"
-
-	"github.com/name5566/leaf/log"
 )
 
 type ConnSet map[net.Conn]struct{}

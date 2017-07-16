@@ -30,7 +30,9 @@ public class Panel_loading : WindowsBasePanel
         GameObject table = UIManager.AddGameObject("3d/model/table", root);
         Animation ani = table.GetComponent<Animation>();
         ani.Stop();
-        _loadResOver = true;        
+
+        _loadResOver = true;
+        Debug.Log("Load table over.");
 
         yield return 0;
     }
@@ -48,7 +50,7 @@ public class Panel_loading : WindowsBasePanel
     public override void OnUpdate()
     {
         base.OnUpdate();
-        if (_loadResOver&&BattleManager.Instance.HasRecvSelfPlayerInfo())
+        if (_loadResOver && BattleManager.Instance.HasRecvSelfPlayerInfo())
         {
             UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
             return;

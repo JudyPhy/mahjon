@@ -16,17 +16,17 @@ public class Item_role : MonoBehaviour
 
     void Awake()
     {
-        _nameText = transform.FindChild("").GetComponent<UILabel>();
-        _headIcon = transform.FindChild("").GetComponent<UISprite>();
-        _goldText = transform.FindChild("").GetComponent<UILabel>();
+        _nameText = transform.FindChild("name").GetComponent<UILabel>();
+        _headIcon = transform.FindChild("headicon").GetComponent<UISprite>();
+        _goldText = transform.FindChild("gold").GetComponent<UILabel>();
     }
 
     public void UpdateUI(PlayerInfo player)
     {
         _playerInfo = player;
         _nameText.text = _playerInfo.NickName;
-        _headIcon.spriteName = _playerInfo.HeadIcon;
-        _headIcon.MakePixelPerfect();
+        _headIcon.spriteName = "head_img_male";// _playerInfo.HeadIcon;
+        //_headIcon.MakePixelPerfect();
         _goldText.text = _playerInfo.Gold.ToString();
     }
 
