@@ -123,6 +123,7 @@ public class BattleManager
         }
     }
 
+    //从自己方位开始逆时针排序
     public List<pb.BattleSide> GetSortSideListFromSelf()
     {
         pb.BattleSide selfSide = GetSelfSide();
@@ -189,6 +190,7 @@ public class BattleManager
             if (side == _playerPaiInfoList[i].Side)
             {
                 List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+                //Debug.LogError("side=" + side.ToString() + ", current pai list count=" + list.Count);
                 if (index < list.Count)
                 {
                     return list[index];
@@ -203,10 +205,10 @@ public class BattleManager
         pb.BattleSide curSide = dealerSide;
         while (shaiziValue > 1)
         {
-            curSide++;
-            if (curSide > pb.BattleSide.north)
+            curSide--;
+            if (curSide < pb.BattleSide.east)
             {
-                curSide = pb.BattleSide.east;
+                curSide = pb.BattleSide.north;
             }
             shaiziValue--;
         }

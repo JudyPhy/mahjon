@@ -8,8 +8,8 @@ public class SidePai : MonoBehaviour
     private pb.BattleSide _side;
     List<MeshRenderer> _paiList = new List<MeshRenderer>();
 
-    Vector3[] pos = { new Vector3(-0.314f, -0.4f, 0.005f), new Vector3(0.02f, -0.4f, -0.3f),
-            new Vector3(0.315f, -0.4f, 0.005f), new Vector3(-0.018f, -0.4f, 0.3f) };
+    Vector3[] pos = { new Vector3(-0.435f, -0.4f, -0.01f), new Vector3(0.125f, -0.4f, -0.32f),
+            new Vector3(0.44f, -0.4f, -0.005f), new Vector3(-0.125f, -0.4f, 0.28f) };
     Vector3[] angle = { Vector3.zero, new Vector3(0, -90, 0), new Vector3(0, -180, 0), new Vector3(0, 90, 0) };
 
     private void Awake()
@@ -29,6 +29,10 @@ public class SidePai : MonoBehaviour
         {
             _paiList[_paiList.Count - 2].gameObject.SetActive(false);
             _paiList[_paiList.Count - 1].gameObject.SetActive(false);
+        }
+        else
+        {
+            transform.localScale = new Vector3(1.4f, 1, 1);
         }
         transform.localPosition = pos[_index];
         transform.localEulerAngles = angle[_index];

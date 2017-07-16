@@ -58,7 +58,7 @@ public class GameMsgHandler
             case pb.GS2CLoginRet.ErrorCode.FAIL:
                 UIManager.Instance.ShowTips(TipsType.text, "登陆失败");
                 break;
-            case pb.GS2CLoginRet.ErrorCode.NICKNAME_ERROR:
+            case pb.GS2CLoginRet.ErrorCode.ACCOUNT_ERROR:
                 UIManager.Instance.ShowTips(TipsType.text, "账号不存在");
                 break;
             case pb.GS2CLoginRet.ErrorCode.PASSWORD_ERROR:
@@ -82,6 +82,7 @@ public class GameMsgHandler
             case pb.GS2CEnterGameRet.ErrorCode.FAIL:
                 break;
             case pb.GS2CEnterGameRet.ErrorCode.PLAYER_COUNT_LIMITE:
+                UIManager.Instance.ShowTips(TipsType.text, "房间已满");
                 break;
         }
     }

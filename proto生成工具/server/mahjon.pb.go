@@ -197,20 +197,20 @@ type GS2CLoginRet_ErrorCode int32
 
 const (
 	GS2CLoginRet_SUCCESS        GS2CLoginRet_ErrorCode = 1
-	GS2CLoginRet_NICKNAME_ERROR GS2CLoginRet_ErrorCode = 2
+	GS2CLoginRet_ACCOUNT_ERROR  GS2CLoginRet_ErrorCode = 2
 	GS2CLoginRet_PASSWORD_ERROR GS2CLoginRet_ErrorCode = 3
 	GS2CLoginRet_FAIL           GS2CLoginRet_ErrorCode = 4
 )
 
 var GS2CLoginRet_ErrorCode_name = map[int32]string{
 	1: "SUCCESS",
-	2: "NICKNAME_ERROR",
+	2: "ACCOUNT_ERROR",
 	3: "PASSWORD_ERROR",
 	4: "FAIL",
 }
 var GS2CLoginRet_ErrorCode_value = map[string]int32{
 	"SUCCESS":        1,
-	"NICKNAME_ERROR": 2,
+	"ACCOUNT_ERROR":  2,
 	"PASSWORD_ERROR": 3,
 	"FAIL":           4,
 }
@@ -339,8 +339,9 @@ func (x *GS2CDiscardRet_ErrorCode) UnmarshalJSON(data []byte) error {
 
 type CardInfo struct {
 	PlayerId         *int32      `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
-	CardId           *int32      `protobuf:"varint,2,req" json:"CardId,omitempty"`
-	Status           *CardStatus `protobuf:"varint,3,req,enum=pb.CardStatus" json:"Status,omitempty"`
+	CardOid          *int32      `protobuf:"varint,2,req" json:"CardOid,omitempty"`
+	CardId           *int32      `protobuf:"varint,3,req" json:"CardId,omitempty"`
+	Status           *CardStatus `protobuf:"varint,4,req,enum=pb.CardStatus" json:"Status,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -351,6 +352,13 @@ func (*CardInfo) ProtoMessage()    {}
 func (m *CardInfo) GetPlayerId() int32 {
 	if m != nil && m.PlayerId != nil {
 		return *m.PlayerId
+	}
+	return 0
+}
+
+func (m *CardInfo) GetCardOid() int32 {
+	if m != nil && m.CardOid != nil {
+		return *m.CardOid
 	}
 	return 0
 }

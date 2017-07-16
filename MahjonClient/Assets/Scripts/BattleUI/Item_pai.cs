@@ -24,22 +24,25 @@ public class Item_pai : MonoBehaviour
     }
 
     public void UpdateUI(Pai pai, pb.BattleSide side)
-    {
+    {        
         _info = pai;
         _side = side;
         if (_info == null)
         {
+            Debug.LogError("self pai info is null.");
             _pai.gameObject.SetActive(false);
             _bg.spriteName = "inhand_bg_back2";
             _bg.MakePixelPerfect();
         }
         else
         {
+            Debug.LogError("self pai id:" + _info.Id + ", status:" + _info.Status.ToString());
             switch (_info.Status)
             {
                 case pb.CardStatus.inHand:
-                    _pai.spriteName = "b_" + _info.Id.ToString();
-                    _bg.spriteName = "inhand_bg_back2";
+                    _pai.spriteName = "b" + _info.Id.ToString();
+                    _pai.gameObject.SetActive(true);
+                    _bg.spriteName = "inhand_bg2";
                     break;
                 default:
                     break;

@@ -39,8 +39,9 @@ enum DisacardStatus
 message CardInfo
 {
 	required int32 playerId = 1;
-	required int32 CardId = 2;
-	required CardStatus Status = 3;
+	required int32 CardOid = 2;
+	required int32 CardId = 3;
+	required CardStatus Status = 4;
 }
 
 message BattlePlayerInfo
@@ -71,7 +72,7 @@ message GS2CLoginRet
 	enum ErrorCode
 	{
 		SUCCESS = 1;
-		NICKNAME_ERROR = 2;
+		ACCOUNT_ERROR = 2;
 		PASSWORD_ERROR = 3;
 		FAIL = 4;
 	}

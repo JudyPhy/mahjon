@@ -10,7 +10,7 @@ public class Item_pai_3d : MonoBehaviour {
 
     private void Awake()
     {
-        _mesh = transform.FindChild("default").GetComponent<MeshFilter>();
+        _mesh = GetComponent<MeshFilter>();
     }
 
 	// Use this for initialization

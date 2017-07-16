@@ -51,7 +51,7 @@ public class Panel_battle : WindowsBasePanel
     private int _drawPaiSumCount_gameStart = 0;  //抓牌总张数
     private int _drawRound_gameStart = 0;  //抓牌次数
     private pb.BattleSide _drawSide;  //抓牌人方位
-    private int[] _placedPaiCound_gameStart = { 0, 0, 0, 0 }; //各个方位已经放置的牌张数
+    private int[] _placedPaiCount_gameStart = { 0, 0, 0, 0 }; //各个方位已经放置的牌张数
     private int _curPaiDrawnSideIndex_gameStart;
     private int _drawOffsetIndex_gameStart;
 
@@ -134,22 +134,22 @@ public class Panel_battle : WindowsBasePanel
     {
         pb.BattleSide selfSide = _sortedSideListFromSelf[0];
         Vector3 origAngle = _sideObj.transform.localEulerAngles;
-        _sideObj.transform.localEulerAngles = new Vector3(origAngle.x, (selfSide - pb.BattleSide.east) * 90, origAngle.z);        
+        _sideObj.transform.localEulerAngles = new Vector3(origAngle.x, (selfSide - pb.BattleSide.east) * 90 + 180, origAngle.z);     
         if (selfSide == pb.BattleSide.east)
         {
-            _sideObj.transform.localPosition = new Vector3(0.0005f, 0.124f, -0.003f);
+            _sideObj.transform.localPosition = new Vector3(0.003f, 0.125f, 0.007f);
         }
         else if (selfSide == pb.BattleSide.south)
         {
-            _sideObj.transform.localPosition = new Vector3(-0.001f, 0.123f, 0.002f);
+            _sideObj.transform.localPosition = new Vector3(0.005f, 0.125f, 0.001f);
         }
         else if (selfSide == pb.BattleSide.west)
         {
-            _sideObj.transform.localPosition = new Vector3(0.003f, 0.124f, 0.004f);
+            _sideObj.transform.localPosition = new Vector3(0f, 0.125f, 0f);
         }
         else if (selfSide == pb.BattleSide.north)
         {
-            _sideObj.transform.localPosition = new Vector3(0.0045f, 0.125f, -0.0015f);
+            _sideObj.transform.localPosition = new Vector3(-0.002f, 0.125f, 0.004f);
         }
     }
 
@@ -164,7 +164,7 @@ public class Panel_battle : WindowsBasePanel
             playerList.Add(player);
         }
         Debug.Log("UpdateRoleInRoom=> current player count:" + playerList.Count);
-        Vector3[] _roleItemPos = { new Vector3(-555, -155, 0), new Vector3(-555, 95, 0), new Vector3(265, 280, 0), new Vector3(515, 95, 0) };
+        Vector3[] _roleItemPos = { new Vector3(-555, -155, 0), new Vector3(-555, 95, 0), new Vector3(285, 280, 0), new Vector3(495, 95, 0) };
         for (int i = 0; i < playerList.Count; i++)
         {
             if (playerList[i] == null)
@@ -328,9 +328,9 @@ public class Panel_battle : WindowsBasePanel
         int drawSideIndex = GetSideIndexFromSelf(_drawSide);
         for (int index_pai = 0; index_pai < drawCountCurRound; index_pai++)
         {
-            int itemIndex = _placedPaiCound_gameStart[drawSideIndex];
+            int itemIndex = _placedPaiCount_gameStart[drawSideIndex];
             GameObject item = GetItemPaiBySide(_drawSide, drawSideIndex, itemIndex);
-            _placedPaiCound_gameStart[drawSideIndex]++;
+            _placedPaiCount_gameStart[drawSideIndex]++;
             if (drawSideIndex == 0)
             {
                 //自己
@@ -339,7 +339,7 @@ public class Panel_battle : WindowsBasePanel
                 {
                     Pai pai = BattleManager.Instance.GetPaiInfoByIndexAndSide(_drawSide, itemIndex);
                     script.UpdateUI(pai, _drawSide);
-                    item.transform.localScale = Vector3.one * 1.7f;
+                    item.transform.localScale = Vector3.one * 0.88f;
                     item.transform.localPosition = new Vector3(-440 + itemIndex * 64, -250, 0);
                 }
                 else
@@ -357,18 +357,19 @@ public class Panel_battle : WindowsBasePanel
                     script.SetSide(_drawSide);
                     if (drawSideIndex == 1)
                     {
-                        item.transform.localEulerAngles = new Vector3(-90, 180, 0);
-                        item.transform.localPosition = new Vector3(0.27f - 0.035f * itemIndex, 0.04f, 0.33f);
+                        item.transform.localEulerAngles = new Vector3(-90, -90, 0);
+                        item.transform.localPosition = new Vector3(0.45f, 0.05f, -0.235f + 0.035f * itemIndex);                        
                     }
                     else if (drawSideIndex == 2)
                     {
-                        item.transform.localEulerAngles = new Vector3(-90, -90, 0);
-                        item.transform.localPosition = new Vector3(0.33f, 0.04f, 0.25f - 0.035f * itemIndex);
+                        item.transform.localScale = new Vector3(1.4f, 1, 1);
+                        item.transform.localEulerAngles = new Vector3(-90, 180, 0);
+                        item.transform.localPosition = new Vector3(0.32f - 0.034f * itemIndex * 1.4f, 0.05f, 0.33f);
                     }
                     else if (drawSideIndex == 3)
                     {
                         item.transform.localEulerAngles = new Vector3(-90, 90, 0);
-                        item.transform.localPosition = new Vector3(-0.33f, 0.04f, 0.25f - 0.035f * itemIndex);
+                        item.transform.localPosition = new Vector3(-0.45f, 0.05f, 0.235f - 0.035f * itemIndex);
                     }
                 }
                 else
@@ -380,10 +381,10 @@ public class Panel_battle : WindowsBasePanel
 
         //本轮抓牌完毕，换人
         _drawRound_gameStart++;
-        _drawSide--;
-        if (_drawSide < pb.BattleSide.east)
+        _drawSide++;
+        if (_drawSide > pb.BattleSide.north)
         {
-            _drawSide = pb.BattleSide.north;
+            _drawSide = pb.BattleSide.east;
         }
 
         Invoke("DrawPaiAniGameStart", 0.5f);
@@ -391,6 +392,7 @@ public class Panel_battle : WindowsBasePanel
 
     private void SortSelfPaiByGameStart()
     {
+        return;
         List<Pai> selfList = BattleManager.Instance.GetPaiListBySide(_sortedSideListFromSelf[0]);
         selfList.Sort(new PaiCompare());
         for (int i = 0; i < selfList.Count; i++)

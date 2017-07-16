@@ -22,15 +22,22 @@ namespace pb
       get { return _playerId; }
       set { _playerId = value; }
     }
+    private int _CardOid;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"CardOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int CardOid
+    {
+      get { return _CardOid; }
+      set { _CardOid = value; }
+    }
     private int _CardId;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"CardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"CardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     public int CardId
     {
       get { return _CardId; }
       set { _CardId = value; }
     }
     private pb.CardStatus _Status;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"Status", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"Status", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
     public pb.CardStatus Status
     {
       get { return _Status; }
@@ -168,8 +175,8 @@ namespace pb
       [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
       SUCCESS = 1,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"NICKNAME_ERROR", Value=2)]
-      NICKNAME_ERROR = 2,
+      [global::ProtoBuf.ProtoEnum(Name=@"ACCOUNT_ERROR", Value=2)]
+      ACCOUNT_ERROR = 2,
             
       [global::ProtoBuf.ProtoEnum(Name=@"PASSWORD_ERROR", Value=3)]
       PASSWORD_ERROR = 3,

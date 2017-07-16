@@ -28,6 +28,8 @@ public class Panel_loading : WindowsBasePanel
     {
         GameObject root = GameObject.Find("TableRoot");
         GameObject table = UIManager.AddGameObject("3d/model/table", root);
+        table.transform.localEulerAngles = new Vector3(0, 180, 0);
+        table.transform.localScale = new Vector3(1.4f, 1f, 1f);
         Animation ani = table.GetComponent<Animation>();
         ani.Stop();
 
