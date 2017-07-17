@@ -31,12 +31,26 @@ public class BattleManager
 
     private List<SideInfo> _playerPaiInfoList = new List<SideInfo>();
 
-    //游戏中
+    //playing params
     private pb.BattleSide _curPlaySide;
     public pb.BattleSide CurPlaySide
     {
         set { _curPlaySide = value; }
         get { return _curPlaySide; }
+    }
+
+    private BattleProcess _curProcess;
+    public BattleProcess CurProcess
+    {
+        set { _curProcess = value; }
+        get { return _curProcess; }
+    }
+
+    private BattleProcess _playingProcess = BattleProcess.Default;
+    public BattleProcess PlayingProcess
+    {
+        set { _playingProcess = value; }
+        get { return _playingProcess; }
     }
 
     public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
@@ -123,7 +137,7 @@ public class BattleManager
         }
     }
 
-    //从自己方位开始逆时针排序
+    //从自己方位开始按照东南西北排序
     public List<pb.BattleSide> GetSortSideListFromSelf()
     {
         pb.BattleSide selfSide = GetSelfSide();
@@ -178,9 +192,10 @@ public class BattleManager
                 }
             }
         }
-        _dealerId = msg.dealerId;
-        Debug.Log("_dealerId=" + _dealerId);
-        EventDispatcher.TriggerEvent(EventDefine.PlayGameStartAni);
+        _dealerId = msg.dealerId;        
+        _curPlaySide = GetDealerSide();
+        Debug.Log("_dealerId=" + _dealerId + ", side=" + _curPlaySide.ToString());
+        EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
     }
 
     public Pai GetPaiInfoByIndexAndSide(pb.BattleSide side, int index)
@@ -227,13 +242,13 @@ public class BattleManager
         return pb.BattleSide.none;
     }
     
-    public List<Pai> GetPaiListBySide(pb.BattleSide side)
+    public List<Pai> GetAllInHandPaiListBySide(pb.BattleSide side)
     {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
             if (_playerPaiInfoList[i].Side == side)
             {
-                return _playerPaiInfoList[i].GetPaiList();
+                return _playerPaiInfoList[i].GetPaiListByStatus(PaiStatus.InHand);
             }
         }
         return new List<Pai>();
@@ -254,6 +269,35 @@ public class BattleManager
             }
         }
         return false;
+    }
+
+    public void UpdateLackCardInfo(List<pb.LackCard> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            for (int j = 0; j < _playerPaiInfoList.Count; j++)
+            {
+                if (_playerPaiInfoList[j].PlayerInfo.OID == list[i].playerId)
+                {
+                    Debug.Log("player " + _playerPaiInfoList[j].PlayerInfo.NickName + " 's lack card is " + list[i].type);
+                    _playerPaiInfoList[j].LackPaiType = list[i].type;
+                    break;
+                }
+            }
+        }
+        EventDispatcher.TriggerEvent(EventDefine.ShowLackCard);
+    }
+
+    public pb.CardType GetLackCardTypeByPlayerId(int playerId)
+    {
+        for (int j = 0; j < _playerPaiInfoList.Count; j++)
+        {
+            if (_playerPaiInfoList[j].PlayerInfo.OID == playerId)
+            {
+                return _playerPaiInfoList[j].LackPaiType;
+            }
+        }
+        return pb.CardType.Wan;
     }
 
 }

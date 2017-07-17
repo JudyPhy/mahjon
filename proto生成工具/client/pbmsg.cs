@@ -10,6 +10,30 @@
 // Generated from: mahjon.proto
 namespace pb
 {
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"LackCard")]
+  public partial class LackCard : global::ProtoBuf.IExtensible
+  {
+    public LackCard() {}
+    
+    private int _playerId;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"playerId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int playerId
+    {
+      get { return _playerId; }
+      set { _playerId = value; }
+    }
+    private pb.CardType _type;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.CardType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"CardInfo")]
   public partial class CardInfo : global::ProtoBuf.IExtensible
   {
@@ -322,6 +346,40 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSSelectLack")]
+  public partial class C2GSSelectLack : global::ProtoBuf.IExtensible
+  {
+    public C2GSSelectLack() {}
+    
+    private pb.CardType _type;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.CardType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CSelectLackRet")]
+  public partial class GS2CSelectLackRet : global::ProtoBuf.IExtensible
+  {
+    public GS2CSelectLackRet() {}
+    
+    private readonly global::System.Collections.Generic.List<pb.LackCard> _lackCard = new global::System.Collections.Generic.List<pb.LackCard>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"lackCard", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public global::System.Collections.Generic.List<pb.LackCard> lackCard
+    {
+      get { return _lackCard; }
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CDiscardTimeOut")]
   public partial class GS2CDiscardTimeOut : global::ProtoBuf.IExtensible
   {
@@ -508,6 +566,20 @@ namespace pb
             
       [global::ProtoBuf.ProtoEnum(Name=@"dicard", Value=5)]
       dicard = 5
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"CardType")]
+    public enum CardType
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Wan", Value=1)]
+      Wan = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Tiao", Value=2)]
+      Tiao = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Tong", Value=3)]
+      Tong = 3
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"DisacardStatus")]

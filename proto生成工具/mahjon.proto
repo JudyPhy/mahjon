@@ -28,6 +28,19 @@ enum CardStatus
 	dicard = 5;
 }
 
+enum CardType
+{
+	Wan = 1;
+	Tiao = 2;
+	Tong = 3;
+}
+
+message LackCard
+{
+	required int32 playerId = 1;
+	required CardType type = 2;
+}
+
 enum DisacardStatus
 {
 	default = 1;
@@ -113,6 +126,16 @@ message GS2CBattleStart
 {
 	required int32 dealerId = 1;
 	repeated CardInfo cardList = 2;
+}
+
+message C2GSSelectLack
+{	
+	required CardType type = 1;
+}
+
+message GS2CSelectLackRet
+{
+	repeated LackCard lackCard = 1;
 }
 
 message GS2CDiscardTimeOut

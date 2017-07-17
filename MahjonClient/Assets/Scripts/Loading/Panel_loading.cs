@@ -21,10 +21,10 @@ public class Panel_loading : WindowsBasePanel
     {
         base.OnStart();
         _curTime = DateTime.Now;
-        StartCoroutine(LoadTable());
+        //StartCoroutine(LoadTable());
     }
 
-    private IEnumerator LoadTable()
+    /*private IEnumerator LoadTable()
     {
         GameObject root = GameObject.Find("TableRoot");
         GameObject table = UIManager.AddGameObject("3d/model/table", root);
@@ -37,7 +37,7 @@ public class Panel_loading : WindowsBasePanel
         Debug.Log("Load table over.");
 
         yield return 0;
-    }
+    }*/
 
     private bool IsOverTime()
     {
@@ -52,7 +52,7 @@ public class Panel_loading : WindowsBasePanel
     public override void OnUpdate()
     {
         base.OnUpdate();
-        if (_loadResOver && BattleManager.Instance.HasRecvSelfPlayerInfo())
+        if (/*_loadResOver && */BattleManager.Instance.HasRecvSelfPlayerInfo())
         {
             UIManager.Instance.ShowMainWindow<Panel_battle>(eWindowsID.BattleUI);
             return;

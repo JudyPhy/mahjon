@@ -39,7 +39,7 @@ public class Item_pai : MonoBehaviour
             Debug.LogError("self pai id:" + _info.Id + ", status:" + _info.Status.ToString());
             switch (_info.Status)
             {
-                case pb.CardStatus.inHand:
+                case PaiStatus.InHand:
                     _pai.spriteName = "b" + _info.Id.ToString();
                     _pai.gameObject.SetActive(true);
                     _bg.spriteName = "inhand_bg2";
@@ -53,6 +53,11 @@ public class Item_pai : MonoBehaviour
     private void OnClickPai(GameObject go)
     {
         Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString());
+        if (BattleManager.Instance.CurProcess == BattleProcess.HandlerCard)
+        {
+            Debug.Log("game not ready.");
+            return;
+        }
         if (BattleManager.Instance.CurPlaySide != _side)
         {
             Debug.Log("current side is " + BattleManager.Instance.CurPlaySide.ToString() + ", is not self round.");

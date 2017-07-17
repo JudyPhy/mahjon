@@ -10,7 +10,9 @@ public enum MsgDef
     GS2CEnterGameRet = 3,
     GS2CUpdateRoomInfo = 4,
     GS2CBattleStart = 5,
-    GS2CDiscardTimeOut = 6,
-    C2GSDiscard = 7,
-    GS2CDiscardRet = 8,
+    C2GSSelectLack = 6,
+    GS2CSelectLackRet = 7,
+    GS2CDiscardTimeOut = 8,
+    C2GSDiscard = 9,
+    GS2CDiscardRet = 10,
 }

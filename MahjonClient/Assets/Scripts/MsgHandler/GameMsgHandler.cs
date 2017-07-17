@@ -31,11 +31,19 @@ public class GameMsgHandler
 
     public void SendMsgC2GSEnterGame(pb.GameMode mode, string roomId = "")
     {
-        Debug.Log("SendMsgC2GSEnterGame==>> [" + mode + "]");
+        Debug.Log("SendMsgC2GSEnterGame==>> [" + mode.ToString() + "]");
         pb.C2GSEnterGame msg = new pb.C2GSEnterGame();
         msg.mode = mode;
         msg.roomId = roomId;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSEnterGame, msg);
+    }
+
+    public void SendMsgC2GSSelectLack(pb.CardType type)
+    {
+        Debug.Log("SendMsgC2GSSelectLack==>> [" + type.ToString() + "]");
+        pb.C2GSSelectLack msg = new pb.C2GSSelectLack();
+        msg.type = type;
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSSelectLack, msg);
     }
 
     #endregion
@@ -102,6 +110,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
         BattleManager.Instance.PrepareGameStart(msg);
+    }
+
+    public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CSelectLackRet");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
+        BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
     }
 
     public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)
