@@ -300,4 +300,16 @@ public class BattleManager
         return pb.CardType.Wan;
     }
 
+    public pb.CardType GetLackCardTypeBySide(pb.BattleSide side)
+    {
+        for (int j = 0; j < _playerPaiInfoList.Count; j++)
+        {
+            if (_playerPaiInfoList[j].Side == side)
+            {
+                return _playerPaiInfoList[j].LackPaiType;
+            }
+        }
+        return pb.CardType.Wan;
+    }
+
 }

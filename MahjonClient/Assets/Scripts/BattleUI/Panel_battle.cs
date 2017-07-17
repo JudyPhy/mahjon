@@ -525,11 +525,158 @@ public class Panel_battle : WindowsBasePanel
     #endregion
 
     #region playing
+    private void hide3DPaiObjBySide(pb.BattleSide side)
+    {
+        List<GameObject> list = _sidePaiDict[side];
+        for (int i = 0; i < list.Count; i++)
+        {
+            list[i].SetActive(false);
+        }
+    }
+
+    private Vector3 getStartPosBySideAndStatus(int sideIndex, PaiStatus status)
+    {
+        switch (status)
+        {
+            case PaiStatus.InHand:
+                if (sideIndex == 0)
+                {
+                    return new Vector3(-440 - 64, -250, 0);
+                }
+                else if (sideIndex == 1)
+                {
+                    return new Vector3(0.45f, 0.05f, -0.235f - 0.035f);
+                }
+                else if (sideIndex == 2)
+                {
+                    return new Vector3(0.32f + 0.034f * 1.4f, 0.05f, 0.33f);
+                }
+                else if (sideIndex == 3)
+                {
+                    return new Vector3(-0.45f, 0.05f, 0.235f + 0.035f);
+                }
+                break;
+            default:
+                break;
+
+        }
+        return Vector3.zero;
+    }
+
+    private Vector3 getOffsetVecBySideAndStatus(int sideIndex, PaiStatus status)
+    {
+        switch (status)
+        {
+            case PaiStatus.InHand:
+                if (sideIndex == 0)
+                {
+                    return new Vector3(64, 0, 0);
+                }
+                else if (sideIndex == 1)
+                {
+                    return new Vector3(0, 0, 0.035f);
+                }
+                else if (sideIndex == 2)
+                {
+                    return new Vector3(0.32f + 0.034f * 1.4f, 0.05f, 0.33f);
+                }
+                else if (sideIndex == 3)
+                {
+                    return new Vector3(-0.45f, 0.05f, 0.235f + 0.035f);
+                }
+                break;
+            default:
+                break;
+
+        }
+        return Vector3.zero;
+    }
+
+    private void placeSortedCard(pb.BattleSide side, int sideIndex, List<Pai> list)
+    {
+        PaiStatus status = list[0].Status;
+        Vector3 pos = getStartPosBySideAndStatus(sideIndex, status);
+        Vector3 offset = getOffsetVecBySideAndStatus(sideIndex, status);
+        if (sideIndex == 0)
+        {
+            hideAllSelfPaiObj();
+            for (int i = 0; i < list.Count; i++)
+            {
+                GameObject item = getItemPaiObjBySide(side, sideIndex, i);
+                item.SetActive(true);
+                Item_pai pai = item.GetComponent<Item_pai>();
+                pai.UpdateUI(list[i], side);
+                pos = i < list.Count - 1 ? pos + offset : pos + offset + new Vector3(10, 0, 0);
+                pai.transform.localPosition = pos;
+            }
+        }
+        else
+        {
+            hide3DPaiObjBySide(side);
+            Vector3 lastOffset = Vector3.zero;
+            for (int i = 0; i < list.Count; i++)
+            {
+                GameObject item = getItemPaiObjBySide(side, sideIndex, i);
+                Item_pai_3d script = item.GetComponent<Item_pai_3d>();
+                script.UpdatePaiMian();
+                script.SetSide(side);
+                if (sideIndex == 1)
+                {
+                    item.transform.localScale = Vector3.one;
+                    item.transform.localEulerAngles = new Vector3(-90, -90, 0);
+                    lastOffset = new Vector3(0, 0, 0.005f);
+                }
+                else if (sideIndex == 2)
+                {
+                    item.transform.localScale = new Vector3(1.4f, 1, 1);
+                    item.transform.localEulerAngles = new Vector3(-90, 180, 0);
+                    item.transform.localPosition = pos + new Vector3(-0.034f * 1.4f, 0, 0);
+                }
+                else if (sideIndex == 3)
+                {
+                    item.transform.localScale = Vector3.one;
+                    item.transform.localEulerAngles = new Vector3(-90, 90, 0);
+                    item.transform.localPosition = pos + new Vector3(0, 0, -0.035f);
+                }
+                item.transform.localPosition = i < list.Count - 1 ? pos + offset : pos + offset + lastOffset;
+            }
+        }
+    }
+
     private void SortCard()
     {
         Debug.Log("sort card");
         BattleManager.Instance.PlayingProcess = BattleProcess.SortingCard;
-        
+        for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
+        {
+            pb.BattleSide side = _sortedSideListFromSelf[i];
+            List<Pai> inhandList = BattleManager.Instance.GetAllInHandPaiListBySide(side);
+            int lackType = (int)BattleManager.Instance.GetLackCardTypeBySide(side);
+            inhandList.Sort((x, y) =>
+            {
+                int result = 0;
+                int type1 = Mathf.FloorToInt(x.Id / 10) + 1;
+                int type2 = Mathf.FloorToInt(y.Id / 10) + 1;
+                if (type1 != lackType && type2 == lackType)
+                {
+                    result = 1;
+                }
+                if (result == 0)
+                {
+                    result = x.Id.CompareTo(y.Id);
+                }
+                return result;
+            });
+
+            string str = "side[" + side.ToString() + "]=> inhand: ";
+            for (int n = 0; n < inhandList.Count; n++)
+            {
+                str += inhandList[n].Id + ", ";
+            }
+            Debug.Log(str);
+
+            placeSortedCard(side, i, inhandList);
+        }
     }
     #endregion
 
