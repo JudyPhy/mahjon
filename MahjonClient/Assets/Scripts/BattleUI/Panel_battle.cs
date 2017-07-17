@@ -82,7 +82,7 @@ public class Panel_battle : WindowsBasePanel
 
         // table
         GameObject _tableRoot = GameObject.Find("TableRoot");        
-        _tableAni = _tableRoot.transform.FindChild("table(Clone)").GetComponent<Animation>();
+        _tableAni = _tableRoot.transform.FindChild("table").GetComponent<Animation>();
         _tableAni.gameObject.SetActive(true);
         _tableAni.Stop();
         _sideObj = _tableAni.transform.FindChild("Dummy001/Bone009").gameObject;
@@ -107,11 +107,12 @@ public class Panel_battle : WindowsBasePanel
         }
 
         //lack
-        _selectLackContainer = transform.FindChild("").gameObject;
+        _selectLackContainer = transform.FindChild("btnLackContainer").gameObject;
         _selectLackContainer.SetActive(false);
         for (int i = 0; i < 3; i++)
         {
-            _btnLack[i] = transform.FindChild("").GetComponent<UIButton>();
+            UIButton btn= _selectLackContainer.transform.FindChild("btnLack" + (i + 1).ToString()).GetComponent<UIButton>();
+            _btnLack.Add(btn);
             UIEventListener.Get(_btnLack[i].gameObject).onClick = OnClickLack;
         }
     }
@@ -578,11 +579,11 @@ public class Panel_battle : WindowsBasePanel
                 }
                 else if (sideIndex == 2)
                 {
-                    return new Vector3(0.32f + 0.034f * 1.4f, 0.05f, 0.33f);
+                    return new Vector3(-0.034f * 1.4f, 0, 0);
                 }
                 else if (sideIndex == 3)
                 {
-                    return new Vector3(-0.45f, 0.05f, 0.235f + 0.035f);
+                    return new Vector3(0, 0, -0.035f);
                 }
                 break;
             default:
@@ -594,6 +595,7 @@ public class Panel_battle : WindowsBasePanel
 
     private void placeSortedCard(pb.BattleSide side, int sideIndex, List<Pai> list)
     {
+        Debug.Log("placeSortedCard=> sideIndex:" + sideIndex.ToString());
         PaiStatus status = list[0].Status;
         Vector3 pos = getStartPosBySideAndStatus(sideIndex, status);
         Vector3 offset = getOffsetVecBySideAndStatus(sideIndex, status);
@@ -617,9 +619,11 @@ public class Panel_battle : WindowsBasePanel
             for (int i = 0; i < list.Count; i++)
             {
                 GameObject item = getItemPaiObjBySide(side, sideIndex, i);
+                item.gameObject.SetActive(true);
                 Item_pai_3d script = item.GetComponent<Item_pai_3d>();
-                script.UpdatePaiMian();
+                script.SetInfo(list[i]);
                 script.SetSide(side);
+                script.UpdatePaiMian();                
                 if (sideIndex == 1)
                 {
                     item.transform.localScale = Vector3.one;
@@ -630,17 +634,55 @@ public class Panel_battle : WindowsBasePanel
                 {
                     item.transform.localScale = new Vector3(1.4f, 1, 1);
                     item.transform.localEulerAngles = new Vector3(-90, 180, 0);
-                    item.transform.localPosition = pos + new Vector3(-0.034f * 1.4f, 0, 0);
+                    lastOffset = new Vector3(-0.005f, 0, 0);
                 }
                 else if (sideIndex == 3)
                 {
                     item.transform.localScale = Vector3.one;
                     item.transform.localEulerAngles = new Vector3(-90, 90, 0);
-                    item.transform.localPosition = pos + new Vector3(0, 0, -0.035f);
+                    lastOffset = new Vector3(0, 0, -0.01f);
                 }
-                item.transform.localPosition = i < list.Count - 1 ? pos + offset : pos + offset + lastOffset;
+                pos = i < list.Count - 1 ? pos + offset : pos + offset + lastOffset;
+                item.transform.localPosition = pos;
             }
         }
+    }
+
+    private void sortAndPlaceInHandCard(pb.BattleSide side, int sideIndex)
+    {
+        Debug.Log("sortAndPlaceInHandCard=> side:" + side.ToString());
+        List<Pai> inhandList = BattleManager.Instance.GetAllInHandPaiListBySide(side);
+        int lackType = (int)BattleManager.Instance.GetLackCardTypeBySide(side);
+        inhandList.Sort((x, y) =>
+        {
+            int result = 0;
+            int type1 = Mathf.FloorToInt(x.Id / 10) + 1;
+            int type2 = Mathf.FloorToInt(y.Id / 10) + 1;
+            if (type1 != lackType && type2 == lackType)
+            {
+                result = 1;
+            }
+            if (result == 0)
+            {
+                result = x.Id.CompareTo(y.Id);
+            }
+            return result;
+        });
+
+        string str = "side[" + side.ToString() + "]=> inhand: ";
+        for (int n = 0; n < inhandList.Count; n++)
+        {
+            str += inhandList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        placeSortedCard(side, sideIndex, inhandList);
+    }
+
+    private void sortAndPlacePGCard(pb.BattleSide side, int sideIndex)
+    {
+        Debug.Log("sortAndPlacePGCard=> side:" + side.ToString());
+
     }
 
     private void SortCard()
@@ -650,32 +692,10 @@ public class Panel_battle : WindowsBasePanel
         for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
             pb.BattleSide side = _sortedSideListFromSelf[i];
-            List<Pai> inhandList = BattleManager.Instance.GetAllInHandPaiListBySide(side);
-            int lackType = (int)BattleManager.Instance.GetLackCardTypeBySide(side);
-            inhandList.Sort((x, y) =>
-            {
-                int result = 0;
-                int type1 = Mathf.FloorToInt(x.Id / 10) + 1;
-                int type2 = Mathf.FloorToInt(y.Id / 10) + 1;
-                if (type1 != lackType && type2 == lackType)
-                {
-                    result = 1;
-                }
-                if (result == 0)
-                {
-                    result = x.Id.CompareTo(y.Id);
-                }
-                return result;
-            });
-
-            string str = "side[" + side.ToString() + "]=> inhand: ";
-            for (int n = 0; n < inhandList.Count; n++)
-            {
-                str += inhandList[n].Id + ", ";
-            }
-            Debug.Log(str);
-
-            placeSortedCard(side, i, inhandList);
+            // inhand
+            sortAndPlaceInHandCard(side, i);
+            // peng、gang
+            sortAndPlacePGCard(side, i);
         }
     }
     #endregion

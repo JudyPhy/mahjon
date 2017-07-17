@@ -18,6 +18,11 @@ public class Item_pai_3d : MonoBehaviour {
 		
 	}
 
+    public void SetInfo(Pai info)
+    {
+        _info = info;
+    }
+
     private int[] GetPaiUVIndex()
     {
 

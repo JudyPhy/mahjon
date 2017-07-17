@@ -36,7 +36,7 @@ public class Item_pai : MonoBehaviour
         }
         else
         {
-            Debug.LogError("self pai id:" + _info.Id + ", status:" + _info.Status.ToString());
+            //Debug.LogError("self pai id:" + _info.Id + ", status:" + _info.Status.ToString());
             switch (_info.Status)
             {
                 case PaiStatus.InHand:
@@ -53,7 +53,7 @@ public class Item_pai : MonoBehaviour
     private void OnClickPai(GameObject go)
     {
         Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString());
-        if (BattleManager.Instance.CurProcess == BattleProcess.HandlerCard)
+        if (BattleManager.Instance.CurProcess == BattleProcess.BattleReady)
         {
             Debug.Log("game not ready.");
             return;
