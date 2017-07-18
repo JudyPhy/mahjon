@@ -53,9 +53,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 9eb8088e8843eb241b915658a521253f, type: 2}
   mSprites:
+  - name: bg1
+    x: 1245
+    y: 1983
+    width: 259
+    height: 65
+    borderLeft: 120
+    borderRight: 120
+    borderTop: 15
+    borderBottom: 15
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 3
+    paddingBottom: 0
   - name: btn_close
-    x: 0
-    y: 1802
+    x: 1951
+    y: 1976
     width: 71
     height: 72
     borderLeft: 0
@@ -67,7 +80,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: btn_desk1
-    x: 1468
+    x: 1505
     y: 1974
     width: 222
     height: 74
@@ -80,7 +93,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: btn_desk2
-    x: 1245
+    x: 1728
     y: 1974
     width: 222
     height: 74
@@ -92,9 +105,22 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
+  - name: btn_green
+    x: 0
+    y: 1670
+    width: 119
+    height: 73
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: btn_huang
-    x: 1883
-    y: 1982
+    x: 0
+    y: 1744
     width: 144
     height: 66
     borderLeft: 0
@@ -106,8 +132,8 @@ MonoBehaviour:
     paddingTop: 8
     paddingBottom: 0
   - name: btn_login
-    x: 1691
-    y: 1985
+    x: 0
+    y: 1878
     width: 191
     height: 63
     borderLeft: 0
@@ -120,7 +146,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: btn_lv
     x: 0
-    y: 1875
+    y: 1811
     width: 144
     height: 66
     borderLeft: 0
@@ -131,9 +157,35 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 8
     paddingBottom: 0
+  - name: btn1
+    x: 192
+    y: 1888
+    width: 105
+    height: 53
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn1_gray
+    x: 298
+    y: 1888
+    width: 105
+    height: 53
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: GoldBack
-    x: 1691
-    y: 1951
+    x: 1245
+    y: 1949
     width: 154
     height: 33
     borderLeft: 0
@@ -145,8 +197,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 1
   - name: input_bg
-    x: 72
-    y: 1818
+    x: 404
+    y: 1885
     width: 60
     height: 56
     borderLeft: 20

@@ -117,11 +117,11 @@ public class Panel_battle : WindowsBasePanel
         }
 
         // slelect exchange card
-        _exchangeCardContainer = transform.FindChild("").gameObject;
-        _btnEnsureSelectExchange = _exchangeCardContainer.transform.FindChild("").GetComponent<UIButton>();
+        _exchangeCardContainer = transform.FindChild("ExchangeContainer").gameObject;
+        _btnEnsureSelectExchange = _exchangeCardContainer.transform.FindChild("btnEnsure").GetComponent<UIButton>();
         for (int i = 0; i < 3; i++)
         {
-            UILabel label = _exchangeCardContainer.transform.FindChild("").GetComponent<UILabel>();
+            UILabel label = transform.FindChild("TipsContainer/Tips" + (i + 1).ToString()).GetComponent<UILabel>();
             label.text = "";
             _exchangeTips.Add(label);
         }
