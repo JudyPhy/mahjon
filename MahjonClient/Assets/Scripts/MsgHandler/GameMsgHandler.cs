@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System;
+using EventTransmit;
 
 public class GameMsgHandler
 {
@@ -44,6 +46,22 @@ public class GameMsgHandler
         pb.C2GSSelectLack msg = new pb.C2GSSelectLack();
         msg.type = type;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSSelectLack, msg);
+    }
+
+    public void SendMsgC2GSExchangeCard(List<Pai> exchangeList)
+    {
+        Debug.Log("SendMsgC2GSExchangeCard==>> [" + exchangeList.Count + "]");
+        pb.C2GSExchangeCard msg = new pb.C2GSExchangeCard();
+        for (int i = 0; i < exchangeList.Count; i++)
+        {
+            pb.CardInfo card = new pb.CardInfo();
+            card.CardOid = exchangeList[i].OID;
+            card.CardId = exchangeList[i].Id;
+            card.playerId = exchangeList[i].PlayerID;
+            card.Status = pb.CardStatus.inHand;
+            msg.cards.Add(card);
+        }
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
     }
 
     #endregion
@@ -110,6 +128,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
         BattleManager.Instance.PrepareGameStart(msg);
+    }
+
+    public void RevMsgGS2CUpdateExchangeOverPlayer(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CUpdateExchangeOverPlayer");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CUpdateExchangeOverPlayer msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateExchangeOverPlayer>(stream);
+        EventDispatcher.TriggerEvent<List<int>>(EventDefine.UpdateExchangeOverPlayer, msg.playerId);
     }
 
     public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)

@@ -19,6 +19,9 @@ It has these top-level messages:
 	GS2CEnterGameRet
 	GS2CUpdateRoomInfo
 	GS2CBattleStart
+	C2GSExchangeCard
+	GS2CUpdateExchangeOverPlayer
+	GS2CUpdateCardInfoAfterExchange
 	C2GSSelectLack
 	GS2CSelectLackRet
 	GS2CDiscardTimeOut
@@ -163,17 +166,20 @@ const (
 	CardType_Wan  CardType = 1
 	CardType_Tiao CardType = 2
 	CardType_Tong CardType = 3
+	CardType_None CardType = 4
 )
 
 var CardType_name = map[int32]string{
 	1: "Wan",
 	2: "Tiao",
 	3: "Tong",
+	4: "None",
 }
 var CardType_value = map[string]int32{
 	"Wan":  1,
 	"Tiao": 2,
 	"Tong": 3,
+	"None": 4,
 }
 
 func (x CardType) Enum() *CardType {
@@ -667,6 +673,54 @@ func (m *GS2CBattleStart) GetDealerId() int32 {
 }
 
 func (m *GS2CBattleStart) GetCardList() []*CardInfo {
+	if m != nil {
+		return m.CardList
+	}
+	return nil
+}
+
+type C2GSExchangeCard struct {
+	Cards            []*CardInfo `protobuf:"bytes,1,rep,name=cards" json:"cards,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *C2GSExchangeCard) Reset()         { *m = C2GSExchangeCard{} }
+func (m *C2GSExchangeCard) String() string { return proto.CompactTextString(m) }
+func (*C2GSExchangeCard) ProtoMessage()    {}
+
+func (m *C2GSExchangeCard) GetCards() []*CardInfo {
+	if m != nil {
+		return m.Cards
+	}
+	return nil
+}
+
+type GS2CUpdateExchangeOverPlayer struct {
+	PlayerId         []int32 `protobuf:"varint,1,rep,name=playerId" json:"playerId,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *GS2CUpdateExchangeOverPlayer) Reset()         { *m = GS2CUpdateExchangeOverPlayer{} }
+func (m *GS2CUpdateExchangeOverPlayer) String() string { return proto.CompactTextString(m) }
+func (*GS2CUpdateExchangeOverPlayer) ProtoMessage()    {}
+
+func (m *GS2CUpdateExchangeOverPlayer) GetPlayerId() []int32 {
+	if m != nil {
+		return m.PlayerId
+	}
+	return nil
+}
+
+type GS2CUpdateCardInfoAfterExchange struct {
+	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CUpdateCardInfoAfterExchange) Reset()         { *m = GS2CUpdateCardInfoAfterExchange{} }
+func (m *GS2CUpdateCardInfoAfterExchange) String() string { return proto.CompactTextString(m) }
+func (*GS2CUpdateCardInfoAfterExchange) ProtoMessage()    {}
+
+func (m *GS2CUpdateCardInfoAfterExchange) GetCardList() []*CardInfo {
 	if m != nil {
 		return m.CardList
 	}

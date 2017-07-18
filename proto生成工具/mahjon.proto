@@ -33,6 +33,7 @@ enum CardType
 	Wan = 1;
 	Tiao = 2;
 	Tong = 3;
+	None = 4;
 }
 
 message LackCard
@@ -126,6 +127,21 @@ message GS2CBattleStart
 {
 	required int32 dealerId = 1;
 	repeated CardInfo cardList = 2;
+}
+
+message C2GSExchangeCard
+{	
+	repeated CardInfo cards = 1;
+}
+
+message GS2CUpdateExchangeOverPlayer
+{
+    repeated int32 playerId = 1;
+}
+
+message GS2CUpdateCardInfoAfterExchange
+{
+    repeated CardInfo cardList = 1;
 }
 
 message C2GSSelectLack

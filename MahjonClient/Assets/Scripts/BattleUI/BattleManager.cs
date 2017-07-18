@@ -53,19 +53,28 @@ public class BattleManager
         get { return _playingProcess; }
     }
 
-    public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
+    private SideInfo getSideInfoBySide(pb.BattleSide side)
     {
-        Debug.Log("PrepareEnterGame=> _gameMode=" + msg.mode.ToString() + ", _roomId=" + msg.roomId);
-        _gameMode = msg.mode;
-        _roomId = msg.roomId;
-        switch (msg.mode)
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
-            case pb.GameMode.CreateRoom:
-                BattleManager.Instance.IsWaitingEnterRoomRet = false;
-                break;
-            default:
-                break;
+            if (side == _playerPaiInfoList[i].Side)
+            {
+                return _playerPaiInfoList[i];
+            }
         }
+        return null;
+    }
+
+    private pb.BattleSide GetSelfSide()
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == Player.Instance.PlayerInfo.OID)
+            {
+                return _playerPaiInfoList[i].Side;
+            }
+        }
+        return pb.BattleSide.none;
     }
 
     private int getPlayerIndexInList(int playerId)
@@ -80,6 +89,21 @@ public class BattleManager
             }
         }
         return index;
+    }
+
+    public void PrepareEnterGame(pb.GS2CEnterGameRet msg)
+    {
+        Debug.Log("PrepareEnterGame=> _gameMode=" + msg.mode.ToString() + ", _roomId=" + msg.roomId);
+        _gameMode = msg.mode;
+        _roomId = msg.roomId;
+        switch (msg.mode)
+        {
+            case pb.GameMode.CreateRoom:
+                BattleManager.Instance.IsWaitingEnterRoomRet = false;
+                break;
+            default:
+                break;
+        }
     }
 
     public void UpdatePlayerInfo(pb.GS2CUpdateRoomInfo msg)
@@ -137,7 +161,7 @@ public class BattleManager
         }
     }
 
-    //从自己方位开始按照东南西北排序
+    //方位列表：从自己方位开始按照东南西北排序
     public List<pb.BattleSide> GetSortSideListFromSelf()
     {
         pb.BattleSide selfSide = GetSelfSide();
@@ -165,18 +189,6 @@ public class BattleManager
             }
         }
         return null;
-    }
-
-    private pb.BattleSide GetSelfSide()
-    {
-        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-        {
-            if (_playerPaiInfoList[i].PlayerInfo.OID == Player.Instance.PlayerInfo.OID)
-            {
-                return _playerPaiInfoList[i].Side;
-            }
-        }
-        return pb.BattleSide.none;
     }
 
     public void PrepareGameStart(pb.GS2CBattleStart msg)
@@ -297,19 +309,61 @@ public class BattleManager
                 return _playerPaiInfoList[j].LackPaiType;
             }
         }
-        return pb.CardType.Wan;
+        return pb.CardType.None;
     }
 
     public pb.CardType GetLackCardTypeBySide(pb.BattleSide side)
     {
-        for (int j = 0; j < _playerPaiInfoList.Count; j++)
+        SideInfo sideInfo = getSideInfoBySide(side);
+        if (sideInfo != null)
         {
-            if (_playerPaiInfoList[j].Side == side)
+            return sideInfo.LackPaiType;
+        }
+        return pb.CardType.None;
+    }
+
+    public pb.CardType GetExchangeTypeBySide(pb.BattleSide side)
+    {
+        SideInfo sideInfo = getSideInfoBySide(side);
+        if (sideInfo != null)
+        {
+            return sideInfo.GetExchangeType();
+        }
+        return pb.CardType.None;
+    }
+
+    public int GetExchangeCardCountBySide(pb.BattleSide side)
+    {
+        SideInfo sideInfo = getSideInfoBySide(side);
+        if (sideInfo != null)
+        {
+            return sideInfo.GetExchangeCardCount();
+        }
+        return 0;
+    }
+
+    public List<Pai> GetExchangeCardListBySide(pb.BattleSide side)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].Side == side)
             {
-                return _playerPaiInfoList[j].LackPaiType;
+                return _playerPaiInfoList[i].GetPaiListByStatus(PaiStatus.Exchange);
             }
         }
-        return pb.CardType.Wan;
+        return null;
+    }
+
+    public pb.BattleSide GetSideByPlayerId(int playerId)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == playerId)
+            {
+                return _playerPaiInfoList[i].Side;
+            }
+        }
+        return pb.BattleSide.none;
     }
 
 }

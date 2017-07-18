@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EventTransmit;
 
 public class Item_pai : MonoBehaviour
 {
@@ -50,18 +51,62 @@ public class Item_pai : MonoBehaviour
         }
     }
 
+    private void OnSelectExchangeCard()
+    {
+        Debug.Log("select card as exchange card, oid=" + _info.OID);
+        if (_info.Status == PaiStatus.Exchange)
+        {
+            _info.Status = PaiStatus.InHand;
+            iTween.MoveTo(gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f));
+            EventDispatcher.TriggerEvent<bool>(EventDefine.UpdateBtnExchangeCard, false);
+        }
+        else
+        {
+            pb.CardType exchangeType = BattleManager.Instance.GetExchangeTypeBySide(_side);
+            pb.CardType curType = (pb.CardType)Mathf.CeilToInt(_info.Id / 10);
+            Debug.Log("curType=" + curType.ToString() + ", exchangeType=" + exchangeType.ToString());
+            if (exchangeType != pb.CardType.None && curType != exchangeType)
+            {
+                UIManager.Instance.ShowTips(TipsType.text, "必须选择同花色的牌");
+            }
+            else
+            {
+                int count = BattleManager.Instance.GetExchangeCardCountBySide(_side);
+                if (count >= 3)
+                {
+                    UIManager.Instance.ShowTips(TipsType.text, "只能交换三张牌");
+                }
+                else
+                {
+                    _info.Status = PaiStatus.Exchange;
+                    iTween.MoveTo(gameObject, iTween.Hash("y", -230, "islocal", true, "time", 0.2f));
+                    count++;
+                    EventDispatcher.TriggerEvent<bool>(EventDefine.UpdateBtnExchangeCard, count >= 3);
+                }
+            }
+        }
+    }
+
     private void OnClickPai(GameObject go)
     {
         Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString());
-        if (BattleManager.Instance.CurProcess == BattleProcess.BattleReady)
+        if (BattleManager.Instance.CurProcess == BattleProcess.SelectingExchangeCard)
         {
-            Debug.Log("game not ready.");
-            return;
+            // 选择交换牌阶段            
+            OnSelectExchangeCard();
         }
-        if (BattleManager.Instance.CurPlaySide != _side)
+        else
         {
-            Debug.Log("current side is " + BattleManager.Instance.CurPlaySide.ToString() + ", is not self round.");
-            return;
+            if (BattleManager.Instance.CurProcess == BattleProcess.BattleReady)
+            {
+                Debug.Log("game not ready.");
+                return;
+            }
+            if (BattleManager.Instance.CurPlaySide != _side)
+            {
+                Debug.Log("current side is " + BattleManager.Instance.CurPlaySide.ToString() + ", is not self round.");
+                return;
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EventTransmit;
 
 public enum PaiStatus
 {
@@ -10,10 +11,19 @@ public enum PaiStatus
     Peng,
     PreGang,
     Gang,
+    PreExchange,
+    Exchange,
 }
 
 public class Pai
 {
+    private int _oid;
+    public int OID
+    {
+        set { _oid = value; }
+        get { return _oid; }
+    }
+
     private int _id;
     public int Id
     {
@@ -26,6 +36,13 @@ public class Pai
     {
         set { _status = value; }
         get { return _status; }
+    }
+
+    private int _playerId;
+    public int PlayerID
+    {
+        set { _playerId = value; }
+        get { return _playerId; }
     }
 }
 
@@ -84,6 +101,32 @@ public class SideInfo
         return list;
     }
 
+    public pb.CardType GetExchangeType()
+    {
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (_paiList[i].Status == PaiStatus.Exchange)
+            {
+                return (pb.CardType)Mathf.CeilToInt(_paiList[i].Id / 10);
+            }
+        }
+        return pb.CardType.None;
+    }
+
+    public int GetExchangeCardCount()
+    {
+        int count = 0;
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (_paiList[i].Status == PaiStatus.Exchange)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+
     public void ClearPai()
     {
         _paiList.Clear();
@@ -107,8 +150,10 @@ public class SideInfo
     public void AddPai(pb.CardInfo card)
     {
         Pai pai = new Pai();
+        pai.OID = card.CardOid;
         pai.Id = card.CardId;
         pai.Status = getPaiStatus(card.Status);
+        pai.PlayerID = card.playerId;
         _paiList.Add(pai);
     }
 
