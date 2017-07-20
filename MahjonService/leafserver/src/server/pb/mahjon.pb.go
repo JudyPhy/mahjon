@@ -9,6 +9,7 @@ It is generated from these files:
 	mahjon.proto
 
 It has these top-level messages:
+	LackCard
 	CardInfo
 	BattlePlayerInfo
 	PlayerInfo
@@ -18,6 +19,11 @@ It has these top-level messages:
 	GS2CEnterGameRet
 	GS2CUpdateRoomInfo
 	GS2CBattleStart
+	C2GSExchangeCard
+	GS2CUpdateExchangeOverPlayer
+	GS2CUpdateCardInfoAfterExchange
+	C2GSSelectLack
+	GS2CSelectLackRet
 	GS2CDiscardTimeOut
 	C2GSDiscard
 	GS2CDiscardRet
@@ -154,6 +160,45 @@ func (x *CardStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type CardType int32
+
+const (
+	CardType_Wan  CardType = 1
+	CardType_Tiao CardType = 2
+	CardType_Tong CardType = 3
+	CardType_None CardType = 4
+)
+
+var CardType_name = map[int32]string{
+	1: "Wan",
+	2: "Tiao",
+	3: "Tong",
+	4: "None",
+}
+var CardType_value = map[string]int32{
+	"Wan":  1,
+	"Tiao": 2,
+	"Tong": 3,
+	"None": 4,
+}
+
+func (x CardType) Enum() *CardType {
+	p := new(CardType)
+	*p = x
+	return p
+}
+func (x CardType) String() string {
+	return proto.EnumName(CardType_name, int32(x))
+}
+func (x *CardType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(CardType_value, data, "CardType")
+	if err != nil {
+		return err
+	}
+	*x = CardType(value)
+	return nil
+}
+
 type DisacardStatus int32
 
 const (
@@ -197,20 +242,20 @@ type GS2CLoginRet_ErrorCode int32
 
 const (
 	GS2CLoginRet_SUCCESS        GS2CLoginRet_ErrorCode = 1
-	GS2CLoginRet_NICKNAME_ERROR GS2CLoginRet_ErrorCode = 2
+	GS2CLoginRet_ACCOUNT_ERROR  GS2CLoginRet_ErrorCode = 2
 	GS2CLoginRet_PASSWORD_ERROR GS2CLoginRet_ErrorCode = 3
 	GS2CLoginRet_FAIL           GS2CLoginRet_ErrorCode = 4
 )
 
 var GS2CLoginRet_ErrorCode_name = map[int32]string{
 	1: "SUCCESS",
-	2: "NICKNAME_ERROR",
+	2: "ACCOUNT_ERROR",
 	3: "PASSWORD_ERROR",
 	4: "FAIL",
 }
 var GS2CLoginRet_ErrorCode_value = map[string]int32{
 	"SUCCESS":        1,
-	"NICKNAME_ERROR": 2,
+	"ACCOUNT_ERROR":  2,
 	"PASSWORD_ERROR": 3,
 	"FAIL":           4,
 }
@@ -337,10 +382,35 @@ func (x *GS2CDiscardRet_ErrorCode) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type LackCard struct {
+	PlayerId         *int32    `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
+	Type             *CardType `protobuf:"varint,2,req,name=type,enum=pb.CardType" json:"type,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (m *LackCard) Reset()         { *m = LackCard{} }
+func (m *LackCard) String() string { return proto.CompactTextString(m) }
+func (*LackCard) ProtoMessage()    {}
+
+func (m *LackCard) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
+}
+
+func (m *LackCard) GetType() CardType {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return CardType_Wan
+}
+
 type CardInfo struct {
 	PlayerId         *int32      `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
-	CardId           *int32      `protobuf:"varint,2,req" json:"CardId,omitempty"`
-	Status           *CardStatus `protobuf:"varint,3,req,enum=pb.CardStatus" json:"Status,omitempty"`
+	CardOid          *int32      `protobuf:"varint,2,req" json:"CardOid,omitempty"`
+	CardId           *int32      `protobuf:"varint,3,req" json:"CardId,omitempty"`
+	Status           *CardStatus `protobuf:"varint,4,req,enum=pb.CardStatus" json:"Status,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -351,6 +421,13 @@ func (*CardInfo) ProtoMessage()    {}
 func (m *CardInfo) GetPlayerId() int32 {
 	if m != nil && m.PlayerId != nil {
 		return *m.PlayerId
+	}
+	return 0
+}
+
+func (m *CardInfo) GetCardOid() int32 {
+	if m != nil && m.CardOid != nil {
+		return *m.CardOid
 	}
 	return 0
 }
@@ -602,6 +679,86 @@ func (m *GS2CBattleStart) GetCardList() []*CardInfo {
 	return nil
 }
 
+type C2GSExchangeCard struct {
+	Cards            []*CardInfo `protobuf:"bytes,1,rep,name=cards" json:"cards,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *C2GSExchangeCard) Reset()         { *m = C2GSExchangeCard{} }
+func (m *C2GSExchangeCard) String() string { return proto.CompactTextString(m) }
+func (*C2GSExchangeCard) ProtoMessage()    {}
+
+func (m *C2GSExchangeCard) GetCards() []*CardInfo {
+	if m != nil {
+		return m.Cards
+	}
+	return nil
+}
+
+type GS2CUpdateExchangeOverPlayer struct {
+	PlayerId         []int32 `protobuf:"varint,1,rep,name=playerId" json:"playerId,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *GS2CUpdateExchangeOverPlayer) Reset()         { *m = GS2CUpdateExchangeOverPlayer{} }
+func (m *GS2CUpdateExchangeOverPlayer) String() string { return proto.CompactTextString(m) }
+func (*GS2CUpdateExchangeOverPlayer) ProtoMessage()    {}
+
+func (m *GS2CUpdateExchangeOverPlayer) GetPlayerId() []int32 {
+	if m != nil {
+		return m.PlayerId
+	}
+	return nil
+}
+
+type GS2CUpdateCardInfoAfterExchange struct {
+	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CUpdateCardInfoAfterExchange) Reset()         { *m = GS2CUpdateCardInfoAfterExchange{} }
+func (m *GS2CUpdateCardInfoAfterExchange) String() string { return proto.CompactTextString(m) }
+func (*GS2CUpdateCardInfoAfterExchange) ProtoMessage()    {}
+
+func (m *GS2CUpdateCardInfoAfterExchange) GetCardList() []*CardInfo {
+	if m != nil {
+		return m.CardList
+	}
+	return nil
+}
+
+type C2GSSelectLack struct {
+	Type             *CardType `protobuf:"varint,1,req,name=type,enum=pb.CardType" json:"type,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (m *C2GSSelectLack) Reset()         { *m = C2GSSelectLack{} }
+func (m *C2GSSelectLack) String() string { return proto.CompactTextString(m) }
+func (*C2GSSelectLack) ProtoMessage()    {}
+
+func (m *C2GSSelectLack) GetType() CardType {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return CardType_Wan
+}
+
+type GS2CSelectLackRet struct {
+	LackCard         []*LackCard `protobuf:"bytes,1,rep,name=lackCard" json:"lackCard,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CSelectLackRet) Reset()         { *m = GS2CSelectLackRet{} }
+func (m *GS2CSelectLackRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CSelectLackRet) ProtoMessage()    {}
+
+func (m *GS2CSelectLackRet) GetLackCard() []*LackCard {
+	if m != nil {
+		return m.LackCard
+	}
+	return nil
+}
+
 type GS2CDiscardTimeOut struct {
 	PlayerId         *int32 `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
@@ -726,6 +883,7 @@ func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
+	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
 	proto.RegisterEnum("pb.DisacardStatus", DisacardStatus_name, DisacardStatus_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)

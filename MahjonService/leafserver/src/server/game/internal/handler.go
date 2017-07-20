@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"server/pb"
 	"server/roomMgr"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
@@ -35,6 +36,25 @@ func recvC2GSEnterGame(args []interface{}) {
 	}
 }
 
+func waitingRoomOk(roomId string) {
+	timer := time.NewTimer(time.Second * 5)
+	go func() {
+		<-timer.C
+		memberCount := roomMgr.GetRoomMemberCount(roomId)
+		log.Debug("Waiting time out, current player count=%d", memberCount)
+		if memberCount < 4 {
+			log.Debug("need add robot")
+			for i := 0; i < 4-memberCount; i++ {
+				roomMgr.AddRobotToRoom(roomId, i)
+			}
+			roomMgr.SendAddedRobotMember(roomId)
+			roomMgr.StartBattle(roomId)
+		}
+		timer.Stop()
+	}()
+
+}
+
 func createRoomRet(a gate.Agent) {
 	// enter game ret
 	ret := &pb.GS2CEnterGameRet{}
@@ -42,13 +62,18 @@ func createRoomRet(a gate.Agent) {
 	roomId := roomMgr.ReqNewRoom(a)
 	log.Debug("newRoomId=", roomId)
 	ret.RoomId = proto.String(roomId)
-	ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
+	result := roomMgr.AddPlayerToRoom(roomId, a, true)
+	if !result {
+		log.Error("add player to room fail.")
+		ret.ErrorCode = pb.GS2CEnterGameRet_FAIL.Enum()
+	} else {
+		log.Error("add player to room success.")
+		ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
+	}
 	a.WriteMsg(ret)
 
 	//test: add other 3 robot to room
-	for i := 0; i < 3; i++ {
-		roomMgr.AddRobotToRoom(roomId)
-	}
+	waitingRoomOk(roomId)
 }
 
 func jointRoomRet(roomId string, a gate.Agent) {

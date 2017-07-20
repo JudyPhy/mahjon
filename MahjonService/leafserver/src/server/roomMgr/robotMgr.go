@@ -1,54 +1,39 @@
 package roomMgr
 
 import (
-	"server/pb"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/log"
 )
 
-func AddRobotToRoom(roomId string) {
+func AddRobotToRoom(roomId string, oid int) {
 	log.Debug("AddRobotToRoom roomId=%d", roomId)
-	//pbPlayerInfo
-	pbPlayer := &pb.PlayerInfo{}
-	pbPlayer.Oid = proto.Int(10000 + len(Rooms.roomMap[roomId].playerList))
-	pbPlayer.NickName = proto.String("电脑")
-	pbPlayer.HeadIcon = proto.String("")
-	pbPlayer.Gold = proto.Int(0)
-	pbPlayer.Diamond = proto.Int(0)
-	//battlePlayerInfo
-	battlePlayer := &pb.BattlePlayerInfo{}
-	sideList := getLeftSideList(roomId)
-	battlePlayer.Side = getRandomSideBySideList(sideList)
-	battlePlayer.IsOwner = proto.Bool(false)
-	battlePlayer.Player = pbPlayer
+	//PlayerInfo
+	basePlayer := &PlayerInfo{}
+	basePlayer.oid = int32(oid)
+	basePlayer.nickName = "游客"
+	basePlayer.headIcon = "nil"
+	basePlayer.gold = 0
+	basePlayer.diamond = 0
+	basePlayer.roomId = roomId
 
 	//roomPlayer
+	sideList := getLeftSideList(roomId)
+	side := getRandomSideBySideList(sideList)
 	roomPlayer := &RoomPlayerInfo{}
 	roomPlayer.isRobot = true
 	roomPlayer.agent = nil
-	roomPlayer.player = battlePlayer
+	roomPlayer.side = side
+	roomPlayer.isOwner = false
+	roomPlayer.playerInfo = basePlayer
 
 	//room
 	log.Debug("prepare room info")
-	if _, ok := Rooms.roomMap[roomId]; ok {
-		Rooms.roomMap[roomId].playerList = append(Rooms.roomMap[roomId].playerList, roomPlayer)
+	RoomManager.lock.Lock()
+	if _, ok := RoomManager.roomMap[roomId]; ok {
+		RoomManager.roomMap[roomId].playerList = append(RoomManager.roomMap[roomId].playerList, roomPlayer)
 	} else {
 		room := &RoomInfo{}
 		room.playerList = append(room.playerList, roomPlayer)
-		Rooms.roomMap[roomId] = room
+		RoomManager.roomMap[roomId] = room
 	}
-
-	// send update room playr event
-	log.Debug("send add room player info to client")
-	data := &pb.GS2CUpdateRoomInfo{}
-	data.Player = append(data.Player, battlePlayer)
-	data.Status = pb.GS2CUpdateRoomInfo_ADD.Enum()
-	log.Debug("current plater count in room:", len(Rooms.roomMap[roomId].playerList))
-	for n, value := range Rooms.roomMap[roomId].playerList {
-		log.Debug("n=", n)
-		if !value.isRobot && value.agent != nil {
-			value.agent.WriteMsg(data)
-		}
-	}
+	RoomManager.lock.Unlock()
 }
