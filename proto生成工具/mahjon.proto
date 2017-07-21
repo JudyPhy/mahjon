@@ -131,7 +131,17 @@ message GS2CBattleStart
 
 message C2GSExchangeCard
 {	
-	repeated CardInfo cards = 1;
+	repeated int32 cardOid = 1;
+}
+
+message GS2CExchangeCardRet
+{	
+	enum ErrorCode{
+		SUCCESS = 1; 
+		FAIL = 2;
+		FAIL_CARD_COUNT_ERROR = 3;
+	}
+	required ErrorCode errorCode = 1;
 }
 
 message GS2CUpdateExchangeOverPlayer

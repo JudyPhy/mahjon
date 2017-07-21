@@ -45,6 +45,80 @@ type mgrRoom struct {
 
 var RoomManager *mgrRoom
 
+func sendAddedRobotMember(roomId string) {
+	log.Debug("sendAddedRobotMember, roomId=%d", roomId)
+	var players []*pb.BattlePlayerInfo
+	for n, value := range RoomManager.roomMap[roomId].playerList {
+		if n == 0 {
+		}
+		if value.isRobot {
+			battlePlayer := playerInfoToPbBattlePlayerInfo(value)
+			players = append(players, battlePlayer)
+		}
+	}
+	status := pb.GS2CUpdateRoomInfo_ADD.Enum()
+	for n, value := range RoomManager.roomMap[roomId].playerList {
+		if n == 0 {
+		}
+		if !value.isRobot && value.agent != nil {
+			msgHandler.SendGS2CUpdateRoomInfo(players, status, value.agent)
+		}
+	}
+}
+
+func checkRoomMemberEnough(roomId string) bool {
+	memberCount := len(RoomManager.roomMap[roomId].playerList)
+	log.Debug("member count=%d", memberCount)
+	return memberCount == 4
+}
+
+func waitingRoomOk(roomId string) {
+	timer := time.NewTimer(time.Second * 5)
+	go func() {
+		<-timer.C
+		RoomManager.lock.Lock()
+		if !checkRoomMemberEnough(roomId) {
+			log.Debug("need add robot")
+			memberCount := len(RoomManager.roomMap[roomId].playerList)
+			for i := 0; i < 4-memberCount; i++ {
+				addRobotToRoom(roomId, i)
+			}
+			sendAddedRobotMember(roomId)
+		}
+		if checkRoomMemberEnough(roomId) {
+			startBattle(roomId)
+			timer.Stop()
+		}
+		RoomManager.lock.Unlock()
+	}()
+}
+
+func getCardListBySide(side *pb.BattleSide, roomInfo *RoomInfo) *CardList {
+	if side == pb.BattleSide_east.Enum() {
+		return roomInfo.cardList_east
+	} else if side == pb.BattleSide_south.Enum() {
+		return roomInfo.cardList_south
+	} else if side == pb.BattleSide_west.Enum() {
+		return roomInfo.cardList_west
+	} else if side == pb.BattleSide_north.Enum() {
+		return roomInfo.cardList_north
+	}
+	return nil
+}
+
+func getCardListByPlayerId(playerId int32, roomInfo *RoomInfo) *CardList {
+	if roomInfo.cardList_east.playerId == playerId {
+		return roomInfo.cardList_east
+	} else if roomInfo.cardList_south.playerId == playerId {
+		return roomInfo.cardList_south
+	} else if roomInfo.cardList_west.playerId == playerId {
+		return roomInfo.cardList_west
+	} else if roomInfo.cardList_north.playerId == playerId {
+		return roomInfo.cardList_north
+	}
+	return nil
+}
+
 func getLeftSideList(roomId string) []*pb.BattleSide {
 	origList := []*pb.BattleSide{pb.BattleSide_east.Enum(), pb.BattleSide_south.Enum(), pb.BattleSide_west.Enum(), pb.BattleSide_north.Enum()}
 	if _, ok := RoomManager.roomMap[roomId]; ok {
@@ -107,36 +181,9 @@ func playerInfoToPbBattlePlayerInfo(info *RoomPlayerInfo) *pb.BattlePlayerInfo {
 	return player
 }
 
-func reqDealer(roomId string) int32 {
-	dealerId := int32(0)
-	RoomManager.lock.Lock()
-	if _, ok := RoomManager.roomMap[roomId]; ok {
-		count := len(RoomManager.roomMap[roomId].playerList)
-		rand.Seed(time.Now().UnixNano())
-		index := rand.Intn(count)
-		dealerId = RoomManager.roomMap[roomId].playerList[index].playerInfo.oid
-	}
-	RoomManager.lock.Unlock()
-	return dealerId
-}
-
-//------------------------------------------------------------------------------
-//								   public func
-//------------------------------------------------------------------------------
-func Init() {
-	log.Debug("init player map.")
-	ChanPlayerStruct = &ChanPlayer{}
-	ChanPlayerStruct.aPlayerMap = make(map[gate.Agent]*PlayerInfo)
-
-	log.Debug("init room map.")
-	RoomManager = &mgrRoom{}
-	RoomManager.roomMap = make(map[string]*RoomInfo)
-}
-
-func ReqNewRoom(a gate.Agent) string {
+func reqNewRoom(a gate.Agent) string {
 	log.Debug("ReqNewRoom")
 	newRoomId := getRandomRoomId(6)
-	RoomManager.lock.Lock()
 	for {
 		_, ok := RoomManager.roomMap[newRoomId]
 		if ok {
@@ -146,12 +193,11 @@ func ReqNewRoom(a gate.Agent) string {
 			break
 		}
 	}
-	RoomManager.lock.Unlock()
 	return newRoomId
 }
 
 //添加真实玩家到房间中
-func AddPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
+func addPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 	log.Debug("add player to room=", roomId)
 
 	//roomPlayer
@@ -160,6 +206,7 @@ func AddPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 		log.Error("player has not logined, can't add.")
 		return false
 	}
+	basePlayer.roomId = roomId
 	sideList := getLeftSideList(roomId)
 	side := getRandomSideBySideList(sideList)
 	roomPlayer := &RoomPlayerInfo{}
@@ -171,7 +218,6 @@ func AddPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 
 	//room
 	log.Debug("prepare room info")
-	RoomManager.lock.Lock()
 	if _, ok := RoomManager.roomMap[roomId]; ok {
 		RoomManager.roomMap[roomId].playerList = append(RoomManager.roomMap[roomId].playerList, roomPlayer)
 	} else {
@@ -192,57 +238,24 @@ func AddPlayerToRoom(roomId string, a gate.Agent, isOwner bool) bool {
 			msgHandler.SendGS2CUpdateRoomInfo(players, status, value.agent)
 		}
 	}
-	RoomManager.lock.Unlock()
 	return true
 }
 
-func GetRoomMemberCount(roomId string) int {
-	return len(RoomManager.roomMap[roomId].playerList)
+func reqDealer(roomId string) int32 {
+	dealerId := int32(0)
+	if _, ok := RoomManager.roomMap[roomId]; ok {
+		count := len(RoomManager.roomMap[roomId].playerList)
+		rand.Seed(time.Now().UnixNano())
+		index := rand.Intn(count)
+		dealerId = RoomManager.roomMap[roomId].playerList[index].playerInfo.oid
+	}
+	log.Debug("roomId=%d, dealerId=%d", roomId, dealerId)
+	return dealerId
 }
 
-func SendAddedRobotMember(roomId string) {
-	log.Debug("SendAddedRobotMember, roomId=%d", roomId)
-	RoomManager.lock.Lock()
-	var players []*pb.BattlePlayerInfo
-	for n, value := range RoomManager.roomMap[roomId].playerList {
-		if n == 0 {
-		}
-		if value.isRobot {
-			battlePlayer := playerInfoToPbBattlePlayerInfo(value)
-			players = append(players, battlePlayer)
-		}
-	}
-	status := pb.GS2CUpdateRoomInfo_ADD.Enum()
-	for n, value := range RoomManager.roomMap[roomId].playerList {
-		if n == 0 {
-		}
-		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CUpdateRoomInfo(players, status, value.agent)
-		}
-	}
-	RoomManager.lock.Unlock()
-}
-
-func getCardListBySide(side *pb.BattleSide, roomInfo *RoomInfo) *CardList {
-	if side == pb.BattleSide_east.Enum() {
-		return roomInfo.cardList_east
-	} else if side == pb.BattleSide_south.Enum() {
-		return roomInfo.cardList_south
-	} else if side == pb.BattleSide_west.Enum() {
-		return roomInfo.cardList_west
-	} else if side == pb.BattleSide_north.Enum() {
-		return roomInfo.cardList_north
-	}
-	return nil
-}
-
-func StartBattle(roomId string) {
-	log.Debug("StartBattle, roomId=%d", roomId)
-	RoomManager.lock.Lock()
-
+func startBattle(roomId string) {
+	log.Debug("startBattle, roomId=%d", roomId)
 	dealerId := reqDealer(roomId)
-	log.Debug("dealerId=%d", dealerId)
-
 	// deal cards
 	var allPlayerCards []*pb.CardInfo
 	loadAllCards()
@@ -260,13 +273,13 @@ func StartBattle(roomId string) {
 			card.PlayerId = proto.Int32(value.playerInfo.oid)
 			card.CardOid = proto.Int32(cardList.list[n].oid)
 			card.CardId = proto.Int32(cardList.list[n].id)
-			card.Status = pb.CardStatus_noDeal.Enum()
+			card.Status = pb.CardStatus_inHand.Enum()
 			allPlayerCards = append(allPlayerCards, card)
 		}
 	}
 
 	//prepare send
-	log.Debug("battle start, deal card count=", len(allPlayerCards))
+	log.Debug("battle start, dealed cards sum count=", len(allPlayerCards))
 	for n, value := range roomInfo.playerList {
 		if n == 0 {
 		}
@@ -274,7 +287,37 @@ func StartBattle(roomId string) {
 			msgHandler.SendGS2CBattleStart(dealerId, allPlayerCards, value.agent)
 		}
 	}
+}
+
+//------------------------------------------------------------------------------
+//								   public func
+//------------------------------------------------------------------------------
+func Init() {
+	log.Debug("init player map.")
+	ChanPlayerStruct = &ChanPlayer{}
+	ChanPlayerStruct.aPlayerMap = make(map[gate.Agent]*PlayerInfo)
+
+	log.Debug("init room map.")
+	RoomManager = &mgrRoom{}
+	RoomManager.roomMap = make(map[string]*RoomInfo)
+}
+
+func CreateRoomRet(a gate.Agent) {
+	log.Debug("CreateRoomRet")
+	RoomManager.lock.Lock()
+	mode := pb.GameMode_CreateRoom.Enum()
+	roomId := reqNewRoom(a)
+	result := addPlayerToRoom(roomId, a, true)
+	errorCode := pb.GS2CEnterGameRet_SUCCESS.Enum()
+	if !result {
+		log.Error("add player to room fail.")
+		errorCode = pb.GS2CEnterGameRet_FAIL.Enum()
+	}
+	msgHandler.SendGS2CEnterGameRet(errorCode, mode, roomId, a)
 	RoomManager.lock.Unlock()
+
+	//test: add other 3 robot to room
+	waitingRoomOk(roomId)
 }
 
 func OutRoom(roomId string, a gate.Agent) {
@@ -316,11 +359,61 @@ func JoinRoom(roomId string, a gate.Agent) *pb.GS2CEnterGameRet_ErrorCode {
 		return pb.GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
 	}
 	RoomManager.lock.Lock()
-	result := AddPlayerToRoom(roomId, a, false)
+	result := addPlayerToRoom(roomId, a, false)
 	RoomManager.lock.Unlock()
 	if result {
 		return pb.GS2CEnterGameRet_SUCCESS.Enum()
 	} else {
 		return pb.GS2CEnterGameRet_FAIL.Enum()
 	}
+}
+
+func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
+	log.Debug("UpdateExchangeCard")
+	exchangeCount := len(m.CardOid)
+	if exchangeCount != 3 {
+		log.Error("exchange card count[%d] is error", exchangeCount)
+		msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL_CARD_COUNT_ERROR.Enum(), a)
+		return
+	}
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		log.Debug("exchange player nickName=%d, roomId=%d", player.nickName, player.roomId)
+		RoomManager.lock.Lock()
+		if _, ok := RoomManager.roomMap[player.roomId]; ok {
+			roomInfo := RoomManager.roomMap[player.roomId]
+			cardList := getCardListByPlayerId(player.oid, roomInfo)
+			if cardList != nil {
+				count := 0
+				for i, oid := range m.CardOid {
+					log.Debug("player[%s] exchange card[%d]", player.nickName, oid)
+					if i == 0 {
+					}
+					for n, value := range cardList.list {
+						if n == 0 {
+						}
+						if value.oid == oid {
+							value.status = CardStatus_EXCHANGE.Enum()
+							count++
+							break
+						}
+					}
+				}
+				if count != 3 {
+					log.Error("The exchanging 3 cards is not all in card list, just has [%d] card in list.", count)
+					msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL.Enum(), a)
+				} else {
+					log.Debug("The exchanging card has update in list.")
+					msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_SUCCESS.Enum(), a)
+				}
+			} else {
+				log.Error("no cardList for player[%d]", player.oid)
+			}
+		} else {
+			log.Error("no room[%s]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+	RoomManager.lock.Unlock()
 }

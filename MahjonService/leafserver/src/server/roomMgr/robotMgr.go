@@ -4,8 +4,8 @@ import (
 	"github.com/name5566/leaf/log"
 )
 
-func AddRobotToRoom(roomId string, oid int) {
-	log.Debug("AddRobotToRoom roomId=%d", roomId)
+func addRobotToRoom(roomId string, oid int) {
+	log.Debug("addRobotToRoom roomId=%d", roomId)
 	//PlayerInfo
 	basePlayer := &PlayerInfo{}
 	basePlayer.oid = int32(oid)
@@ -27,7 +27,6 @@ func AddRobotToRoom(roomId string, oid int) {
 
 	//room
 	log.Debug("prepare room info")
-	RoomManager.lock.Lock()
 	if _, ok := RoomManager.roomMap[roomId]; ok {
 		RoomManager.roomMap[roomId].playerList = append(RoomManager.roomMap[roomId].playerList, roomPlayer)
 	} else {
@@ -35,5 +34,4 @@ func AddRobotToRoom(roomId string, oid int) {
 		room.playerList = append(room.playerList, roomPlayer)
 		RoomManager.roomMap[roomId] = room
 	}
-	RoomManager.lock.Unlock()
 }

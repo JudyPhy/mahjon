@@ -88,6 +88,7 @@ func getCardListByBattleStart() []*Card {
 	for i := 0; i < 13; i++ {
 		rand.Seed(time.Now().Unix())
 		rnd := rand.Intn(len(cardWall))
+		cardWall[rnd].status = CardStatus_INHAND.Enum()
 		list = append(list, cardWall[rnd])
 		cardWall = append(cardWall[:rnd], cardWall[rnd+1:]...)
 	}

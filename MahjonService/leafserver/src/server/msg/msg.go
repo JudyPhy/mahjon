@@ -15,5 +15,5 @@ func init() {
 	Processor.Register(&pb.GS2CEnterGameRet{})
 	Processor.Register(&pb.GS2CUpdateRoomInfo{})
 	Processor.Register(&pb.GS2CBattleStart{})
-	Processor.Register(&pb.GS2CDiscardTimeOut{})
+	Processor.Register(&pb.C2GSExchangeCard{})
 }

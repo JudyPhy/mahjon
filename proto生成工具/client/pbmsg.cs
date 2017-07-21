@@ -351,11 +351,42 @@ namespace pb
   {
     public C2GSExchangeCard() {}
     
-    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cards = new global::System.Collections.Generic.List<pb.CardInfo>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"cards", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    public global::System.Collections.Generic.List<pb.CardInfo> cards
+    private readonly global::System.Collections.Generic.List<int> _cardOid = new global::System.Collections.Generic.List<int>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"cardOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public global::System.Collections.Generic.List<int> cardOid
     {
-      get { return _cards; }
+      get { return _cardOid; }
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CExchangeCardRet")]
+  public partial class GS2CExchangeCardRet : global::ProtoBuf.IExtensible
+  {
+    public GS2CExchangeCardRet() {}
+    
+    private pb.GS2CExchangeCardRet.ErrorCode _errorCode;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"errorCode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GS2CExchangeCardRet.ErrorCode errorCode
+    {
+      get { return _errorCode; }
+      set { _errorCode = value; }
+    }
+    [global::ProtoBuf.ProtoContract(Name=@"ErrorCode")]
+    public enum ErrorCode
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
+      SUCCESS = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"FAIL", Value=2)]
+      FAIL = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"FAIL_CARD_COUNT_ERROR", Value=3)]
+      FAIL_CARD_COUNT_ERROR = 3
     }
   
     private global::ProtoBuf.IExtension extensionObject;
