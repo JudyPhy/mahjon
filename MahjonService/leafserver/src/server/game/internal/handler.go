@@ -37,12 +37,12 @@ func recvC2GSEnterGame(args []interface{}) {
 }
 
 func jointRoomRet(roomId string, a gate.Agent) {
-	result := roomMgr.JoinRoom(roomId, a)
+	/*result := roomMgr.JoinRoom(roomId, a)
 	ret := &pb.GS2CEnterGameRet{}
 	ret.Mode = pb.GameMode_JoinRoom.Enum()
 	ret.RoomId = proto.String(roomId)
 	ret.ErrorCode = result
-	a.WriteMsg(ret)
+	a.WriteMsg(ret)*/
 }
 
 func recvC2GSExchangeCard(args []interface{}) {
