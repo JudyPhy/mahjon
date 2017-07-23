@@ -59,7 +59,7 @@ public class GameMsgHandler
             card.CardId = exchangeList[i].Id;
             card.playerId = exchangeList[i].PlayerID;
             card.Status = pb.CardStatus.inHand;
-            msg.cards.Add(card);
+            msg.cardList.Add(card);
         }
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
     }
@@ -130,20 +130,28 @@ public class GameMsgHandler
         BattleManager.Instance.PrepareGameStart(msg);
     }
 
-    public void RevMsgGS2CUpdateExchangeOverPlayer(int pid, byte[] msgBuf, int msgSize)
-    {
-        Debug.Log("==>> RevMsgGS2CUpdateExchangeOverPlayer");
-        Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CUpdateExchangeOverPlayer msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateExchangeOverPlayer>(stream);
-        EventDispatcher.TriggerEvent<List<int>>(EventDefine.UpdateExchangeOverPlayer, msg.playerId);
-    }
-
     public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
     {
         Debug.Log("==>> RevMsgGS2CSelectLackRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
         BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
+    }
+
+    public void RevMsgGS2CExchangeCardRet(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CExchangeCardRet");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CExchangeCardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CExchangeCardRet>(stream);
+        switch (msg.errorCode) {
+            case pb.GS2CExchangeCardRet.ErrorCode.SUCCESS:
+                break;
+            case pb.GS2CExchangeCardRet.ErrorCode.FAIL_CARD_COUNT_ERROR:
+            case pb.GS2CExchangeCardRet.ErrorCode.FAIL:
+                UIManager.Instance.ShowTips(TipsType.text, "请重新选择要交换的牌");
+                EventDispatcher.TriggerEvent(EventDefine.ReExchangeCard);
+                break;
+        }
     }
 
     public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)
@@ -153,6 +161,5 @@ public class GameMsgHandler
         pb.GS2CDiscardTimeOut msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardTimeOut>(stream);
         BattleManager.Instance.DiscardTimeOut(msg.playerId);
     }
-
     #endregion
 }

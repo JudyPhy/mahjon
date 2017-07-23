@@ -21,7 +21,6 @@ It has these top-level messages:
 	GS2CBattleStart
 	C2GSExchangeCard
 	GS2CExchangeCardRet
-	GS2CUpdateExchangeOverPlayer
 	GS2CUpdateCardInfoAfterExchange
 	C2GSSelectLack
 	GS2CSelectLackRet
@@ -197,6 +196,42 @@ func (x *CardType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = CardType(value)
+	return nil
+}
+
+type ExchangeType int32
+
+const (
+	ExchangeType_ClockWise ExchangeType = 1
+	ExchangeType_AntiClock ExchangeType = 2
+	ExchangeType_Opposite  ExchangeType = 3
+)
+
+var ExchangeType_name = map[int32]string{
+	1: "ClockWise",
+	2: "AntiClock",
+	3: "Opposite",
+}
+var ExchangeType_value = map[string]int32{
+	"ClockWise": 1,
+	"AntiClock": 2,
+	"Opposite":  3,
+}
+
+func (x ExchangeType) Enum() *ExchangeType {
+	p := new(ExchangeType)
+	*p = x
+	return p
+}
+func (x ExchangeType) String() string {
+	return proto.EnumName(ExchangeType_name, int32(x))
+}
+func (x *ExchangeType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(ExchangeType_value, data, "ExchangeType")
+	if err != nil {
+		return err
+	}
+	*x = ExchangeType(value)
 	return nil
 }
 
@@ -717,17 +752,17 @@ func (m *GS2CBattleStart) GetCardList() []*CardInfo {
 }
 
 type C2GSExchangeCard struct {
-	CardOid          []int32 `protobuf:"varint,1,rep,name=cardOid" json:"cardOid,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
 }
 
 func (m *C2GSExchangeCard) Reset()         { *m = C2GSExchangeCard{} }
 func (m *C2GSExchangeCard) String() string { return proto.CompactTextString(m) }
 func (*C2GSExchangeCard) ProtoMessage()    {}
 
-func (m *C2GSExchangeCard) GetCardOid() []int32 {
+func (m *C2GSExchangeCard) GetCardList() []*CardInfo {
 	if m != nil {
-		return m.CardOid
+		return m.CardList
 	}
 	return nil
 }
@@ -748,30 +783,22 @@ func (m *GS2CExchangeCardRet) GetErrorCode() GS2CExchangeCardRet_ErrorCode {
 	return GS2CExchangeCardRet_SUCCESS
 }
 
-type GS2CUpdateExchangeOverPlayer struct {
-	PlayerId         []int32 `protobuf:"varint,1,rep,name=playerId" json:"playerId,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
-}
-
-func (m *GS2CUpdateExchangeOverPlayer) Reset()         { *m = GS2CUpdateExchangeOverPlayer{} }
-func (m *GS2CUpdateExchangeOverPlayer) String() string { return proto.CompactTextString(m) }
-func (*GS2CUpdateExchangeOverPlayer) ProtoMessage()    {}
-
-func (m *GS2CUpdateExchangeOverPlayer) GetPlayerId() []int32 {
-	if m != nil {
-		return m.PlayerId
-	}
-	return nil
-}
-
 type GS2CUpdateCardInfoAfterExchange struct {
-	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
-	XXX_unrecognized []byte      `json:"-"`
+	Type             *ExchangeType `protobuf:"varint,1,req,name=type,enum=pb.ExchangeType" json:"type,omitempty"`
+	CardList         []*CardInfo   `protobuf:"bytes,2,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte        `json:"-"`
 }
 
 func (m *GS2CUpdateCardInfoAfterExchange) Reset()         { *m = GS2CUpdateCardInfoAfterExchange{} }
 func (m *GS2CUpdateCardInfoAfterExchange) String() string { return proto.CompactTextString(m) }
 func (*GS2CUpdateCardInfoAfterExchange) ProtoMessage()    {}
+
+func (m *GS2CUpdateCardInfoAfterExchange) GetType() ExchangeType {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return ExchangeType_ClockWise
+}
 
 func (m *GS2CUpdateCardInfoAfterExchange) GetCardList() []*CardInfo {
 	if m != nil {
@@ -937,6 +964,7 @@ func init() {
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
 	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
+	proto.RegisterEnum("pb.ExchangeType", ExchangeType_name, ExchangeType_value)
 	proto.RegisterEnum("pb.DisacardStatus", DisacardStatus_name, DisacardStatus_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)

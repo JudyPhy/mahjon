@@ -44,14 +44,14 @@ func AddChanPlayerInfo(a gate.Agent, player *PlayerInfo) {
 	if _, ok := ChanPlayerStruct.aPlayerMap[a]; ok {
 		log.Error("the agent has existed, don't need add to dict.")
 	} else {
-		log.Debug("add new player agent, player=", player.nickName)
+		log.Debug("add new player agent, player=%v", player.nickName)
 		ChanPlayerStruct.aPlayerMap[a] = player
 	}
 	ChanPlayerStruct.lock.Unlock()
 }
 
 func DeleteChan(a gate.Agent) {
-	log.Debug("DeleteChan")
+	log.Debug("DeleteChan, addr=%v", a.RemoteAddr())
 	ChanPlayerStruct.lock.Lock()
 	if _, ok := ChanPlayerStruct.aPlayerMap[a]; ok {
 		if roomId := ChanPlayerStruct.aPlayerMap[a].roomId; roomId != "" {

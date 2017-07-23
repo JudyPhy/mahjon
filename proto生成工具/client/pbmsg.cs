@@ -351,11 +351,11 @@ namespace pb
   {
     public C2GSExchangeCard() {}
     
-    private readonly global::System.Collections.Generic.List<int> _cardOid = new global::System.Collections.Generic.List<int>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"cardOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public global::System.Collections.Generic.List<int> cardOid
+    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public global::System.Collections.Generic.List<pb.CardInfo> cardList
     {
-      get { return _cardOid; }
+      get { return _cardList; }
     }
   
     private global::ProtoBuf.IExtension extensionObject;
@@ -394,30 +394,20 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateExchangeOverPlayer")]
-  public partial class GS2CUpdateExchangeOverPlayer : global::ProtoBuf.IExtensible
-  {
-    public GS2CUpdateExchangeOverPlayer() {}
-    
-    private readonly global::System.Collections.Generic.List<int> _playerId = new global::System.Collections.Generic.List<int>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"playerId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public global::System.Collections.Generic.List<int> playerId
-    {
-      get { return _playerId; }
-    }
-  
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateCardInfoAfterExchange")]
   public partial class GS2CUpdateCardInfoAfterExchange : global::ProtoBuf.IExtensible
   {
     public GS2CUpdateCardInfoAfterExchange() {}
     
+    private pb.ExchangeType _type;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.ExchangeType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
     private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(2, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
     public global::System.Collections.Generic.List<pb.CardInfo> cardList
     {
       get { return _cardList; }
@@ -665,6 +655,20 @@ namespace pb
             
       [global::ProtoBuf.ProtoEnum(Name=@"None", Value=4)]
       None = 4
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"ExchangeType")]
+    public enum ExchangeType
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"ClockWise", Value=1)]
+      ClockWise = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"AntiClock", Value=2)]
+      AntiClock = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Opposite", Value=3)]
+      Opposite = 3
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"DisacardStatus")]

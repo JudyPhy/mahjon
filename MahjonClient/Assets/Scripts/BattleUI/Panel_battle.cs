@@ -63,11 +63,13 @@ public class Panel_battle : WindowsBasePanel
     // side pai
     private Dictionary<pb.BattleSide, List<GameObject>> _sidePaiDict = new Dictionary<pb.BattleSide, List<GameObject>>();
     private GameObject _selfPaiRoot;
-    private List<GameObject> _otherPaiRoot = new List<GameObject>();
+    private GameObject _self3DPaiRoot;
+    private List<Item_pai_3d> _self3DPaiObjList = new List<Item_pai_3d>();
+    private List<GameObject> _otherPaiRoot = new List<GameObject>();     
 
     // prepare ani  
     private bool _hasPlayStartAni = false;
-    private int[] _shaiziValue = new int[2];    
+    private int[] _shaiziValue = new int[2];
     private int _drawPaiSumCount_prepareAni = 0;  //抓牌总张数
     private int _drawRound_prepareAni = 0;  //抓牌次数
     private pb.BattleSide _drawSide_prepareAni;  //抓牌人方位
@@ -110,6 +112,7 @@ public class Panel_battle : WindowsBasePanel
 
         // pai
         _selfPaiRoot = transform.FindChild("Root_pai/Side0").gameObject;
+        _self3DPaiRoot = _tableRoot.transform.FindChild("Side0").gameObject;
         for (int i = 1; i < 4; i++)
         {
             GameObject root = _tableRoot.transform.FindChild("Side" + i.ToString()).gameObject;
@@ -131,7 +134,7 @@ public class Panel_battle : WindowsBasePanel
 
         //lack
         _selectLackContainer = transform.FindChild("btnLackContainer").gameObject;
-        _selectLackContainer.SetActive(false);
+        _selectLackContainer.SetActive(false);       
         for (int i = 0; i < 3; i++)
         {
             UIButton btn = _selectLackContainer.transform.FindChild("btnLack" + (i + 1).ToString()).GetComponent<UIButton>();
@@ -158,7 +161,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener(EventDefine.UpdateRoleInRoom, UpdateRoleInRoom);
         EventDispatcher.AddEventListener(EventDefine.PlayGamePrepareAni, PlayGamePrepareAni);
         EventDispatcher.AddEventListener<bool>(EventDefine.UpdateBtnExchangeCard, UpdateBtnExchangeCard);
-        EventDispatcher.AddEventListener<List<int>>(EventDefine.UpdateExchangeOverPlayer, UpdateExchangeOverPlayer);
+        EventDispatcher.AddEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
+        //EventDispatcher.AddEventListener(EventDefine.ExchangeCardSuccess, PlayExchangePlaceCardAni);
         EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
     }
 
@@ -168,7 +172,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener(EventDefine.UpdateRoleInRoom, UpdateRoleInRoom);
         EventDispatcher.RemoveEventListener(EventDefine.PlayGamePrepareAni, PlayGamePrepareAni);
         EventDispatcher.RemoveEventListener<bool>(EventDefine.UpdateBtnExchangeCard, UpdateBtnExchangeCard);
-        EventDispatcher.RemoveEventListener<List<int>>(EventDefine.UpdateExchangeOverPlayer, UpdateExchangeOverPlayer);
+        EventDispatcher.RemoveEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
+        //EventDispatcher.RemoveEventListener(EventDefine.ExchangeCardSuccess, PlayExchangePlaceCardAni);
         EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
     }
 
@@ -198,7 +203,7 @@ public class Panel_battle : WindowsBasePanel
     {
         pb.BattleSide selfSide = _sortedSideListFromSelf[0];
         Vector3 origAngle = _sideObj.transform.localEulerAngles;
-        _sideObj.transform.localEulerAngles = new Vector3(origAngle.x, (selfSide - pb.BattleSide.west) * 90, origAngle.z);     
+        _sideObj.transform.localEulerAngles = new Vector3(origAngle.x, (selfSide - pb.BattleSide.west) * 90, origAngle.z);
         if (selfSide == pb.BattleSide.east)
         {
             _sideObj.transform.localPosition = new Vector3(0.003f, 0.125f, 0.007f);
@@ -225,7 +230,10 @@ public class Panel_battle : WindowsBasePanel
         for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
             PlayerInfo player = BattleManager.Instance.GetPlayerInfoBySide(_sortedSideListFromSelf[i]);
-            playerList.Add(player);
+            if (player != null)
+            {
+                playerList.Add(player);
+            }
         }
         Debug.Log("UpdateRoleInRoom=> current player count:" + playerList.Count);
         hideAllRoleItem();
@@ -290,7 +298,7 @@ public class Panel_battle : WindowsBasePanel
         Debug.Log("shaizi value=" + _shaiziValue[0] + ", " + _shaiziValue[1]);
         _battleProcess = BattleProcess.PlayShaiZiAniOver;
     }
-    
+
     private void PlayStartDrawPaiAni()
     {
         Debug.Log("play draw pai ani start...");
@@ -339,7 +347,7 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private GameObject getItemPaiObjBySide(pb.BattleSide side, int sideIndex,int itemIndex)
+    private GameObject getItemPaiObjBySide(pb.BattleSide side, int sideIndex, int itemIndex)
     {
         if (!_sidePaiDict.ContainsKey(side))
         {
@@ -374,7 +382,12 @@ public class Panel_battle : WindowsBasePanel
         bool drawSuc = _sidePaiWallList[wallIndex].HidePaiInWallByIndex(paiIndex);
         while (!drawSuc)
         {
+            //Debug.LogError("换抓牌方位");
             wallIndex++;
+            if (wallIndex >= 4)
+            {
+                wallIndex = 0;
+            }
             paiIndex = 0;
             turnRound++;
             drawSuc = _sidePaiWallList[wallIndex].HidePaiInWallByIndex(paiIndex);
@@ -384,7 +397,7 @@ public class Panel_battle : WindowsBasePanel
 
     private void OnceDrawPaiAni()
     {
-        Debug.Log("当前抓牌人方位：" + _drawSide_prepareAni.ToString()+", 已经抓的牌数："+ _drawPaiSumCount_prepareAni);
+        Debug.Log("当前抓牌人方位：" + _drawSide_prepareAni.ToString() + ", 已经抓的牌数：" + _drawPaiSumCount_prepareAni);
         if (_drawPaiSumCount_prepareAni >= (13 * 4 + 1))
         {
             _battleProcess = BattleProcess.PlayStartDrawAniOver;
@@ -398,20 +411,20 @@ public class Panel_battle : WindowsBasePanel
         //摸牌
         for (int i = 0; i < drawCountCurRound; i++)
         {
-            //Debug.LogError("draw pai=> 从" + _sortedSideListFromSelf[_curPaiDrawnSideIndex_gameStart].ToString()
-            //    + "方位抓牌, drawOffsetIndex=" + _drawOffsetIndex_gameStart);
+            //Debug.LogError("draw pai=> 从" + _sortedSideListFromSelf[_curPaiDrawnSideIndex_prepareAni].ToString()
+            //    + "方位抓牌, drawOffsetIndex=" + _drawOffsetIndex_prepareAni);
             int turnRound = drawOnePai(_curPaiDrawnSideIndex_prepareAni, _drawOffsetIndex_prepareAni);
             _drawPaiSumCount_prepareAni++;
-            _drawOffsetIndex_prepareAni++;            
+            _drawOffsetIndex_prepareAni++;
             if (turnRound > 0)
             {
                 //抓牌方位有变化
                 _curPaiDrawnSideIndex_prepareAni += turnRound;
                 if (_curPaiDrawnSideIndex_prepareAni >= 4)
                 {
-                    _curPaiDrawnSideIndex_prepareAni -= _curPaiDrawnSideIndex_prepareAni - 4;
+                    _curPaiDrawnSideIndex_prepareAni = _curPaiDrawnSideIndex_prepareAni % 4;
                 }
-                _drawOffsetIndex_prepareAni = 0;
+                _drawOffsetIndex_prepareAni = turnRound;
             }
         }
         //摆牌
@@ -451,7 +464,7 @@ public class Panel_battle : WindowsBasePanel
                     {
                         item.transform.localScale = Vector3.one;
                         item.transform.localEulerAngles = new Vector3(-90, -90, 0);
-                        item.transform.localPosition = new Vector3(0.45f, 0.05f, -0.235f + 0.035f * itemIndex);                        
+                        item.transform.localPosition = new Vector3(0.45f, 0.05f, -0.235f + 0.035f * itemIndex);
                     }
                     else if (drawSideIndex == 2)
                     {
@@ -504,6 +517,8 @@ public class Panel_battle : WindowsBasePanel
             if (script != null)
             {
                 script.gameObject.SetActive(true);
+                script.transform.localScale = Vector3.one * 0.88f;
+                script.transform.localPosition = new Vector3(-440 + i * 64, -250, 0);
                 script.UpdateUI(selfList[i], _sortedSideListFromSelf[0]);
             }
             else
@@ -533,9 +548,9 @@ public class Panel_battle : WindowsBasePanel
 
     private void UpdateBtnExchangeCard(bool enable)
     {
-        Debug.Log("btn exchange enable=" + enable.ToString());
+        //Debug.Log("btn exchange enable=" + enable.ToString());
         _btnEnsureSelectExchange.isEnabled = enable;
-    } 
+    }
 
     private void OnClickEnsureExchange(GameObject go)
     {
@@ -545,31 +560,98 @@ public class Panel_battle : WindowsBasePanel
         if (list != null)
         {
             GameMsgHandler.Instance.SendMsgC2GSExchangeCard(list);
+            _exchangeCardContainer.SetActive(false);
+            PlayExchangePlaceCardAni(list);
         }
-        else {
+        else
+        {
             Debug.LogError("exchange card list is null.");
+        }        
+    }
+
+    private void PlayExchangePlaceCardAni(List<Pai> list)
+    {
+        Debug.Log("PlayExchangePlaceCardAni");
+        for (int i = 0; i < list.Count; i++)
+        {
+            List<GameObject> itemList = _sidePaiDict[_sortedSideListFromSelf[0]];
+            for (int j = 0; j < itemList.Count; j++)
+            {
+                Item_pai script = itemList[j].GetComponent<Item_pai>();
+                if (script != null)
+                {
+                    if (script.Info.OID == list[i].OID)
+                    {
+                        script.gameObject.SetActive(false);
+                    }
+                }
+                else
+                {
+                    Debug.LogError("item obj has no item_pai script.");
+                }
+            }
+        }
+        PlaceExchange3DCards();
+        SortCardAfterExchange();
+    }
+
+    private Item_pai_3d getSelf3DCard(int index)
+    {
+        if (index < _self3DPaiObjList.Count)
+        {
+            return _self3DPaiObjList[index];
+        }
+        GameObject pai = UIManager.AddGameObject("3d/model/pai", _self3DPaiRoot);
+        Item_pai_3d script = pai.AddComponent<Item_pai_3d>();
+        _self3DPaiObjList.Add(script);
+        return script;
+    }
+
+    private void HideAllSelf3DCard()
+    {
+        for (int i = 0; i < _self3DPaiObjList.Count; i++)
+        {
+            _self3DPaiObjList[i].gameObject.SetActive(false);
         }
     }
 
-    private void UpdateExchangeOverPlayer(List<int> list)
+    private void PlaceExchange3DCards()
     {
-        Debug.Log("update exchange over tips.");
-        for (int i = 0; i < list.Count; i++)
+        HideAllSelf3DCard();
+        List<GameObject> exchangeObjList = new List<GameObject>();
+        Vector3 startPos = new Vector3(-0.034f, 0.04f, -0.18f);
+        for (int i = 0; i < 3; i++)
         {
-            pb.BattleSide side = BattleManager.Instance.GetSideByPlayerId(list[i]);
-            int index = getSideIndexFromSelf(side);
-            if (index != -1)
+            Item_pai_3d item = getSelf3DCard(i);
+            item.UpdatePaiMian();
+            item.transform.localEulerAngles = new Vector3(180, 0, 0);
+            item.transform.localPosition = startPos + new Vector3(i * 0.034f, 0.21f, -0.085f);
+            Vector3 toPos = startPos + i * new Vector3(0.034f, 0, 0);
+            item.gameObject.SetActive(true);
+            iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos, "islocal", true, "time", 0.5f));
+        }                
+    }
+
+    private void SortCardAfterExchange()
+    {
+        hideAllSelfPaiObj();
+        List<Pai> selfList = BattleManager.Instance.GetAllInHandPaiListBySide(_sortedSideListFromSelf[0]);
+        selfList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+        for (int i = 0; i < selfList.Count; i++)
+        {
+            GameObject obj = getItemPaiObjBySide(_sortedSideListFromSelf[0], 0, i);
+            Item_pai script = obj.GetComponent<Item_pai>();
+            if (script != null)
             {
-                _exchangeTips[index].text = "";
+                script.gameObject.SetActive(true);
+                script.transform.localScale = Vector3.one * 0.88f;
+                script.transform.localPosition = new Vector3(-440 + i * 64, -250, 0);
+                script.UpdateUI(selfList[i], _sortedSideListFromSelf[0]);
             }
             else
             {
-                Debug.LogError("player[" + list[i] + "] 's side is not in list.");
+                Debug.LogError("self pai" + i + " item is null.");
             }
-        }
-        if (list.Count >= 4)
-        {
-            _battleProcess = BattleProcess.StartSelectLackPai;
         }
     }
     #endregion
@@ -588,7 +670,7 @@ public class Panel_battle : WindowsBasePanel
         for (int i = 0; i < _btnLack.Count; i++)
         {
             if (_btnLack[i].gameObject == go)
-            {                
+            {
                 GameMsgHandler.Instance.SendMsgC2GSSelectLack((pb.CardType)(i + 1));
                 _selectLackContainer.SetActive(false);
                 break;
@@ -858,22 +940,21 @@ public class Panel_battle : WindowsBasePanel
 
     private void ExchangeCardWaitingAni()
     {
-        if (BattleProcess.WaitingExchangeCardOver != _battleProcess)
+        if (BattleProcess.SelectingExchangeCard == _battleProcess || BattleProcess.WaitingExchangeCardOver == _battleProcess)
         {
-            return;
-        }
-        for (int i = 0; i < _exchangeTipsAniTime.Count; i++)
-        {
-            if (System.DateTime.Now.Subtract(_exchangeTipsAniTime[i]).TotalMilliseconds >= 1000 && _exchangeTips[i].text.Length >= 3)
+            for (int i = 0; i < _exchangeTipsAniTime.Count; i++)
             {
-                _exchangeTipsAniTime[i] = System.DateTime.Now;
-                if (_exchangeTips[i].text.Length >= 6)
+                if (System.DateTime.Now.Subtract(_exchangeTipsAniTime[i]).TotalMilliseconds >= 1000 && _exchangeTips[i].text.Length >= 3)
                 {
-                    _exchangeTips[i].text = _exchangeTips[i].text.Substring(0, 4);
-                }
-                else
-                {
-                    _exchangeTips[i].text += ".";
+                    _exchangeTipsAniTime[i] = System.DateTime.Now;
+                    if (_exchangeTips[i].text.Length >= 6)
+                    {
+                        _exchangeTips[i].text = _exchangeTips[i].text.Substring(0, 4);
+                    }
+                    else
+                    {
+                        _exchangeTips[i].text += ".";
+                    }
                 }
             }
         }

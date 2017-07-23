@@ -566,7 +566,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1963686906707806}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -101, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4181970499179430}
@@ -1105,7 +1105,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 106
   mHeight: 54
-  mDepth: 1
+  mDepth: 2
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -1205,7 +1205,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 16
   mHeight: 30
-  mDepth: 4
+  mDepth: 0
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -1477,7 +1477,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 56
   mHeight: 28
-  mDepth: 2
+  mDepth: 3
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -1542,7 +1542,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 162
   mHeight: 36
-  mDepth: 2
+  mDepth: 3
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -1746,7 +1746,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 162
   mHeight: 36
-  mDepth: 2
+  mDepth: 3
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -1993,7 +1993,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 563
   mHeight: 155
-  mDepth: 0
+  mDepth: 1
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -2210,7 +2210,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 90
   mHeight: 30
-  mDepth: 2
+  mDepth: 3
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0

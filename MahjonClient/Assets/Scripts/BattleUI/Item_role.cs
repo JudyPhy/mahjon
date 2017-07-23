@@ -20,7 +20,7 @@ public class Item_role : MonoBehaviour
         _nameText = transform.FindChild("name").GetComponent<UILabel>();
         _headIcon = transform.FindChild("headicon").GetComponent<UISprite>();
         _goldText = transform.FindChild("gold").GetComponent<UILabel>();
-        _cardTypeIcon = transform.FindChild("").GetComponent<UISprite>();
+        _cardTypeIcon = transform.FindChild("lack").GetComponent<UISprite>();
         _cardTypeIcon.gameObject.SetActive(false);
     }
 

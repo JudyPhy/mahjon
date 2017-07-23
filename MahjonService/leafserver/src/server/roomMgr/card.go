@@ -1,9 +1,6 @@
 package roomMgr
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/name5566/leaf/log"
 )
 
@@ -50,13 +47,12 @@ func (x CardStatus) Enum() *CardStatus {
 type Card struct {
 	oid    int32
 	id     int32
-	status *CardStatus
+	status CardStatus
 }
 
 var mjType MJType
-var cardWall []*Card
 
-func loadAllCards() {
+func loadAllCards() []*Card {
 	log.Debug("loadAllCards")
 	mjType := MJType_XUEZHAN
 	mjCardCount := MJCardCount_XUEZHAN
@@ -64,8 +60,9 @@ func loadAllCards() {
 		mjCardCount = MJCardCount_XUEZHAN
 	}
 	maxCount := int32(mjCardCount)
-	log.Debug("max card count=%d", maxCount)
-	cardWall = make([]*Card, maxCount)
+	log.Debug("max card count=%v", maxCount)
+
+	var cardWall []*Card
 	id := int32(0)
 	for i := int32(0); i < maxCount; i++ {
 		card := &Card{}
@@ -77,20 +74,10 @@ func loadAllCards() {
 			}
 		}
 		card.id = id
-		card.status = CardStatus_NODEAL.Enum()
+		card.status = CardStatus_NODEAL
 		cardWall = append(cardWall, card)
-		log.Debug("card oid=%d", card.oid, ", id=%d", card.id)
+		//log.Debug("card oid=%v, id=%v", card.oid, card.id)
 	}
-}
-
-func getCardListByBattleStart() []*Card {
-	list := make([]*Card, 13)
-	for i := 0; i < 13; i++ {
-		rand.Seed(time.Now().Unix())
-		rnd := rand.Intn(len(cardWall))
-		cardWall[rnd].status = CardStatus_INHAND.Enum()
-		list = append(list, cardWall[rnd])
-		cardWall = append(cardWall[:rnd], cardWall[rnd+1:]...)
-	}
-	return list
+	log.Debug("load all card over, count=%v", len(cardWall))
+	return cardWall
 }

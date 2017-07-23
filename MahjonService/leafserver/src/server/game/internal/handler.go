@@ -5,7 +5,6 @@ import (
 	"server/pb"
 	"server/roomMgr"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
@@ -23,13 +22,13 @@ func handler(m interface{}, h interface{}) {
 func recvC2GSEnterGame(args []interface{}) {
 	m := args[0].(*pb.C2GSEnterGame)
 	a := args[1].(gate.Agent)
-	log.Debug("recvC2GSEnterGame => gameMode=", m.GetMode())
+	log.Debug("recvC2GSEnterGame <<-- gameMode=%v", m.GetMode())
 	switch m.GetMode() {
 	case pb.GameMode_CreateRoom:
 		log.Debug("create room")
 		roomMgr.CreateRoomRet(a)
 	case pb.GameMode_JoinRoom:
-		log.Debug("join room, roomId=", m.GetRoomId())
+		log.Debug("join room, roomId=%v", m.GetRoomId())
 		jointRoomRet(m.GetRoomId(), a)
 	case pb.GameMode_QuickEnter:
 		log.Debug("quick game")
@@ -46,6 +45,7 @@ func jointRoomRet(roomId string, a gate.Agent) {
 }
 
 func recvC2GSExchangeCard(args []interface{}) {
+	log.Debug("recvC2GSExchangeCard <<--")
 	m := args[0].(*pb.C2GSExchangeCard)
 	a := args[1].(gate.Agent)
 	roomMgr.UpdateExchangeCard(m, a)

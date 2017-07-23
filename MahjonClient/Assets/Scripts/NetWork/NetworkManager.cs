@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.IO;
+using SimpleJSON;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -9,6 +11,8 @@ public class NetworkManager : MonoBehaviour
     public static NetworkManager Instance;
 
     private DateTime ProcessNetworkEventTime_;      //定时检测网络连接状态  
+
+    private NetConfigData _netConfigData;
 
     private string GameServerPath = "192.168.1.7";   //"127.0.0.1" "192.168.1.7"
     private ushort GameServerPort = 3563;
@@ -36,12 +40,18 @@ public class NetworkManager : MonoBehaviour
 
     private void Start()
     {
-        NetworkManager.Instance.ConnectGameServer(GameServerPath, GameServerPort);
+        if (_netConfigData.UseLocalAddr)
+        {
+            _netConfigData.NetAddr = "127.0.0.1";
+        }
+        NetworkManager.Instance.ConnectGameServer(_netConfigData.NetAddr, _netConfigData.Port);
     }
 
     //初始化socket连接
     private void InitNetwork()
     {
+        _netConfigData = NetConfig.LoadConfig();
+        Debug.LogError("addr=" + _netConfigData.NetAddr + ", port=" + _netConfigData.Port + ", local=" + _netConfigData.UseLocalAddr);
         this.GameServerTcpConnect_ = CreateTcpConnect();    //一个线程执行，游戏服务器TCP连接Socket
     }
 
@@ -64,8 +74,8 @@ public class NetworkManager : MonoBehaviour
         RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomInfo, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomInfo);
         RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
-        RegisterMessageHandler((int)MsgDef.GS2CUpdateExchangeOverPlayer, GameMsgHandler.Instance.RevMsgGS2CUpdateExchangeOverPlayer);        
         RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
+        RegisterMessageHandler((int)MsgDef.GS2CExchangeCardRet, GameMsgHandler.Instance.RevMsgGS2CExchangeCardRet);
         RegisterMessageHandler((int)MsgDef.GS2CDiscardTimeOut, GameMsgHandler.Instance.RevMsgGS2CDiscardTimeOut);
     }
 

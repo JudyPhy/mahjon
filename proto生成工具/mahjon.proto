@@ -36,6 +36,13 @@ enum CardType
 	None = 4;
 }
 
+enum ExchangeType
+{
+	ClockWise = 1;
+	AntiClock = 2;
+	Opposite = 3;
+}
+
 message LackCard
 {
 	required int32 playerId = 1;
@@ -131,7 +138,7 @@ message GS2CBattleStart
 
 message C2GSExchangeCard
 {	
-	repeated int32 cardOid = 1;
+	repeated CardInfo cardList = 1;
 }
 
 message GS2CExchangeCardRet
@@ -144,14 +151,10 @@ message GS2CExchangeCardRet
 	required ErrorCode errorCode = 1;
 }
 
-message GS2CUpdateExchangeOverPlayer
-{
-    repeated int32 playerId = 1;
-}
-
 message GS2CUpdateCardInfoAfterExchange
 {
-    repeated CardInfo cardList = 1;
+	required ExchangeType type = 1;
+    repeated CardInfo cardList = 2;
 }
 
 message C2GSSelectLack

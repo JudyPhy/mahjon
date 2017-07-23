@@ -27,7 +27,7 @@ func init() {
 func recvC2GSLogin(args []interface{}) {
 	log.Debug("recvC2GSLogin=>")
 	m := args[0].(*pb.C2GSLogin)
-	log.Debug("Account=", m.GetAccount())
+	log.Debug("Account=%v", m.GetAccount())
 	a := args[1].(gate.Agent)
 
 	// get data from db

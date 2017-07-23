@@ -26,7 +26,7 @@ public class Panel_loading : WindowsBasePanel
     private bool IsOverTime()
     {
         double interval = DateTime.Now.Subtract(_curTime).TotalMilliseconds;
-        if (interval >= 100)
+        if (interval >= 1000)
         {
             return true;
         }

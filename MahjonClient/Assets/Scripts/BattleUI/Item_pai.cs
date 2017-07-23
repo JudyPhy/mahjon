@@ -9,6 +9,10 @@ public class Item_pai : MonoBehaviour
     private UISprite _bg;
 
     private Pai _info;
+    public Pai Info
+    {
+        get { return _info; }
+    }
     private pb.BattleSide _side;
 
     void Awake()
@@ -25,7 +29,7 @@ public class Item_pai : MonoBehaviour
     }
 
     public void UpdateUI(Pai pai, pb.BattleSide side)
-    {        
+    {
         _info = pai;
         _side = side;
         if (_info == null)
@@ -64,7 +68,7 @@ public class Item_pai : MonoBehaviour
         {
             pb.CardType exchangeType = BattleManager.Instance.GetExchangeTypeBySide(_side);
             pb.CardType curType = (pb.CardType)Mathf.CeilToInt(_info.Id / 10);
-            Debug.Log("curType=" + curType.ToString() + ", exchangeType=" + exchangeType.ToString());
+            //Debug.Log("curType=" + curType.ToString() + ", exchangeType=" + exchangeType.ToString());
             if (exchangeType != pb.CardType.None && curType != exchangeType)
             {
                 UIManager.Instance.ShowTips(TipsType.text, "必须选择同花色的牌");

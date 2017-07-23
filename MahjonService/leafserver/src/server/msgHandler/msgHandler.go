@@ -39,3 +39,11 @@ func SendGS2CExchangeCardRet(errorCode *pb.GS2CExchangeCardRet_ErrorCode, a gate
 	data.ErrorCode = errorCode
 	a.WriteMsg(data)
 }
+
+func SendGS2CUpdateCardInfoAfterExchange(exchangeType *pb.ExchangeType, cardList []*pb.CardInfo, a gate.Agent) {
+	log.Debug("SendGS2CUpdateCardInfoAfterExchange-->>")
+	data := &pb.GS2CUpdateCardInfoAfterExchange{}
+	data.Type = exchangeType
+	data.CardList = cardList
+	a.WriteMsg(data)
+}
