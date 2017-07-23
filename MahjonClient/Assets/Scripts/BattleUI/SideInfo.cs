@@ -44,6 +44,7 @@ public class Pai
         set { _playerId = value; }
         get { return _playerId; }
     }
+    
 }
 
 public class SideInfo
@@ -155,6 +156,18 @@ public class SideInfo
         pai.Status = getPaiStatus(card.Status);
         pai.PlayerID = card.playerId;
         _paiList.Add(pai);
+    }
+
+    public void RemoveExchangeCard()
+    {
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (_paiList[i].Status == PaiStatus.Exchange)
+            {
+                _paiList.RemoveAt(i);
+                i--;
+            }
+        }
     }
 
 }

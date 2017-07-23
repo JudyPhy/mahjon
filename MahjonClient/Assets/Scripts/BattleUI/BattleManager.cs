@@ -192,7 +192,7 @@ public class BattleManager
     }
 
     public void PrepareGameStart(pb.GS2CBattleStart msg)
-    {        
+    {
         for (int i = 0; i < msg.cardList.Count; i++)
         {
             pb.CardInfo card = msg.cardList[i];
@@ -204,7 +204,7 @@ public class BattleManager
                 }
             }
         }
-        _dealerId = msg.dealerId;        
+        _dealerId = msg.dealerId;
         _curPlaySide = GetDealerSide();
         Debug.Log("_dealerId=" + _dealerId + ", side=" + _curPlaySide.ToString());
         EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
@@ -253,7 +253,7 @@ public class BattleManager
         }
         return pb.BattleSide.none;
     }
-    
+
     public List<Pai> GetAllInHandPaiListBySide(pb.BattleSide side)
     {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
@@ -354,16 +354,54 @@ public class BattleManager
         return null;
     }
 
-    public pb.BattleSide GetSideByPlayerId(int playerId)
+    public void UpdateExchangeCardInfo(pb.GS2CUpdateCardInfoAfterExchange msg)
     {
-        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        Dictionary<int, List<pb.CardInfo>> exchangeCardDict = new Dictionary<int, List<pb.CardInfo>>();
+        for (int i = 0; i < msg.cardList.Count; i++)
         {
-            if (_playerPaiInfoList[i].PlayerInfo.OID == playerId)
+            if (exchangeCardDict.ContainsKey(msg.cardList[i].playerId))
             {
-                return _playerPaiInfoList[i].Side;
+                exchangeCardDict[msg.cardList[i].playerId].Add(msg.cardList[i]);
+            }
+            else
+            {
+                List<pb.CardInfo> list = new List<pb.CardInfo>();
+                list.Add(msg.cardList[i]);
+                exchangeCardDict.Add(msg.cardList[i].playerId, list);
             }
         }
-        return pb.BattleSide.none;
+        List<int> _selfExchangeCardOid = new List<int>();
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            int playerId = _playerPaiInfoList[i].PlayerInfo.OID;
+            _playerPaiInfoList[i].RemoveExchangeCard();
+            List<Pai> curPaiList = _playerPaiInfoList[i].GetPaiListByStatus(PaiStatus.InHand);
+            Debug.Log("playerId[" + playerId + "] has " + curPaiList.Count + "inhand cards.");
+            for (int n = 0; n < exchangeCardDict[playerId].Count; n++)
+            {
+                pb.CardInfo curCard = exchangeCardDict[playerId][n];
+                bool isFind = false;
+                for (int j = 0; j < curPaiList.Count; j++)
+                {
+                    if (curPaiList[j].OID == curCard.CardOid)
+                    {
+                        isFind = true;
+                        break;
+                    }
+                }
+                if (!isFind)
+                {
+                    Pai pai = new Pai();
+                    pai.OID = curCard.CardOid;
+                    pai.Id = curCard.CardId;
+                    pai.Status = PaiStatus.Exchange;
+                    pai.PlayerID = curCard.playerId;
+                    curPaiList.Add(pai);
+                }
+            }
+            Debug.Log("playerId[" + playerId + "] has " + curPaiList.Count + " cards.");
+        }
+        EventDispatcher.TriggerEvent<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, msg.type);
     }
 
 }

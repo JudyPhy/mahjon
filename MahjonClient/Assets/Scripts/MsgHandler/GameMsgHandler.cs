@@ -154,6 +154,14 @@ public class GameMsgHandler
         }
     }
 
+    public void RevMsgGS2CUpdateCardInfoAfterExchange(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CUpdateCardInfoAfterExchange");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CUpdateCardInfoAfterExchange msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoAfterExchange>(stream);
+        BattleManager.Instance.UpdateExchangeCardInfo(msg);
+    }
+
     public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)
     {
         Debug.Log("==>> RevMsgGS2CDiscardTimeOut");
