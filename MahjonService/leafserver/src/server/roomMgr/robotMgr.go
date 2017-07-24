@@ -9,78 +9,48 @@ import (
 	"github.com/name5566/leaf/log"
 )
 
-func addRobotToRoom(roomInfo *RoomInfo, oid int) {
-	log.Debug("addRobotToRoom roomId=%v", roomInfo.roomId)
-	//PlayerInfo
-	basePlayer := &PlayerInfo{}
-	basePlayer.oid = int32(oid)
-	basePlayer.nickName = "游客"
-	basePlayer.headIcon = "nil"
-	basePlayer.gold = 0
-	basePlayer.diamond = 0
-	basePlayer.roomId = roomInfo.roomId
-
-	//roomPlayer
-	sideList := getLeftSideList(roomInfo)
-	side := getRandomSideBySideList(sideList)
-	roomPlayer := &RoomPlayerInfo{}
-	roomPlayer.isRobot = true
-	roomPlayer.agent = nil
-	roomPlayer.side = side
-	roomPlayer.isOwner = false
-	roomPlayer.playerInfo = basePlayer
-	roomInfo.playerList = append(roomInfo.playerList, roomPlayer)
-}
-
-func selectRobotExchangeCard(roomInfo *RoomInfo, playerId int32) {
-	var mapCard map[int][]int32
-	for i, cardList := range roomInfo.cardList {
-		if i == 0 {
-		}
-		if cardList.playerId == playerId {
-			mapCard = getSeparateCardTypeMap(cardList.list)
-			break
+func (roomInfo *RoomInfo) selectRobotExchangeCard(cardList []*Card) []*Card {
+	log.Debug("robot select exchange cards...")
+	mapCard := getSeparateCardTypeMap(cardList)
+	countList := []int{len(mapCard[0]), len(mapCard[1]), len(mapCard[2])}
+	countMin := 14
+	indexMin := 0
+	for i, count := range countList {
+		if count >= 3 && count < countMin {
+			countMin = count
+			indexMin = i
 		}
 	}
-	selectedCardOidList := getExchangeCardOID(mapCard)
-	log.Debug("robot select exchange card count is %v", len(selectedCardOidList))
+	log.Debug("robot req exchange card type is %v(0,1,2)", indexMin)
+	typeCardList := mapCard[indexMin]
+	for i := 0; i < 3; i++ {
+		log.Debug("get random exchange card, orig list count=%v", len(typeCardList))
+		rand.Seed(time.Now().Unix())
+		rnd := rand.Intn(len(typeCardList))
+		for j, card := range cardList {
+			if j == 0 {
+			}
+			if card.oid == typeCardList[rnd] {
+				card.status = CardStatus_EXCHANGE
+				break
+			}
+		}
+		typeCardList = append(typeCardList[:rnd], typeCardList[rnd+1:]...)
+	}
 
 	//log
 	logStr := "robot exchange card oid list =>"
 	buf := bytes.NewBufferString(logStr)
-	for i, j := range selectedCardOidList {
+	for i, j := range cardList {
 		if i == 0 {
 		}
-		str := strconv.Itoa(int(j))
+		str := strconv.Itoa(int(j.oid))
 		buf.Write([]byte(str))
 		buf.Write([]byte(", "))
 	}
 	log.Debug(buf.String())
 
-	for i, cardList := range roomInfo.cardList {
-		if i == 0 {
-		}
-		if cardList.playerId == playerId {
-			sumCount := 0
-			for n, oid := range selectedCardOidList {
-				if n == 0 {
-				}
-				for j, card := range cardList.list {
-					if j == 0 {
-					}
-					if card.oid == oid {
-						card.status = CardStatus_EXCHANGE
-						sumCount++
-						break
-					}
-				}
-			}
-			if sumCount == 3 {
-				log.Debug("player %v exchange over.", playerId)
-				cardList.process = ProcessStatus_EXCHANGE_OVER
-			}
-		}
-	}
+	return cardList
 }
 
 //将列表中的牌按照花色分开，分装到一个map中
@@ -104,34 +74,4 @@ func getSeparateCardTypeMap(list []*Card) map[int][]int32 {
 	resultMap[1] = listTiao
 	resultMap[2] = listTong
 	return resultMap
-}
-
-//获取交换牌的oid列表
-func getExchangeCardOID(mapCard map[int][]int32) []int32 {
-	log.Debug("every type card count is : %v, %v, %v", len(mapCard[0]), len(mapCard[1]), len(mapCard[2]))
-	countList := []int{len(mapCard[0]), len(mapCard[1]), len(mapCard[2])}
-	countMin := 14
-	indexMin := 0
-	for i, count := range countList {
-		if count >= 3 && count < countMin {
-			countMin = count
-			indexMin = i
-		}
-	}
-	log.Debug("robot req exchange card type is %v(0,1,2)", indexMin)
-	resultList := getRandomExchangeCardOIDList(mapCard[indexMin], 3)
-	return resultList
-}
-
-func getRandomExchangeCardOIDList(cardList []int32, count int) []int32 {
-	log.Debug("req cards, list count=%v, req count=%d", len(cardList), count)
-	var result []int32
-	for i := 0; i < count; i++ {
-		log.Debug("get random exchange card, orig list count=%v", len(cardList))
-		rand.Seed(time.Now().Unix())
-		rnd := rand.Intn(len(cardList))
-		result = append(result, cardList[rnd])
-		cardList = append(cardList[:rnd], cardList[rnd+1:]...)
-	}
-	return result
 }
