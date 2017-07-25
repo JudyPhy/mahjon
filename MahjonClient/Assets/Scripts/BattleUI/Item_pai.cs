@@ -99,19 +99,6 @@ public class Item_pai : MonoBehaviour
             // 选择交换牌阶段            
             OnSelectExchangeCard();
         }
-        else
-        {
-            if (BattleManager.Instance.CurProcess == BattleProcess.BattleReady)
-            {
-                Debug.Log("game not ready.");
-                return;
-            }
-            if (BattleManager.Instance.CurPlaySide != _side)
-            {
-                Debug.Log("current side is " + BattleManager.Instance.CurPlaySide.ToString() + ", is not self round.");
-                return;
-            }
-        }
     }
 
     // Update is called once per frame

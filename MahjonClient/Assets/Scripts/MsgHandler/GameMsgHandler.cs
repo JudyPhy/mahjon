@@ -130,14 +130,6 @@ public class GameMsgHandler
         BattleManager.Instance.PrepareGameStart(msg);
     }
 
-    public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
-    {
-        Debug.Log("==>> RevMsgGS2CSelectLackRet");
-        Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
-        BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
-    }
-
     public void RevMsgGS2CExchangeCardRet(int pid, byte[] msgBuf, int msgSize)
     {
         Debug.Log("==>> RevMsgGS2CExchangeCardRet");
@@ -160,6 +152,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateCardInfoAfterExchange msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoAfterExchange>(stream);
         BattleManager.Instance.UpdateExchangeCardInfo(msg);
+    }
+
+    public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CSelectLackRet");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
+        BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
     }
 
     public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)

@@ -35,12 +35,13 @@ public class Item_role : MonoBehaviour
 
     public void ShowLackIcon()
     {
+        Debug.Log("lack icon ani...");
         pb.CardType type = BattleManager.Instance.GetLackCardTypeByPlayerId(_playerInfo.OID);
         _cardTypeIcon.spriteName = "";
         _cardTypeIcon.gameObject.SetActive(true);
         //animation
         _cardTypeIcon.transform.localPosition = Vector3.zero;
-        _cardTypeIcon.transform.localScale = Vector3.zero;
+        _cardTypeIcon.transform.localScale = Vector3.one;
         iTween.MoveTo(_cardTypeIcon.gameObject, iTween.Hash("position", new Vector3(0, 0, 0), "islocal", true, "time", 0.2f, "easytype", iTween.EaseType.easeOutExpo));
         iTween.ScaleTo(_cardTypeIcon.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.2f, "easytype", iTween.EaseType.easeOutExpo));
     }
