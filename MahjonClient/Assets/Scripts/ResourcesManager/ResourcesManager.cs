@@ -28,6 +28,8 @@ public class ResourcesManager {
         {
             case "SidePai":
                 return "3d/model/" + resName;
+            case "Item_pai_3d":
+                return "3d/model/pai";
             default:
                 break;
         }

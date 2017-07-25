@@ -39,7 +39,9 @@ type RoomInfo struct {
 }
 
 func (roomInfo *RoomInfo) Init(roomId string) {
+	log.Debug("Init roomInfo...")
 	roomInfo.roomId = roomId
+	roomInfo.cardMap = &PlayerCardMap{}
 	roomInfo.cardMap.cMap = make(map[int32]*SideInfo)
 }
 

@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Item_exchangeArrow : MonoBehaviour
 {
-    private Vector3[] pos = { new Vector3(0, -300, 0), new Vector3(300, 0, 0), new Vector3(0, 300, 0), new Vector3(-300, 0, 0) };
+    private Vector3[] pos = { new Vector3(0, 0, 0), new Vector3(275, 155, 0), new Vector3(0, 275, 0), new Vector3(-270, 155, 0) };
+    private Vector3[] angle = { new Vector3(0, 0, 0), new Vector3(0, 0, 104), new Vector3(0, 0, 180), new Vector3(0, 0, -104) };
     private int _index;
     private pb.ExchangeType _type;
 
@@ -23,19 +24,15 @@ public class Item_exchangeArrow : MonoBehaviour
         _type = type;
         if (_type == pb.ExchangeType.Opposite)
         {
-            transform.localEulerAngles = _index % 2 == 0 ? Vector3.zero : new Vector3(0, 0, 180);
-            transform.localPosition = _index % 2 == 0 ? new Vector3(-100, 0, 0) : new Vector3(100, 0, 0);
+            transform.localEulerAngles = _index % 2 == 0 ? new Vector3(0, 0, 90) : new Vector3(0, 0, -90);
+            transform.localPosition = _index % 2 == 0 ? new Vector3(-135, 155, 0) : new Vector3(135, 155, 0);
         }
         else
         {
-            transform.localEulerAngles = new Vector3(0, 0, -90 * _index);
+            transform.localEulerAngles = new Vector3(0, 0, 90 * _index);
             if (type == pb.ExchangeType.AntiClock)
             {
-                index += 2;
-                if (index > 3)
-                {
-                    index -= 4;
-                }
+                transform.localEulerAngles += new Vector3(0, 0, 180);
             }
             transform.localPosition = pos[index];
         }
@@ -45,24 +42,28 @@ public class Item_exchangeArrow : MonoBehaviour
     private void PlayDirectionAni()
     {
         float angle = transform.localEulerAngles.z;
-        int direction = (int)(angle / 90);
-        if (direction == 0)
+        Debug.Log("angle=" + angle);
+        if (angle >= -1 && angle <= 1)
         {
-            iTween.MoveTo(gameObject, iTween.Hash("x", transform.localPosition.x - 50, "islocal", true, "time", 0.5f, "looptype", iTween.LoopType.loop));
+            // left
+            iTween.MoveTo(gameObject, iTween.Hash("x", transform.localPosition.x - 50, "islocal", true, "time", 1f, "looptype", iTween.LoopType.loop));
         }
-        else if (direction == -1)
+        else if (Mathf.Abs(angle) == 180)
         {
-            iTween.MoveTo(gameObject, iTween.Hash("y", transform.localPosition.y - 50, "islocal", true, "time", 0.5f, "looptype", iTween.LoopType.loop));
+            // right
+            iTween.MoveTo(gameObject, iTween.Hash("x", transform.localPosition.x + 50, "islocal", true, "time", 1f, "looptype", iTween.LoopType.loop));
         }
-        else if (direction == -2)
+        else if (angle >= 89 && angle <= 91)
         {
-            iTween.MoveTo(gameObject, iTween.Hash("x", transform.localPosition.x + 50, "islocal", true, "time", 0.5f, "looptype", iTween.LoopType.loop));
+            // down
+            iTween.MoveTo(gameObject, iTween.Hash("y", transform.localPosition.y - 50, "islocal", true, "time", 1f, "looptype", iTween.LoopType.loop));
         }
-        else if (direction == -3)
+        else if ((angle >= -91 && angle <= -89) || (angle >= 269 && angle <= 271))
         {
-            iTween.MoveTo(gameObject, iTween.Hash("y", transform.localPosition.y + 50, "islocal", true, "time", 0.5f, "looptype", iTween.LoopType.loop));
+            //up
+            iTween.MoveTo(gameObject, iTween.Hash("y", transform.localPosition.y + 50, "islocal", true, "time", 1f, "looptype", iTween.LoopType.loop));
         }
-        Invoke("ItweenStop", 2f);
+        //Invoke("ItweenStop", 2f);
     }
 
     private void ItweenStop()

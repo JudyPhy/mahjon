@@ -714,7 +714,9 @@ public class Panel_battle : WindowsBasePanel
 
     private void PlayExchangeAni()
     {
-        Debug.Log("PlayExchangeAni");        
+        Debug.Log("PlayExchangeAni, exchangeType:" + _exchangeType.ToString());
+        _exchangeType = pb.ExchangeType.Opposite;//test
+        _afterExchangeContainer.SetActive(true);
         int count = _exchangeType == pb.ExchangeType.Opposite ? 2 : 4;
         hideAllExchangeArrow();
         for (int i = 0; i < count; i++)
@@ -728,6 +730,7 @@ public class Panel_battle : WindowsBasePanel
 
     private void ArrowAniOver()
     {
+        return;
         Debug.Log("ArrowAniOver");
         _exchangeCardContainer.SetActive(false);
         // self
