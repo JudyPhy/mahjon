@@ -181,4 +181,17 @@ public class SideInfo
         }
     }
 
+    public List<Pai> GetUsefulPaiList()
+    {
+        List<Pai> list = new List<Pai>();
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (_paiList[i].Status == PaiStatus.InHand || _paiList[i].Status == PaiStatus.Gang || _paiList[i].Status == PaiStatus.Peng)
+            {
+                list.Add(_paiList[i]);
+            }
+        }
+        return list;
+    }
+
 }

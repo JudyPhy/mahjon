@@ -41,10 +41,13 @@ public enum BattleProcess
     SortCardOver,
     CheckingHu,
     CheckHuOver,
-    CheckingPG,
-    CheckPGOver,
+    CheckingGang,
+    CheckGangOver,
+    CheckingPeng,
+    CheckPengOver,
     EnsurePG,
     SelectingDiscard,
+    WaitingHuRet,
 }
 
 public class Panel_battle : WindowsBasePanel
@@ -1363,11 +1366,17 @@ public class Panel_battle : WindowsBasePanel
     {
         if (BattleManager.Instance.IsHu())
         {
-
+            _battleProcess = BattleProcess.WaitingHuRet;
         }
         else
         {
+            _battleProcess = BattleProcess.CheckHuOver;
         }
+    }
+
+    private void CheckGang()
+    {
+
     }
     #endregion
 
@@ -1424,6 +1433,10 @@ public class Panel_battle : WindowsBasePanel
             case BattleProcess.SortCardOver:
                 _battleProcess = BattleProcess.CheckingHu;
                 CheckHu();
+                break;
+            case BattleProcess.CheckHuOver:
+                _battleProcess = BattleProcess.CheckingGang;
+                CheckGang();
                 break;
             default:
                 break;

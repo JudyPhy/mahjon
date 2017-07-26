@@ -404,10 +404,85 @@ public class BattleManager
         EventDispatcher.TriggerEvent<pb.BattleSide>(EventDefine.TurnToPlayer, _curPlaySide);
     }
 
+    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side) {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].Side == side)
+            {
+                return _playerPaiInfoList[i].GetUsefulPaiList();
+            }
+        }
+        return null;
+    }
+
     public bool IsHu()
     {
         Debug.Log("check hu pai...");
+        pb.BattleSide side = GetSelfSide();
+        List<Pai> inhandList = GetCardListBySideAndStatus(side, PaiStatus.InHand);
+        List<Pai> pList = GetCardListBySideAndStatus(side, PaiStatus.Peng);
+        List<Pai> gList = GetCardListBySideAndStatus(side, PaiStatus.Gang);
+        int count = inhandList.Count + pList.Count + gList.Count;
+        Debug.Log("check hu==> all card count is " + count);
+        if (count >= 14 && count <= 18)
+        {
+            Debug.Log("peng card count=" + pList.Count + ", gang count=" + gList.Count);
+            if (pList.Count % 3 != 0 || gList.Count % 4 != 0)
+            {                
+                return false;
+            }
+            bool isSevenPair = IsSevenPair(inhandList, pList, gList);
+            if (isSevenPair)
+            {
+                return true;
+            }
+            else
+            {
+                inhandList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+                IsCommonHu(inhandList);
+            }
+        }
         return false;
     }
+
+    private bool IsSevenPair(List<Pai> inhandList, List<Pai> pList, List<Pai> gList)
+    {
+        if ((pList.Count + gList.Count) > 0)
+        {
+            return false;
+        }
+        List<Pai> temp = new List<Pai>(inhandList);
+        temp.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+        int curId = 0;
+        for (int i = 0; i < temp.Count; i++)
+        {
+            if (curId == 0)
+            {
+                curId = temp[i].Id;
+                temp.RemoveAt(i);
+                i--;
+            }
+            else
+            {
+                if (temp[i].Id == curId)
+                {
+                    curId = 0;
+                    temp.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        return curId == 0;
+    }
+
+    private void IsCommonHu(List<Pai> inhandList)
+    {
+        
+    }
+
     #endregion
 }
