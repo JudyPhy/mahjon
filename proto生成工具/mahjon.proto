@@ -25,7 +25,7 @@ enum CardStatus
 	inHand = 2;
 	bePeng = 3;
 	beGang = 4;
-	dicard = 5;
+	discard = 5;
 }
 
 enum CardType
@@ -63,6 +63,7 @@ message CardInfo
 	required int32 CardOid = 2;
 	required int32 CardId = 3;
 	required CardStatus Status = 4;
+	optional bool fromOther = 5;
 }
 
 message BattlePlayerInfo

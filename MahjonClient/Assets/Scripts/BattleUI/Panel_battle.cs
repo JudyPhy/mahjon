@@ -33,17 +33,18 @@ public enum BattleProcess
     PlayingLackAni,
 
     BattleReady,
-    
+
     DrawingCard,
     DrawCardOver,
+    SortCardStart,
     SortingCard,
     SortCardOver,
+    CheckingHu,
+    CheckHuOver,
     CheckingPG,
-    CheckOver,
-    IsPenging,
-    PengOver,
-    IsGanging,
-    GangOver,    
+    CheckPGOver,
+    EnsurePG,
+    SelectingDiscard,
 }
 
 public class Panel_battle : WindowsBasePanel
@@ -65,7 +66,7 @@ public class Panel_battle : WindowsBasePanel
     // side pai   
     private GameObject _self2DCardItemRoot;
     private List<Item_pai> _self2DCardItemList = new List<Item_pai>();
-    private GameObject _self3DCardItemRoot;    
+    private GameObject _self3DCardItemRoot;
     private List<Item_pai_3d> _self3DCardItemList = new List<Item_pai_3d>();
     private List<GameObject> _otherCardObjRoot = new List<GameObject>();
     private Dictionary<pb.BattleSide, List<Item_pai_3d>> _sideCardObjDict = new Dictionary<pb.BattleSide, List<Item_pai_3d>>();
@@ -87,7 +88,7 @@ public class Panel_battle : WindowsBasePanel
     private List<UILabel> _exchangeTips = new List<UILabel>();
     private List<System.DateTime> _exchangeTipsAniTime = new List<System.DateTime>();
 
-    //after exchange card
+    // after exchange card
     private GameObject _afterExchangeContainer;
     private List<Item_exchangeArrow> _exchangeArrows = new List<Item_exchangeArrow>();
     private pb.ExchangeType _exchangeType;
@@ -95,6 +96,11 @@ public class Panel_battle : WindowsBasePanel
     // select lack
     private GameObject _selectLackContainer;
     private List<UIButton> _btnLack = new List<UIButton>();
+
+    // sort all status cards
+    private int _curSelf2DItemIndex_playing;
+    private int _curOther3DItemIndex_playing;
+    private Dictionary<pb.BattleSide, List<Item_pai_3d>> _other3DDiscard = new Dictionary<pb.BattleSide, List<Item_pai_3d>>();
 
     public override void OnAwake()
     {
@@ -178,6 +184,7 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
         EventDispatcher.AddEventListener<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, UpdateCardInfoAfterExchange);
         EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
+        EventDispatcher.AddEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
     }
 
     public override void OnRemoveEvent()
@@ -189,6 +196,7 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
         EventDispatcher.RemoveEventListener<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, UpdateCardInfoAfterExchange);
         EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
+        EventDispatcher.RemoveEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
     }
 
     private void hideAllRoleItem()
@@ -455,7 +463,7 @@ public class Panel_battle : WindowsBasePanel
         int drawSideIndex = getSideIndexFromSelf(_drawerSide_prepareAni);
         for (int index_pai = 0; index_pai < drawCountCurRound; index_pai++)
         {
-            int itemIndex = _placedPaiCount_prepareAni[drawSideIndex];            
+            int itemIndex = _placedPaiCount_prepareAni[drawSideIndex];
             _placedPaiCount_prepareAni[drawSideIndex]++;
             if (drawSideIndex == 0)
             {
@@ -521,8 +529,8 @@ public class Panel_battle : WindowsBasePanel
     }
 
     private void SortSelfPaiPrepareAni()
-    {        
-        List<Pai> selfList = BattleManager.Instance.GetAllInHandPaiListBySide(_sortedSideListFromSelf[0]);
+    {
+        List<Pai> selfList = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
         selfList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
         hideAllSelf2DCardItem();
         for (int i = 0; i < selfList.Count; i++)
@@ -571,7 +579,8 @@ public class Panel_battle : WindowsBasePanel
     {
         Debug.Log("OnClickEnsureExchange");
         _battleProcess = BattleProcess.WaitingExchangeCardOver;
-        List<Pai> list = BattleManager.Instance.GetExchangeCardListBySide(_sortedSideListFromSelf[0]);
+        BattleManager.Instance.CurProcess = BattleProcess.WaitingExchangeCardOver;
+        List<Pai> list = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Exchange);
         if (list != null)
         {
             GameMsgHandler.Instance.SendMsgC2GSExchangeCard(list);
@@ -641,8 +650,8 @@ public class Panel_battle : WindowsBasePanel
     }
 
     private void SortCardAfterExchange()
-    {        
-        List<Pai> selfList = BattleManager.Instance.GetAllInHandPaiListBySide(_sortedSideListFromSelf[0]);
+    {
+        List<Pai> selfList = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
         selfList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
         hideAllSelf2DCardItem();
         for (int i = 0; i < selfList.Count; i++)
@@ -715,7 +724,6 @@ public class Panel_battle : WindowsBasePanel
     private void PlayExchangeAni()
     {
         Debug.Log("PlayExchangeAni, exchangeType:" + _exchangeType.ToString());
-        _exchangeType = pb.ExchangeType.Opposite;//test
         _afterExchangeContainer.SetActive(true);
         int count = _exchangeType == pb.ExchangeType.Opposite ? 2 : 4;
         hideAllExchangeArrow();
@@ -725,19 +733,17 @@ public class Panel_battle : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.UpdateUI(_exchangeType, i);
         }
-        Invoke("ArrowAniOver", 2f);        
+        Invoke("ArrowAniOver", 2f);
     }
 
     private void ArrowAniOver()
     {
-        return;
         Debug.Log("ArrowAniOver");
         _exchangeCardContainer.SetActive(false);
         // self
         hideAllSelf3DCard();
-        hideAllOther3DCardObj();
-        List<Pai> handCards = BattleManager.Instance.GetAllInHandPaiListBySide(_sortedSideListFromSelf[0]);
-        List<Pai> exchangeCards = BattleManager.Instance.GetExchangeCardListBySide(_sortedSideListFromSelf[0]);
+        List<Pai> handCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
+        List<Pai> exchangeCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Exchange);
         Debug.Log("hand card count=" + handCards.Count + ", exchange card count=" + exchangeCards.Count);
         int index = 0;
         hideAllSelf2DCardItem();
@@ -757,13 +763,51 @@ public class Panel_battle : WindowsBasePanel
             iTween.MoveTo(script.gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f, "delay", 1f));
             exchangeCards[i].Status = PaiStatus.InHand;
         }
+        // others
+        hideAllOther3DCardObj();
+        for (int i = 1; i < 4; i++)
+        {
+            List<Pai> otherHandCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[i], PaiStatus.InHand);
+            Debug.Log("i:" + i + ", hand card count=" + otherHandCards.Count);
+            for (int j = 0; j < otherHandCards.Count; j++)
+            {
+                Item_pai_3d script = getOtherCardObjBySide(i, j);
+                script.gameObject.SetActive(true);
+                script.UpdatePaiMian();
+                script.SetSide(_sortedSideListFromSelf[i]);
+                float upOffset = 0;
+                if (j >= (otherHandCards.Count - 3))
+                {
+                    upOffset = 0.01f;   //最后三张为交换牌
+                    iTween.MoveTo(script.gameObject, iTween.Hash("y", 0.05f, "islocal", true, "time", 0.2f, "delay", 1f));
+                }
+                if (i == 1)
+                {
+                    script.transform.localScale = Vector3.one;
+                    script.transform.localEulerAngles = new Vector3(-90, -90, 0);
+                    script.transform.localPosition = new Vector3(0.45f, 0.05f + upOffset, -0.235f + 0.035f * j);
+                }
+                else if (i == 2)
+                {
+                    script.transform.localScale = new Vector3(1.4f, 1, 1);
+                    script.transform.localEulerAngles = new Vector3(-90, 180, 0);
+                    script.transform.localPosition = new Vector3(0.32f - 0.034f * j * 1.4f, 0.05f + upOffset, 0.33f);
+                }
+                else if (i == 3)
+                {
+                    script.transform.localScale = Vector3.one;
+                    script.transform.localEulerAngles = new Vector3(-90, 90, 0);
+                    script.transform.localPosition = new Vector3(-0.45f, 0.05f + upOffset, 0.235f - 0.035f * j);
+                }
+            }
+        }
         Invoke("SortInHandCard", 1.2f);
     }
 
     private void SortCardAfterExchangeSuccess()
     {
         Debug.Log("SortCardAfterExchangeSuccess");
-        List<Pai> list = BattleManager.Instance.GetAllInHandPaiListBySide(_sortedSideListFromSelf[0]);
+        List<Pai> list = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
         list.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
         Debug.Log("inhand card count=" + list.Count);
         hideAllSelf2DCardItem();
@@ -782,7 +826,6 @@ public class Panel_battle : WindowsBasePanel
     private void StartSelectLackPai()
     {
         Debug.Log("select lack card start...");
-        BattleManager.Instance.CurProcess = BattleProcess.SelectingLackCard;
         _selectLackContainer.SetActive(true);
         _exchangeTipsAniTime.Clear();
         for (int i = 0; i < _exchangeTips.Count; i++)
@@ -800,7 +843,6 @@ public class Panel_battle : WindowsBasePanel
             {
                 GameMsgHandler.Instance.SendMsgC2GSSelectLack((pb.CardType)(i + 1));
                 _selectLackContainer.SetActive(false);
-                BattleManager.Instance.CurProcess = BattleProcess.WaitingLackCardInfo;
                 break;
             }
         }
@@ -823,157 +865,25 @@ public class Panel_battle : WindowsBasePanel
 
     private void SelectLackOver()
     {
-        BattleManager.Instance.CurProcess = BattleProcess.BattleReady;
+        BattleManager.Instance.TurnToNextPlayer(BattleManager.Instance.DealerID);
     }
     #endregion
 
-    /*
+
     #region playing
-    private void hide3DPaiObjBySide(pb.BattleSide side)
+    private void TurnToPlayer(pb.BattleSide side)
     {
-        List<GameObject> list = _sideCardObjDict[side];
-        for (int i = 0; i < list.Count; i++)
-        {
-            list[i].SetActive(false);
-        }
+        Debug.Log("current play side=" + side.ToString());
+        int sideIndex = getSideIndexFromSelf(side);
+
     }
 
-    private Vector3 getStartPosBySideAndStatus(int sideIndex, PaiStatus status)
+    #region sort self card(inhand、peng、gang、discard)    
+    private float sortAndPlaceSelfInHandCard()
     {
-        switch (status)
-        {
-            case PaiStatus.InHand:
-                if (sideIndex == 0)
-                {
-                    return new Vector3(-440 - 64, -250, 0);
-                }
-                else if (sideIndex == 1)
-                {
-                    return new Vector3(0.45f, 0.05f, -0.235f - 0.035f);
-                }
-                else if (sideIndex == 2)
-                {
-                    return new Vector3(0.32f + 0.034f * 1.4f, 0.05f, 0.33f);
-                }
-                else if (sideIndex == 3)
-                {
-                    return new Vector3(-0.45f, 0.05f, 0.235f + 0.035f);
-                }
-                break;
-            case PaiStatus.Exchange:
-                if (sideIndex == 0)
-                {
-                    return new Vector3(-440 - 64, -250, 0);
-                }
-                else if (sideIndex == 1)
-                {
-                    return new Vector3(0.45f, 0.05f, -0.235f - 0.035f);
-                }
-                else if (sideIndex == 2)
-                {
-                    return new Vector3(0.32f + 0.034f * 1.4f, 0.05f, 0.33f);
-                }
-                else if (sideIndex == 3)
-                {
-                    return new Vector3(-0.45f, 0.05f, 0.235f + 0.035f);
-                }
-                break;
-            default:
-                break;
-
-        }
-        return Vector3.zero;
-    }
-
-    private Vector3 getOffsetVecBySideAndStatus(int sideIndex, PaiStatus status)
-    {
-        switch (status)
-        {
-            case PaiStatus.InHand:
-                if (sideIndex == 0)
-                {
-                    return new Vector3(64, 0, 0);
-                }
-                else if (sideIndex == 1)
-                {
-                    return new Vector3(0, 0, 0.035f);
-                }
-                else if (sideIndex == 2)
-                {
-                    return new Vector3(-0.034f * 1.4f, 0, 0);
-                }
-                else if (sideIndex == 3)
-                {
-                    return new Vector3(0, 0, -0.035f);
-                }
-                break;
-            default:
-                break;
-
-        }
-        return Vector3.zero;
-    }
-
-    private void placeSortedCard(pb.BattleSide side, int sideIndex, List<Pai> list, bool lastShown = true)
-    {
-        Debug.Log("placeSortedCard=> sideIndex:" + sideIndex.ToString());
-        PaiStatus status = list[0].Status;
-        Vector3 startPos = getStartPosBySideAndStatus(sideIndex, status);
-        Vector3 offset = getOffsetVecBySideAndStatus(sideIndex, status);
-        Vector3 lastOffset = Vector3.zero;
-        if (sideIndex == 0)
-        {
-            hideAllSelfPaiObj();
-            for (int i = 0; i < list.Count; i++)
-            {
-                GameObject item = getOtherCardObjBySide(side, sideIndex, i);
-                item.SetActive(true);
-                Item_pai pai = item.GetComponent<Item_pai>();
-                pai.UpdateUI(list[i], side);
-                lastOffset = lastShown ? new Vector3(10, 0, 0) : Vector3.zero;
-                startPos = i < list.Count - 1 ? startPos + offset : startPos + offset + lastOffset;
-                pai.transform.localPosition = startPos;
-            }
-        }
-        else
-        {
-            hide3DPaiObjBySide(side);
-            for (int i = 0; i < list.Count; i++)
-            {
-                GameObject item = getOtherCardObjBySide(side, sideIndex, i);
-                item.gameObject.SetActive(true);
-                Item_pai_3d script = item.GetComponent<Item_pai_3d>();
-                script.SetInfo(list[i]);
-                script.SetSide(side);
-                script.UpdatePaiMian();
-                if (sideIndex == 1)
-                {
-                    item.transform.localScale = Vector3.one;
-                    item.transform.localEulerAngles = new Vector3(-90, -90, 0);
-                    lastOffset = lastShown ? new Vector3(0, 0, 0.005f) : Vector3.zero;
-                }
-                else if (sideIndex == 2)
-                {
-                    item.transform.localScale = new Vector3(1.4f, 1, 1);
-                    item.transform.localEulerAngles = new Vector3(-90, 180, 0);
-                    lastOffset = lastShown ? new Vector3(-0.005f, 0, 0) : Vector3.zero;
-                }
-                else if (sideIndex == 3)
-                {
-                    item.transform.localScale = Vector3.one;
-                    item.transform.localEulerAngles = new Vector3(-90, 90, 0);
-                    lastOffset = lastShown ? new Vector3(0, 0, -0.01f) : Vector3.zero;
-                }
-                startPos = i < list.Count - 1 ? startPos + offset : startPos + offset + lastOffset;
-                item.transform.localPosition = startPos;
-            }
-        }
-    }
-
-    private void sortAndPlaceInHandCard(pb.BattleSide side, int sideIndex)
-    {
+        pb.BattleSide side = _sortedSideListFromSelf[0];
         Debug.Log("sortAndPlaceInHandCard=> side:" + side.ToString());
-        List<Pai> inhandList = BattleManager.Instance.GetAllInHandPaiListBySide(side);
+        List<Pai> inhandList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.InHand);
         int lackType = (int)BattleManager.Instance.GetLackCardTypeBySide(side);
         inhandList.Sort((x, y) =>
         {
@@ -998,30 +908,470 @@ public class Panel_battle : WindowsBasePanel
         }
         Debug.Log(str);
 
-        placeSortedCard(side, sideIndex, inhandList);
+        Vector3 offset = new Vector3(64, 0, 0);
+        Vector3 curPos = new Vector3(-440, -250, 0) - offset;
+        hideAllSelf2DCardItem();
+        _curSelf2DItemIndex_playing = 0;
+        for (int i = 0; i < inhandList.Count; i++, _curSelf2DItemIndex_playing++)
+        {
+            Item_pai script = getSelf2DCardItem(_curSelf2DItemIndex_playing);
+            script.gameObject.SetActive(true);
+            script.UpdateUI(inhandList[i], side);
+            script.transform.localScale = Vector3.one * 0.88f;
+            if (i == inhandList.Count - 1)
+            {
+                curPos += (offset / 10);
+            }
+            curPos += offset;
+            script.transform.localPosition = curPos;
+        }
+        return curPos.x;
     }
 
-    private void sortAndPlacePGCard(pb.BattleSide side, int sideIndex)
+    private float sortAndPlaceSelfPengCard(float offsetX)
     {
-        Debug.Log("sortAndPlacePGCard=> side:" + side.ToString());
+        pb.BattleSide side = _sortedSideListFromSelf[0];
+        Debug.Log("sortAndPlaceSelfPengCard=> side:" + side.ToString());
+        List<Pai> pList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Peng);
+        pList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
 
+        string str = "side[" + side.ToString() + "]=> peng: ";
+        for (int n = 0; n < pList.Count; n++)
+        {
+            str += pList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        Vector3 offset = new Vector3(50, 0, 0);
+        Vector3 curPos = new Vector3(offsetX, -250, 0) - offset;
+        if (pList.Count > 0)
+        {
+            int curPaiId = pList[0].Id;
+            for (int i = 0; i < pList.Count; i++, _curSelf2DItemIndex_playing++)
+            {
+                if (pList[i].Id != curPaiId)
+                {
+                    curPos += new Vector3(5, 0, 0);
+                    curPaiId = pList[i].Id;
+                }
+                Item_pai script = getSelf2DCardItem(_curSelf2DItemIndex_playing);
+                script.gameObject.SetActive(true);
+                script.UpdateUI(pList[i], side);
+                script.transform.localScale = Vector3.one * 0.88f;
+                curPos += offset;
+                script.transform.localPosition = curPos;
+            }
+        }
+        return curPos.x;
     }
+
+    private float sortAndPlaceSelfGangCard(float offsetX)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[0];
+        Debug.Log("sortAndPlaceSelfGangCard=> side:" + side.ToString());
+        List<Pai> gList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Gang);
+        gList.Sort((x, y) => {
+            if (x.IsFromOther && !y.IsFromOther)
+            {
+                return 1;
+            }
+            return x.Id.CompareTo(y.Id);
+        });
+
+        string str = "side[" + side.ToString() + "]=> gang: ";
+        for (int n = 0; n < gList.Count; n++)
+        {
+            str += gList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        Dictionary<int, List<Pai>> gDict = new Dictionary<int, List<Pai>>();
+        for (int i = 0; i < gList.Count; i++)
+        {
+            if (gDict.ContainsKey(gList[i].Id))
+            {
+                gDict[gList[i].Id].Add(gList[i]);
+            }
+            else
+            {
+                List<Pai> list = new List<Pai>();
+                list.Add(gList[i]);
+                gDict.Add(gList[i].Id, list);
+            }
+        }
+
+        Vector3 offset = new Vector3(50, 0, 0);
+        Vector3 curPos = new Vector3(offsetX, -250, 0) - offset;
+        foreach (List<Pai> list in gDict.Values)
+        {
+            bool isSelfGang = true;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].IsFromOther)
+                {
+                    isSelfGang = false;
+                    break;
+                }
+            }
+            curPos += new Vector3(5, 0, 0);
+            for (int i = 0; i < list.Count; i++, _curSelf2DItemIndex_playing++)
+            {
+                Item_pai script = getSelf2DCardItem(_curSelf2DItemIndex_playing);
+                script.gameObject.SetActive(true);
+                script.UpdateGangCard(gList[i], side, isSelfGang && i == 0);
+                script.transform.localScale = Vector3.one * 0.88f;
+                curPos += offset;
+                script.transform.localPosition = curPos;
+            }
+        }
+        return curPos.x;
+    }
+
+    private void sortAndPlaceSelfDiscard()
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[0];
+        Debug.Log("sortAndPlaceSelfDiscard=> side:" + side.ToString());
+        List<Pai> dList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Discard);
+
+        string str = "side[" + side.ToString() + "]=> discard: ";
+        for (int n = 0; n < dList.Count; n++)
+        {
+            str += dList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        hideAllSelf3DCard();
+        Vector3[] vecs = getNonDiscardVecBySideIndex(0);
+        for (int i = 0; i < dList.Count; i++)
+        {
+            Item_pai_3d script = getSelf3DCard(i);
+            script.gameObject.SetActive(true);
+            script.SetInfo(dList[i]);
+            script.SetSide(side);
+            script.UpdatePaiMian();
+            script.transform.localEulerAngles = vecs[0];
+            script.transform.localScale = new Vector3(1.4f, 1, 1);
+            int index = i % 10;
+            int line = i / 10;
+            vecs[1] += line * vecs[3];
+            script.transform.localPosition = vecs[1] + index * vecs[2];
+        }
+    }
+
+    private void SortSelfCard()
+    {
+        // inhand
+        float offsetX = sortAndPlaceSelfInHandCard();
+        // peng
+        offsetX = sortAndPlaceSelfPengCard(offsetX + 10);
+        // gang
+        offsetX = sortAndPlaceSelfGangCard(offsetX + 5);
+        // discard
+        sortAndPlaceSelfDiscard();
+    }
+    #endregion
+
+    #region sort others card(inhand、peng、gang、discard)
+    //startPos、rotate、offsetInLine
+    private Vector3[] getNonDiscardVecBySideIndex(int sideIndex)
+    {
+        Vector3[] result = { Vector3.zero, Vector3.zero, Vector3.zero };
+        if (sideIndex == 1)
+        {
+            result[0] = new Vector3(0.45f, 0.05f, -0.235f);
+            result[1] = new Vector3(-90, -90, -90);
+            result[2] = new Vector3(0, 0, 0.035f);
+        }
+        else if (sideIndex == 2)
+        {
+            result[0] = new Vector3(0.32f, 0.05f, 0.33f);
+            result[1] = new Vector3(-90, 180, -90);
+            result[2] = new Vector3(-0.035f, 0, 0);
+        }
+        else if (sideIndex == 3)
+        {
+            result[0] = new Vector3(-0.45f, 0.05f, 0.235f);
+            result[1] = new Vector3(-90, 90, -90);
+            result[2] = new Vector3(0, 0, -0.035f);
+        }
+        return result;
+    }
+
+    private Vector3 sortAndPlaceOtherInHandCard(int sideIndex)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
+        Debug.Log("sortAndPlaceOtherInHandCard=> side:" + side.ToString());
+        List<Pai> inhandList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.InHand);
+        Debug.Log("hand card count=" + inhandList.Count);
+
+        Vector3[] vecs = getNonDiscardVecBySideIndex(sideIndex);
+        hideAllOther3DCardObj();
+        _curOther3DItemIndex_playing = 0;
+        for (int i = 0; i < inhandList.Count; i++, _curOther3DItemIndex_playing++)
+        {
+            Item_pai_3d script = getOtherCardObjBySide(sideIndex, _curOther3DItemIndex_playing);
+            script.gameObject.SetActive(true);
+            script.UpdatePaiMian();
+            script.transform.localEulerAngles = vecs[1];
+            script.transform.localScale = sideIndex % 2 == 0 ? new Vector3(1.4f, 1, 1) : Vector3.one;
+            script.transform.localPosition = vecs[0] + i * vecs[2];
+            if (i == inhandList.Count - 1)
+            {
+                script.transform.localPosition += (vecs[2] / 10);
+            }
+        }
+        return vecs[0] + (inhandList.Count - 1) * vecs[2];
+    }
+
+    private Vector3 sortAndPlaceOtherPengCard(int sideIndex, Vector3 lastEndPos)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
+        Debug.Log("sortAndPlaceOtherPengCard=> side:" + side.ToString());
+        List<Pai> pList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Peng);
+
+        string str = "side[" + side.ToString() + "]=> peng: ";
+        for (int n = 0; n < pList.Count; n++)
+        {
+            str += pList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        Vector3[] vecs = getNonDiscardVecBySideIndex(sideIndex);
+        Vector3 startPos = lastEndPos + vecs[2] / 10;
+        if (pList.Count > 0)
+        {
+            int curPaiId = pList[0].Id;
+            for (int i = 0; i < pList.Count; i++, _curOther3DItemIndex_playing++)
+            {
+                if (pList[i].Id != curPaiId)
+                {
+                    startPos += (vecs[3] / 10);
+                    curPaiId = pList[i].Id;
+                }
+                Item_pai_3d script = getOtherCardObjBySide(sideIndex, _curOther3DItemIndex_playing);
+                script.gameObject.SetActive(true);
+                script.SetInfo(pList[i]);
+                script.SetSide(side);
+                script.UpdatePaiMian();
+                script.transform.localEulerAngles = vecs[1];
+                script.transform.localScale = sideIndex % 2 == 0 ? new Vector3(1.4f, 1, 1) : Vector3.one;
+                script.transform.localPosition = startPos + i * vecs[2];
+            }
+        }
+        return startPos + (pList.Count - 1) * vecs[2];
+    }
+
+    private Vector3 sortAndPlaceOtherGangCard(int sideIndex, Vector3 lastEndPos)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
+        Debug.Log("sortAndPlaceOtherGangCard=> side:" + side.ToString());
+        List<Pai> gList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Gang);
+        gList.Sort((x, y) => {
+            if (x.IsFromOther && !y.IsFromOther)
+            {
+                return 1;
+            }
+            return x.Id.CompareTo(y.Id);
+        });
+
+        string str = "side[" + side.ToString() + "]=> gang: ";
+        for (int n = 0; n < gList.Count; n++)
+        {
+            str += gList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        Dictionary<int, List<Pai>> gDict = new Dictionary<int, List<Pai>>();
+        for (int i = 0; i < gList.Count; i++)
+        {
+            if (gDict.ContainsKey(gList[i].Id))
+            {
+                gDict[gList[i].Id].Add(gList[i]);
+            }
+            else
+            {
+                List<Pai> list = new List<Pai>();
+                list.Add(gList[i]);
+                gDict.Add(gList[i].Id, list);
+            }
+        }
+
+        Vector3[] vecs = getNonDiscardVecBySideIndex(sideIndex);
+        Vector3 startPos = lastEndPos + vecs[0] / 10;
+        int index = 0;
+        foreach (List<Pai> list in gDict.Values)
+        {
+            bool isSelfGang = true;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].IsFromOther)
+                {
+                    isSelfGang = false;
+                    break;
+                }
+            }
+            startPos += (vecs[3] / 10);
+            for (int i = 0; i < list.Count; i++, _curSelf2DItemIndex_playing++, index++)
+            {
+                Item_pai_3d script = getOtherCardObjBySide(sideIndex, _curSelf2DItemIndex_playing);
+                script.gameObject.SetActive(true);
+                script.SetInfo(list[i]);
+                script.SetSide(side);
+                script.UpdatePaiMian();
+                if (isSelfGang && i != 0)
+                {
+                    script.ShownBack(sideIndex);
+                }
+                script.transform.localEulerAngles = vecs[1];
+                script.transform.localScale = sideIndex % 2 == 0 ? new Vector3(1.4f, 1, 1) : Vector3.one;
+                script.transform.localPosition = startPos + index * vecs[2];
+            }
+        }
+        return startPos + (index - 1) * vecs[2];
+    }
+
+    private void hideOther3DDiscardObjBySide(pb.BattleSide side)
+    {
+        if (_other3DDiscard.ContainsKey(side))
+        {
+            for (int i = 0; i < _other3DDiscard[side].Count; i++)
+            {
+                _other3DDiscard[side][i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private Item_pai_3d getOther3DDiscardObj(int sideIndex, int index)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
+        if (!_other3DDiscard.ContainsKey(side))
+        {
+            _other3DDiscard.Add(side, new List<Item_pai_3d>());
+        }
+        List<Item_pai_3d> objList = _other3DDiscard[side];
+        if (index < objList.Count)
+        {
+            return objList[index];
+        }
+        else
+        {
+            Item_pai_3d script = UIManager.AddChild<Item_pai_3d>(_otherCardObjRoot[sideIndex - 1]);
+            objList.Add(script);
+            return script;
+        }
+    }
+
+    //rotate、startPos、offsetInline、offsetBetweenLine
+    private Vector3[] getDiscardVecsBySideIndex(int sideIndex)
+    {
+        Vector3[] vec = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        if (sideIndex == 0)
+        {
+            vec[0] = new Vector3(0, 0, 0);
+            vec[1] = new Vector3(-0.1f, 0.04f, -0.1f);
+            vec[2] = new Vector3(0.035f, 0, 0);
+            vec[3] = new Vector3(0, 0, -0.035f);
+        }
+        else if (sideIndex == 1)
+        {
+            vec[0] = new Vector3(-90, -90, 0);
+            vec[1] = new Vector3(0.1f, 0.04f, -0.1f);
+            vec[2] = new Vector3(0, 0, 0.035f);
+            vec[3] = new Vector3(0.035f, 0, 0);
+        }
+        else if (sideIndex == 2)
+        {
+            vec[0] = new Vector3(0, 180, -90);
+            vec[1] = new Vector3(0.1f, 0.04f, 0.1f);
+            vec[2] = new Vector3(-0.035f, 0, 0);
+            vec[3] = new Vector3(0, 0, 0.035f);
+        }
+        else if (sideIndex == 3)
+        {
+            vec[0] = new Vector3(-90, 90, 0);
+            vec[1] = new Vector3(-0.1f, 0.04f, 0.1f);
+            vec[2] = new Vector3(0, 0, -0.035f);
+            vec[3] = new Vector3(-0.035f, 0, -0.035f);
+        }
+        return vec;
+    }
+
+    private void sortAndPlaceOtherDiscard(int sideIndex)
+    {
+        pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
+        Debug.Log("sortAndPlaceOtherDiscard=> side:" + side.ToString());
+        List<Pai> dList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.Discard);
+
+        string str = "side[" + side.ToString() + "]=> discard: ";
+        for (int n = 0; n < dList.Count; n++)
+        {
+            str += dList[n].Id + ", ";
+        }
+        Debug.Log(str);
+
+        hideOther3DDiscardObjBySide(side);
+        Vector3[] vecs = getDiscardVecsBySideIndex(sideIndex);
+        for (int i = 0; i < dList.Count; i++)
+        {
+            Item_pai_3d script = getOther3DDiscardObj(sideIndex, i);
+            script.gameObject.SetActive(true);
+            script.SetInfo(dList[i]);
+            script.SetSide(side);
+            script.UpdatePaiMian();
+            script.transform.localEulerAngles = vecs[0];
+            script.transform.localScale = sideIndex % 2 == 0 ? new Vector3(1.4f, 1, 1) : Vector3.one;
+            int index = i % 10;
+            int line = i / 10;
+            vecs[1] += line * vecs[3];
+            script.transform.localPosition = vecs[1] + vecs[2] * index;
+        }
+    }
+
+    private void SortOtherCard(int sideIndex)
+    {
+        // inhand
+        Vector3 offsetPos = sortAndPlaceOtherInHandCard(sideIndex);
+        // peng
+        offsetPos = sortAndPlaceOtherPengCard(sideIndex, offsetPos);
+        // gang
+        offsetPos = sortAndPlaceOtherGangCard(sideIndex, offsetPos);
+        // discard
+        sortAndPlaceOtherDiscard(sideIndex);
+    }
+    #endregion
 
     private void SortCard()
     {
         Debug.Log("sort card");
-        BattleManager.Instance.PlayingProcess = BattleProcess.SortingCard;
         for (int i = 0; i < _sortedSideListFromSelf.Count; i++)
         {
             pb.BattleSide side = _sortedSideListFromSelf[i];
-            // inhand
-            sortAndPlaceInHandCard(side, i);
-            // peng、gang
-            sortAndPlacePGCard(side, i);
+            if (i == 0)
+            {
+                SortSelfCard();
+            }
+            else
+            {
+                SortOtherCard(i);
+            }
+        }
+        _battleProcess = BattleProcess.SortCardOver;
+    }
+
+    #region check card(hu、gang、peng)
+    private void CheckHu()
+    {
+        if (BattleManager.Instance.IsHu())
+        {
+
+        }
+        else
+        {
         }
     }
     #endregion
-    */
+
+    #endregion
 
     public override void OnUpdate()
     {
@@ -1064,6 +1414,17 @@ public class Panel_battle : WindowsBasePanel
                 _battleProcess = BattleProcess.SelectingLackCard;
                 StartSelectLackPai();
                 break;
+            case BattleProcess.BattleReady:
+                _battleProcess = BattleProcess.SortCardStart;
+                break;
+            case BattleProcess.SortCardStart:
+                _battleProcess = BattleProcess.SortingCard;
+                SortCard();
+                break;
+            case BattleProcess.SortCardOver:
+                _battleProcess = BattleProcess.CheckingHu;
+                CheckHu();
+                break;
             default:
                 break;
         }
@@ -1091,5 +1452,4 @@ public class Panel_battle : WindowsBasePanel
             }
         }
     }
-
 }

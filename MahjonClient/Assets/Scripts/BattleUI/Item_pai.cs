@@ -28,7 +28,7 @@ public class Item_pai : MonoBehaviour
 
     }
 
-    public void UpdateUI(Pai pai, pb.BattleSide side)
+    public void UpdateUI(Pai pai, pb.BattleSide side, bool isSelfPG = false)
     {
         _info = pai;
         _side = side;
@@ -45,6 +45,12 @@ public class Item_pai : MonoBehaviour
             switch (_info.Status)
             {
                 case PaiStatus.InHand:
+                case PaiStatus.Exchange:
+                    _pai.spriteName = "b" + _info.Id.ToString();
+                    _pai.gameObject.SetActive(true);
+                    _bg.spriteName = "inhand_bg2";
+                    break;
+                case PaiStatus.Peng:
                     _pai.spriteName = "b" + _info.Id.ToString();
                     _pai.gameObject.SetActive(true);
                     _bg.spriteName = "inhand_bg2";
@@ -52,6 +58,22 @@ public class Item_pai : MonoBehaviour
                 default:
                     break;
             }
+        }
+    }
+
+    public void UpdateGangCard(Pai pai, pb.BattleSide side, bool showFront)
+    {
+        _info = pai;
+        _side = side;
+        _pai.gameObject.SetActive(showFront);
+        if (showFront)
+        {
+            _pai.spriteName = "b" + _info.Id.ToString();            
+            _bg.spriteName = "inhand_bg2";
+        }
+        else
+        {
+            _bg.spriteName = "inhand_bg2";
         }
     }
 

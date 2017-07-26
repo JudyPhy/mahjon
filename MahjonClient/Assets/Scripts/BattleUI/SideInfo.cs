@@ -13,6 +13,7 @@ public enum PaiStatus
     Gang,
     PreExchange,
     Exchange,
+    Discard,
 }
 
 public class Pai
@@ -44,7 +45,14 @@ public class Pai
         set { _playerId = value; }
         get { return _playerId; }
     }
-    
+
+    private bool _isFromOther;
+    public bool IsFromOther
+    {
+        set { _isFromOther = value; }
+        get { return _isFromOther; }
+    }
+
 }
 
 public class SideInfo
@@ -88,7 +96,7 @@ public class SideInfo
     {
         return _paiList;
     }
-
+    
     public List<Pai> GetPaiListByStatus(PaiStatus status)
     {
         List<Pai> list = new List<Pai>();
@@ -143,6 +151,8 @@ public class SideInfo
                 return PaiStatus.Peng;
             case pb.CardStatus.beGang:
                 return PaiStatus.Gang;
+            case pb.CardStatus.discard:
+                return PaiStatus.Discard;
             default:
                 return PaiStatus.Idle;
         }
@@ -155,6 +165,7 @@ public class SideInfo
         pai.Id = card.CardId;
         pai.Status = getPaiStatus(card.Status);
         pai.PlayerID = card.playerId;
+        pai.IsFromOther = card.fromOther;
         _paiList.Add(pai);
     }
 

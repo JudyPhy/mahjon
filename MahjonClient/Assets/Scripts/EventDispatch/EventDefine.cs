@@ -8,6 +8,7 @@ public class EventDefine
     public static string PlayGamePrepareAni = "PlayGamePrepareAni";
     public static string UpdateBtnExchangeCard = "UpdateBtnExchangeCard";
     public static string ReExchangeCard = "ReExchangeCard";
-    public static string UpdateCardInfoAfterExchange = "UpdateCardInfoAfterExchange";    
+    public static string UpdateCardInfoAfterExchange = "UpdateCardInfoAfterExchange";
     public static string ShowLackCard = "ShowLackCard";
+    public static string TurnToPlayer = "TurnToPlayer";
 }

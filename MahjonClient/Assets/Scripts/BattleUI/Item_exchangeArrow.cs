@@ -63,7 +63,7 @@ public class Item_exchangeArrow : MonoBehaviour
             //up
             iTween.MoveTo(gameObject, iTween.Hash("y", transform.localPosition.y + 50, "islocal", true, "time", 1f, "looptype", iTween.LoopType.loop));
         }
-        //Invoke("ItweenStop", 2f);
+        Invoke("ItweenStop", 2f);
     }
 
     private void ItweenStop()

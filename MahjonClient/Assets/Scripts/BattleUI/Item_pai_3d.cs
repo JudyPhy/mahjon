@@ -94,9 +94,21 @@ public class Item_pai_3d : MonoBehaviour {
         }
         _mesh.mesh.uv = new_uv;
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    public void ShownBack(int sideIndex)
+    {
+        if (sideIndex % 2 == 0)
+        {
+            transform.localEulerAngles += new Vector3(0, 0, 180);
+        }
+        else
+        {
+            transform.localEulerAngles += new Vector3(180, 0, 0);
+        }
+    }
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
 }

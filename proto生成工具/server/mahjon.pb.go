@@ -121,11 +121,11 @@ func (x *BattleSide) UnmarshalJSON(data []byte) error {
 type CardStatus int32
 
 const (
-	CardStatus_noDeal CardStatus = 1
-	CardStatus_inHand CardStatus = 2
-	CardStatus_bePeng CardStatus = 3
-	CardStatus_beGang CardStatus = 4
-	CardStatus_dicard CardStatus = 5
+	CardStatus_noDeal  CardStatus = 1
+	CardStatus_inHand  CardStatus = 2
+	CardStatus_bePeng  CardStatus = 3
+	CardStatus_beGang  CardStatus = 4
+	CardStatus_discard CardStatus = 5
 )
 
 var CardStatus_name = map[int32]string{
@@ -133,14 +133,14 @@ var CardStatus_name = map[int32]string{
 	2: "inHand",
 	3: "bePeng",
 	4: "beGang",
-	5: "dicard",
+	5: "discard",
 }
 var CardStatus_value = map[string]int32{
-	"noDeal": 1,
-	"inHand": 2,
-	"bePeng": 3,
-	"beGang": 4,
-	"dicard": 5,
+	"noDeal":  1,
+	"inHand":  2,
+	"bePeng":  3,
+	"beGang":  4,
+	"discard": 5,
 }
 
 func (x CardStatus) Enum() *CardStatus {
@@ -483,6 +483,7 @@ type CardInfo struct {
 	CardOid          *int32      `protobuf:"varint,2,req" json:"CardOid,omitempty"`
 	CardId           *int32      `protobuf:"varint,3,req" json:"CardId,omitempty"`
 	Status           *CardStatus `protobuf:"varint,4,req,enum=pb.CardStatus" json:"Status,omitempty"`
+	FromOther        *bool       `protobuf:"varint,5,opt,name=fromOther" json:"fromOther,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -516,6 +517,13 @@ func (m *CardInfo) GetStatus() CardStatus {
 		return *m.Status
 	}
 	return CardStatus_noDeal
+}
+
+func (m *CardInfo) GetFromOther() bool {
+	if m != nil && m.FromOther != nil {
+		return *m.FromOther
+	}
+	return false
 }
 
 type BattlePlayerInfo struct {

@@ -67,6 +67,14 @@ namespace pb
       get { return _Status; }
       set { _Status = value; }
     }
+    private bool _fromOther = default(bool);
+    [global::ProtoBuf.ProtoMember(5, IsRequired = false, Name=@"fromOther", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(default(bool))]
+    public bool fromOther
+    {
+      get { return _fromOther; }
+      set { _fromOther = value; }
+    }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
@@ -636,8 +644,8 @@ namespace pb
       [global::ProtoBuf.ProtoEnum(Name=@"beGang", Value=4)]
       beGang = 4,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"dicard", Value=5)]
-      dicard = 5
+      [global::ProtoBuf.ProtoEnum(Name=@"discard", Value=5)]
+      discard = 5
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"CardType")]
