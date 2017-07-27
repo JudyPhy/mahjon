@@ -47,3 +47,10 @@ func SendGS2CUpdateCardInfoAfterExchange(exchangeType *pb.ExchangeType, cardList
 	data.CardList = cardList
 	a.WriteMsg(data)
 }
+
+func SendGS2CSelectLackRet(list []*pb.LackCard, a gate.Agent) {
+	log.Debug("SendGS2CSelectLackRet-->>")
+	data := &pb.GS2CSelectLackRet{}
+	data.LackCard = list
+	a.WriteMsg(data)
+}

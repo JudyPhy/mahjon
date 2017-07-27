@@ -98,7 +98,7 @@ public class Panel_battle : WindowsBasePanel
 
     // select lack
     private GameObject _selectLackContainer;
-    private List<UIButton> _btnLack = new List<UIButton>();
+    private List<Item_lack> _itemLackList = new List<Item_lack>();
 
     // sort all status cards
     private int _curSelf2DItemIndex_playing;
@@ -156,14 +156,8 @@ public class Panel_battle : WindowsBasePanel
         _afterExchangeContainer = _exchangeCardContainer.transform.FindChild("AfterExchangeContainer").gameObject;
 
         //lack
-        _selectLackContainer = transform.FindChild("btnLackContainer").gameObject;
+        _selectLackContainer = transform.FindChild("ItemLackContainer").gameObject;
         _selectLackContainer.SetActive(false);
-        for (int i = 0; i < 3; i++)
-        {
-            UIButton btn = _selectLackContainer.transform.FindChild("btnLack" + (i + 1).ToString()).GetComponent<UIButton>();
-            _btnLack.Add(btn);
-            UIEventListener.Get(_btnLack[i].gameObject).onClick = OnClickLack;
-        }
     }
 
     public override void OnStart()
@@ -186,6 +180,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener<bool>(EventDefine.UpdateBtnExchangeCard, UpdateBtnExchangeCard);
         EventDispatcher.AddEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
         EventDispatcher.AddEventListener<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, UpdateCardInfoAfterExchange);
+        EventDispatcher.AddEventListener<pb.CardType>(EventDefine.SelectLack, SelectLack);
+        EventDispatcher.AddEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
         EventDispatcher.AddEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
     }
@@ -198,6 +194,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener<bool>(EventDefine.UpdateBtnExchangeCard, UpdateBtnExchangeCard);
         EventDispatcher.RemoveEventListener(EventDefine.ReExchangeCard, SelectExchangeCard);
         EventDispatcher.RemoveEventListener<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, UpdateCardInfoAfterExchange);
+        EventDispatcher.RemoveEventListener<pb.CardType>(EventDefine.SelectLack, SelectLack);
+        EventDispatcher.RemoveEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
         EventDispatcher.RemoveEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
     }
@@ -746,8 +744,10 @@ public class Panel_battle : WindowsBasePanel
         // self
         hideAllSelf3DCard();
         List<Pai> handCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
+        handCards.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
         List<Pai> exchangeCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Exchange);
-        Debug.Log("hand card count=" + handCards.Count + ", exchange card count=" + exchangeCards.Count);
+        exchangeCards.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+        Debug.Log("self hand card count=" + handCards.Count + ", exchange card count=" + exchangeCards.Count);
         int index = 0;
         hideAllSelf2DCardItem();
         for (; index < handCards.Count; index++)
@@ -763,7 +763,7 @@ public class Panel_battle : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.UpdateUI(exchangeCards[i], _sortedSideListFromSelf[0]);
             script.transform.localPosition = new Vector3(-440 + 64 * index, -230, 0);
-            iTween.MoveTo(script.gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f, "delay", 1f));
+            iTween.MoveTo(script.gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.5f, "delay", 0.5f));
             exchangeCards[i].Status = PaiStatus.InHand;
         }
         // others
@@ -782,7 +782,7 @@ public class Panel_battle : WindowsBasePanel
                 if (j >= (otherHandCards.Count - 3))
                 {
                     upOffset = 0.01f;   //最后三张为交换牌
-                    iTween.MoveTo(script.gameObject, iTween.Hash("y", 0.05f, "islocal", true, "time", 0.2f, "delay", 1f));
+                    iTween.MoveTo(script.gameObject, iTween.Hash("y", 0.05f, "islocal", true, "time", 0.5f, "delay", 0.5f));
                 }
                 if (i == 1)
                 {
@@ -804,7 +804,7 @@ public class Panel_battle : WindowsBasePanel
                 }
             }
         }
-        Invoke("SortInHandCard", 1.2f);
+        Invoke("SortCardAfterExchangeSuccess", 1f);
     }
 
     private void SortCardAfterExchangeSuccess()
@@ -826,6 +826,25 @@ public class Panel_battle : WindowsBasePanel
     #endregion
 
     #region select lack
+    private void hideAllItemLack()
+    {
+        for (int i = 0; i < _itemLackList.Count; i++)
+        {
+            _itemLackList[i].gameObject.SetActive(false);
+        }
+    }
+
+    private Item_lack getItemLack(int index)
+    {
+        if (index < _itemLackList.Count)
+        {
+            return _itemLackList[index];
+        }
+        Item_lack script = UIManager.AddChild<Item_lack>(_selectLackContainer);
+        _itemLackList.Add(script);
+        return script;
+    }
+
     private void StartSelectLackPai()
     {
         Debug.Log("select lack card start...");
@@ -833,22 +852,33 @@ public class Panel_battle : WindowsBasePanel
         _exchangeTipsAniTime.Clear();
         for (int i = 0; i < _exchangeTips.Count; i++)
         {
-            _exchangeTips[i].text = "选择中...";
+            _exchangeTips[i].text = "定缺中...";
             _exchangeTipsAniTime.Add(System.DateTime.Now);
+        }
+        hideAllItemLack();
+        for (int i = 0; i < 3; i++)
+        {
+            Item_lack script = getItemLack(i);
+            script.gameObject.SetActive(true);
+            script.UpdateUI(i);
         }
     }
 
-    private void OnClickLack(GameObject go)
+    private void SelectLack(pb.CardType type)
     {
-        for (int i = 0; i < _btnLack.Count; i++)
+        Debug.Log("select lack=" + type.ToString());
+        for (int i = 0; i < _itemLackList.Count; i++)
         {
-            if (_btnLack[i].gameObject == go)
-            {
-                GameMsgHandler.Instance.SendMsgC2GSSelectLack((pb.CardType)(i + 1));
-                _selectLackContainer.SetActive(false);
-                break;
-            }
+            _itemLackList[i].UpdateWord(type == _itemLackList[i].Type);
         }
+    }
+
+    private void EnsureLack(pb.CardType type)
+    {
+        Debug.Log("ensure lack=" + type.ToString());
+        GameMsgHandler.Instance.SendMsgC2GSSelectLack(type);
+        _selectLackContainer.SetActive(false);
+        _battleProcess = BattleProcess.WaitingLackCardInfo;
     }
 
     private void ShowLackCard()

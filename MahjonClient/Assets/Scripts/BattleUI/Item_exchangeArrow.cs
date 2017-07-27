@@ -42,7 +42,6 @@ public class Item_exchangeArrow : MonoBehaviour
     private void PlayDirectionAni()
     {
         float angle = transform.localEulerAngles.z;
-        Debug.Log("angle=" + angle);
         if (angle >= -1 && angle <= 1)
         {
             // left

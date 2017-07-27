@@ -18,4 +18,6 @@ func init() {
 	Processor.Register(&pb.C2GSExchangeCard{})                //6
 	Processor.Register(&pb.GS2CExchangeCardRet{})             //7
 	Processor.Register(&pb.GS2CUpdateCardInfoAfterExchange{}) //8
+	Processor.Register(&pb.C2GSSelectLack{})                  //9
+	Processor.Register(&pb.GS2CSelectLackRet{})               //10
 }

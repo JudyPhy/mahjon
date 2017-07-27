@@ -15,18 +15,6 @@ import (
 	"github.com/name5566/leaf/log"
 )
 
-type SideInfo struct {
-	//player
-	isRobot    bool
-	agent      gate.Agent
-	side       pb.BattleSide
-	isOwner    bool
-	playerInfo *PlayerInfo
-	//card
-	cardList []*Card
-	process  ProcessStatus
-}
-
 type PlayerCardMap struct {
 	lock sync.Mutex
 	cMap map[int32]*SideInfo //playerOID : SideInfo
@@ -414,6 +402,7 @@ func (roomInfo *RoomInfo) getPlayerIdListSortBySide() []int32 {
 	return result
 }
 
+//牌交换完毕发送新的手牌信息到客户端
 func (roomInfo *RoomInfo) sendCardInfoAfterExchange(exchangeType pb.ExchangeType) {
 	//send exchanged card to client
 	var allExchangedCardList []*pb.CardInfo
@@ -437,12 +426,15 @@ func (roomInfo *RoomInfo) sendCardInfoAfterExchange(exchangeType pb.ExchangeType
 		}
 		if !value.isRobot && value.agent != nil {
 			msgHandler.SendGS2CUpdateCardInfoAfterExchange(exchangeType.Enum(), allExchangedCardList, value.agent)
+		} else if value.isRobot {
+			value.selectLack()
 		}
 	}
 	roomInfo.cardMap.lock.Unlock()
 }
 
 //交换牌
+//取出交换牌存于map中，根据交换类型将map中的交换牌重新添加到对应的玩家手牌中
 func (roomInfo *RoomInfo) processExchangeCard() {
 	log.Debug("processExchangeCard")
 	exchangeAllMap := make(map[int32][]*Card)
@@ -515,7 +507,7 @@ func (roomInfo *RoomInfo) processExchangeCard() {
 }
 
 func (roomInfo *RoomInfo) outRoom(playerOid int32) {
-	log.Debug("playerOid[%v] out room")
+	log.Debug("playerOid[%v] out room", playerOid)
 	isFind := false
 	var playerList []*pb.BattlePlayerInfo
 	roomInfo.cardMap.lock.Lock()
@@ -541,4 +533,51 @@ func (roomInfo *RoomInfo) outRoom(playerOid int32) {
 	if !isFind {
 		log.Error("playerOid[%v] is not in room[%v], can't kick out.", playerOid, roomInfo.roomId)
 	}
+}
+
+func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType *pb.CardType) {
+	roomInfo.cardMap.lock.Lock()
+	sideInfo, ok := roomInfo.cardMap.cMap[playerOid]
+	roomInfo.cardMap.lock.Unlock()
+	if ok {
+		sideInfo.lackType = lackType
+		sideInfo.process = ProcessStatus_LACK_OVER
+	} else {
+		log.Error("playerOid[%v] not in map.")
+	}
+}
+
+func (roomInfo *RoomInfo) selectLackOver() bool {
+	roomInfo.cardMap.lock.Lock()
+	for i, value := range roomInfo.cardMap.cMap {
+		if i == 0 {
+		}
+		if value.process != ProcessStatus_LACK_OVER {
+			roomInfo.cardMap.lock.Unlock()
+			return false
+		}
+	}
+	roomInfo.cardMap.lock.Unlock()
+	return true
+}
+
+func (roomInfo *RoomInfo) sendLackCard() {
+	var result []*pb.LackCard
+	roomInfo.cardMap.lock.Lock()
+	for i, value := range roomInfo.cardMap.cMap {
+		if i == 0 {
+		}
+		lack := &pb.LackCard{}
+		lack.PlayerId = proto.Int32(value.playerInfo.oid)
+		lack.Type = value.lackType
+		result = append(result, lack)
+	}
+	for i, value := range roomInfo.cardMap.cMap {
+		if i == 0 {
+		}
+		if !value.isRobot && value.agent != nil {
+			msgHandler.SendGS2CSelectLackRet(result, value.agent)
+		}
+	}
+	roomInfo.cardMap.lock.Unlock()
 }

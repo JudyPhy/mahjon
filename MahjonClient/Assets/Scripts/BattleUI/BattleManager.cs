@@ -361,10 +361,10 @@ public class BattleManager
                         pai.Id = curCard.CardId;
                         pai.Status = PaiStatus.Exchange;
                         pai.PlayerID = curCard.playerId;
-                        curPaiList.Add(pai);
+                        _playerPaiInfoList[i].GetPaiList().Add(pai);
                     }
                 }
-                Debug.Log("self has " + curPaiList.Count + " cards.");
+                Debug.Log("self has " + _playerPaiInfoList[i].GetPaiList().Count + " cards.");
             }
             else
             {
@@ -372,7 +372,10 @@ public class BattleManager
                 _playerPaiInfoList[i].ClearPai();
                 for (int j = 0; j < msg.cardList.Count; j++)
                 {
-                    _playerPaiInfoList[i].AddPai(msg.cardList[j]);
+                    if (playerId == msg.cardList[j].playerId)
+                    {
+                        _playerPaiInfoList[i].AddPai(msg.cardList[j]);
+                    }
                 }
                 Debug.Log("other has " + _playerPaiInfoList[i].GetPaiList().Count + " cards.");
             }

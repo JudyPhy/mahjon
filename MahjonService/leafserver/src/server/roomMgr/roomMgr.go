@@ -19,6 +19,7 @@ type ProcessStatus int32
 const (
 	ProcessStatus_DEFAULT       ProcessStatus = 1
 	ProcessStatus_EXCHANGE_OVER ProcessStatus = 2
+	ProcessStatus_LACK_OVER     ProcessStatus = 3
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
@@ -142,6 +143,27 @@ func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
 				if roomInfo.checkExchangeCardOver() {
 					roomInfo.processExchangeCard()
 				}
+			}
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func UpdateLackCard(lackType *pb.CardType, a gate.Agent) {
+	log.Debug("UpdateLackCard")
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		log.Debug("player=%v select lack card type=%v", player.oid, lackType.String())
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.updateLack(player.oid, lackType)
+			if roomInfo.selectLackOver() {
+				roomInfo.sendLackCard()
 			}
 		} else {
 			log.Error("no room[%v]", player.roomId)
