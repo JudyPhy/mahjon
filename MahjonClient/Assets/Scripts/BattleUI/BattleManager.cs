@@ -3,6 +3,61 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
+public enum BattleProcess
+{
+    Default,
+
+    PlayTableAniStart,
+    PlayingTableAni,
+    PlayingTableAniOver,
+
+    PlayShaiZiAniStart,
+    PlayingShaiZiAni,
+    PlayShaiZiAniOver,
+
+    PlayStartDrawAniStart,
+    PlayingStartDrawAni,
+    PlayStartDrawAniOver,
+
+    SortPai,
+    SortPaiOver,
+
+    SelectingExchangeCard,
+    WaitingExchangeCardOver,
+
+    PlayingExchangeAni,
+    PlayExchangeAniOver,
+
+    SelectingLackCard,
+    WaitingLackCardInfo,
+    PlayingLackAni,
+
+    BattleReady,
+
+    DrawingCard,
+    DrawCardOver,
+
+    SortingCard,
+    SortCardOver,
+
+    CheckingHu,
+    EnsureHuStart,
+    EnsuringHu,
+    WaitingHuRet,
+
+    CheckingGang,
+    EnsureGangStart,
+
+    CheckingPeng,
+    EnsurePengStart,
+
+    SelectingDiscard,
+    WaitingDiscardRet,
+
+    CheckPengOver,
+    EnsurePG,
+}
+
 public class BattleManager
 {
     private static BattleManager _instance;
@@ -319,6 +374,18 @@ public class BattleManager
         return null;
     }
 
+    public List<int> GetCardIdListBySideAndStatus(pb.BattleSide side, PaiStatus status)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].Side == side)
+            {
+                return _playerPaiInfoList[i].GetPaiIdListByStatus(status);
+            }
+        }
+        return null;
+    }
+
     public void UpdateExchangeCardInfo(pb.GS2CUpdateCardInfoAfterExchange msg)
     {
         //只处理自己交换牌
@@ -407,7 +474,8 @@ public class BattleManager
         EventDispatcher.TriggerEvent<pb.BattleSide>(EventDefine.TurnToPlayer, _curPlaySide);
     }
 
-    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side) {
+    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
+    {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
             if (_playerPaiInfoList[i].Side == side)
@@ -418,74 +486,207 @@ public class BattleManager
         return null;
     }
 
-    public bool IsHu()
+    public bool CanHu()
     {
         Debug.Log("check hu pai...");
         pb.BattleSide side = GetSelfSide();
-        List<Pai> inhandList = GetCardListBySideAndStatus(side, PaiStatus.InHand);
-        List<Pai> pList = GetCardListBySideAndStatus(side, PaiStatus.Peng);
-        List<Pai> gList = GetCardListBySideAndStatus(side, PaiStatus.Gang);
+        List<int> inhandList = GetCardIdListBySideAndStatus(side, PaiStatus.InHand);
+        List<int> pList = GetCardIdListBySideAndStatus(side, PaiStatus.Peng);
+        List<int> gList = GetCardIdListBySideAndStatus(side, PaiStatus.Gang);
+
         int count = inhandList.Count + pList.Count + gList.Count;
         Debug.Log("check hu==> all card count is " + count);
-        if (count >= 14 && count <= 18)
+        if (count < 14 || count > 18)
         {
-            Debug.Log("peng card count=" + pList.Count + ", gang count=" + gList.Count);
-            if (pList.Count % 3 != 0 || gList.Count % 4 != 0)
-            {                
+            Debug.Log("check hu==> all card count is error.");
+            return false;
+        }
+
+        if (!checkPeng(pList))
+        {
+            return false;
+        }
+
+        if (!checkGang(gList))
+        {
+            return false;
+        }
+
+        if (checkSevenPair(inhandList))
+        {
+            Debug.Log("check hu==> is 7 pair.");
+            return true;
+        }
+
+        return checkCommonHu(inhandList);
+    }
+
+    private bool checkPeng(List<int> list)
+    {
+        if (list.Count % 3 != 0)
+        {
+            Debug.Log("peng card count[" + list.Count + "] is error.");
+            return false;
+        }
+        for (int i = 0; i < list.Count; i++)
+        {
+            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+            if (ds.Count != 3)
+            {
+                Debug.Log("peng card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
                 return false;
             }
-            bool isSevenPair = IsSevenPair(inhandList, pList, gList);
-            if (isSevenPair)
+        }
+        return true;
+    }
+
+    private bool checkGang(List<int> list)
+    {
+        if (list.Count % 4 != 0)
+        {
+            Debug.Log("gang card count[" + list.Count + "] is error.");
+            return false;
+        }
+        for (int i = 0; i < list.Count; i++)
+        {
+            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+            if (ds.Count != 4)
             {
-                return true;
+                Debug.Log("gang card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
+                return false;
             }
-            else
+        }
+        return true;
+    }
+
+    private bool checkSevenPair(List<int> list)
+    {
+        if (list.Count != 14)
+        {
+            return false;
+        }
+        for (int i = 0; i < list.Count; i++)
+        {
+            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+            if (ds.Count % 2 != 0)
             {
-                inhandList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
-                IsCommonHu(inhandList);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private bool checkCommonHu(List<int> list)
+    {       
+        list.Sort((x, y) => { return x.CompareTo(y); });
+
+        string str = "checkCommonHu list: ";
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i].ToString() + ", ";
+        }
+        Debug.LogError(str);
+
+        for (int i = 0; i < list.Count; i++)
+        {      
+            List<int> tempList = new List<int>(list);
+            List<int> ds = tempList.FindAll(delegate (int id) { return id == list[i]; });
+            if (ds.Count >= 2)
+            {
+                Debug.LogError("将牌：" + ds[0]);
+                //选择将牌
+                tempList.Remove(list[i]);
+                tempList.Remove(list[i]);
+                i += ds.Count;
+                //判断剩余牌的情况
+                if (huPaiPanDing(tempList))
+                {
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    private bool IsSevenPair(List<Pai> inhandList, List<Pai> pList, List<Pai> gList)
+    private bool huPaiPanDing(List<int> list)
     {
-        if ((pList.Count + gList.Count) > 0)
+        string str = "huPaiPanDing list: ";
+        for (int i = 0; i < list.Count; i++)
         {
+            str += list[i].ToString() + ", ";
+        }
+        Debug.LogError(str);
+
+        if (list.Count == 0)
+        {
+            return true;
+        }
+
+        List<int> tempList = list.FindAll(delegate (int id) { return id == list[0]; });
+
+        //检查刻子
+        if (tempList.Count == 3)
+        {
+            Debug.Log("去除刻子:" + list[0]);
+            list.Remove(list[0]);
+            list.Remove(list[0]);
+            list.Remove(list[0]);
+            return huPaiPanDing(list);
+        }
+        else
+        {
+            if (list.Contains(list[0] + 1) && list.Contains(list[0] + 2))
+            {
+                Debug.Log("去除顺子:" + list[0] + ", " + (list[0] + 1) + ", " + (list[0] + 2));
+                list.Remove(list[0] + 2);
+                list.Remove(list[0] + 1);
+                list.Remove(list[0]);
+                return huPaiPanDing(list);
+            }
+            Debug.Log("没顺子，没刻子");
             return false;
         }
-        List<Pai> temp = new List<Pai>(inhandList);
-        temp.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
-        int curId = 0;
-        for (int i = 0; i < temp.Count; i++)
+    }
+
+    public bool CanGang()
+    {
+        Debug.Log("check gang pai...");
+        List<int> inhandList = BattleManager.Instance.GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.InHand);
+        for (int i = 0; i < inhandList.Count; i++)
         {
-            if (curId == 0)
+            List<int> tempList = inhandList.FindAll(delegate (int id) { return id == inhandList[i]; });
+            if (tempList.Count == 4)
             {
-                curId = temp[i].Id;
-                temp.RemoveAt(i);
-                i--;
+                return true;
             }
-            else
+        }
+        return false;
+    }
+
+    public void UpdateDealCardInfo(int dealCardOid)
+    {
+        Debug.LogError("cur turn playr deal card[" + dealCardOid + "].");
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].Side == _curPlaySide)
             {
-                if (temp[i].Id == curId)
+                Pai dealCard = _playerPaiInfoList[i].getDealCard(dealCardOid);
+                if (dealCard != null)
                 {
-                    curId = 0;
-                    temp.RemoveAt(i);
-                    i--;
+                    checkDealHuPGByDealCard(dealCard);
                 }
                 else
                 {
-                    return false;
+                    Debug.LogError("player[" + _playerPaiInfoList[i].PlayerInfo.OID + "] dealr card[" + dealCardOid + "] fail.");
                 }
             }
         }
-        return curId == 0;
     }
 
-    private void IsCommonHu(List<Pai> inhandList)
+    //出牌后检查各方胡牌、碰、杠情况
+    private void checkDealHuPGByDealCard(Pai dealCard)
     {
-        
-    }
 
+    }
     #endregion
 }

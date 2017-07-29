@@ -54,3 +54,25 @@ func SendGS2CSelectLackRet(list []*pb.LackCard, a gate.Agent) {
 	data.LackCard = list
 	a.WriteMsg(data)
 }
+
+func SendGS2CUpdateCardList(list []*pb.CardInfo, a gate.Agent) {
+	log.Debug("SendGS2CUpdateCardList-->>")
+	data := &pb.GS2CUpdateCardList{}
+	data.CardList = list
+	a.WriteMsg(data)
+}
+
+func SendGS2CProcAni(playerOid int32, status *pb.CardStatus, a gate.Agent) {
+	log.Debug("SendGS2CProcAni-->>")
+	data := &pb.GS2CProcAni{}
+	data.PlayerId = proto.Int32(playerOid)
+	data.Status = status
+	a.WriteMsg(data)
+}
+
+func SendGS2CDealCard(cardOid int32, a gate.Agent) {
+	log.Debug("SendGS2CDealCard-->>")
+	data := &pb.GS2CDealCard{}
+	data.CardOid = proto.Int32(cardOid)
+	a.WriteMsg(data)
+}

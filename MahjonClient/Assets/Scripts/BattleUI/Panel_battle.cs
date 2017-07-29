@@ -3,53 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using EventTransmit;
 
-public enum BattleProcess
-{
-    Default,
-
-    PlayTableAniStart,
-    PlayingTableAni,
-    PlayingTableAniOver,
-
-    PlayShaiZiAniStart,
-    PlayingShaiZiAni,
-    PlayShaiZiAniOver,
-
-    PlayStartDrawAniStart,
-    PlayingStartDrawAni,
-    PlayStartDrawAniOver,
-
-    SortPai,
-    SortPaiOver,
-    
-    SelectingExchangeCard,
-    WaitingExchangeCardOver,
-    
-    PlayingExchangeAni,
-    PlayExchangeAniOver,
-    
-    SelectingLackCard,
-    WaitingLackCardInfo,
-    PlayingLackAni,
-
-    BattleReady,
-
-    DrawingCard,
-    DrawCardOver,
-    SortCardStart,
-    SortingCard,
-    SortCardOver,
-    CheckingHu,
-    CheckHuOver,
-    CheckingGang,
-    CheckGangOver,
-    CheckingPeng,
-    CheckPengOver,
-    EnsurePG,
-    SelectingDiscard,
-    WaitingHuRet,
-}
-
 public class Panel_battle : WindowsBasePanel
 {
     private BattleProcess _battleProcess = BattleProcess.Default;
@@ -60,6 +13,7 @@ public class Panel_battle : WindowsBasePanel
     private Animation _tableAni;
     private GameObject _sideObj;
     private List<SidePai> _sidePaiWallList = new List<SidePai>(); //从自己方位(0)开始，逆时针旋转
+    private GameObject _curSideFlag;
 
     // players
     private GameObject _playerRoot;
@@ -116,6 +70,8 @@ public class Panel_battle : WindowsBasePanel
         _tableAni.gameObject.SetActive(true);
         _tableAni.Stop();
         _sideObj = _tableAni.transform.FindChild("Dummy001/Bone009").gameObject;
+        _curSideFlag = transform.FindChild("CurSide").gameObject;
+        _curSideFlag.SetActive(false);
 
         // wall
         for (int i = 0; i < 4; i++)
@@ -184,6 +140,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
         EventDispatcher.AddEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
+        EventDispatcher.AddEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
+        EventDispatcher.AddEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
     }
 
     public override void OnRemoveEvent()
@@ -198,6 +156,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
         EventDispatcher.RemoveEventListener<pb.BattleSide>(EventDefine.TurnToPlayer, TurnToPlayer);
+        EventDispatcher.RemoveEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
+        EventDispatcher.RemoveEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
     }
 
     private void hideAllRoleItem()
@@ -260,7 +220,7 @@ public class Panel_battle : WindowsBasePanel
         }
         Debug.Log("UpdateRoleInRoom=> current player count:" + playerList.Count);
         hideAllRoleItem();
-        Vector3[] _roleItemPos = { new Vector3(-555, -155, 0), new Vector3(-555, 95, 0), new Vector3(285, 280, 0), new Vector3(495, 95, 0) };
+        Vector3[] _roleItemPos = { new Vector3(-555, -155, 0), new Vector3(495, 95, 0), new Vector3(285, 270, 0), new Vector3(-555, 95, 0) };
         for (int i = 0; i < playerList.Count; i++)
         {
             if (playerList[i] == null)
@@ -288,6 +248,19 @@ public class Panel_battle : WindowsBasePanel
     {
         _battleProcess = BattleProcess.PlayTableAniStart;
         _hasPlayStartAni = true;
+        ShowDealer();
+    }
+
+    private void ShowDealer()
+    {
+        for (int i = 0; i < _roleItemList.Count; i++)
+        {
+            if (BattleManager.Instance.DealerID == _roleItemList[i].PlayerInfo.OID)
+            {
+                _roleItemList[i].ShowDealer();
+                break;
+            }
+        }
     }
 
     private void PlayTableAni()
@@ -899,6 +872,9 @@ public class Panel_battle : WindowsBasePanel
     private void SelectLackOver()
     {
         BattleManager.Instance.TurnToNextPlayer(BattleManager.Instance.DealerID);
+        sortAndPlaceSelfInHandCard(true);
+        _discardItemIndex = 0;
+        _battleProcess = BattleProcess.SortCardOver;
     }
     #endregion
 
@@ -908,11 +884,16 @@ public class Panel_battle : WindowsBasePanel
     {
         Debug.Log("current play side=" + side.ToString());
         int sideIndex = getSideIndexFromSelf(side);
-
+        Vector3[] pos = { new Vector3(0, 35, 0), new Vector3(68, 82, 0), new Vector3(0, 118, 0), new Vector3(-68, 82, 0) };
+        _curSideFlag.SetActive(true);
+        _curSideFlag.transform.localPosition = pos[sideIndex];
+        iTween.MoveTo(_curSideFlag, iTween.Hash("y", pos[sideIndex].y - 10, "islocal", true, "time", 1f, 
+            "looptype", iTween.LoopType.loop));        
     }
 
     #region sort self card(inhand、peng、gang、discard)    
-    private float sortAndPlaceSelfInHandCard()
+    //showDiscard: 最右侧的牌是否显示为提示出牌
+    private float sortAndPlaceSelfInHandCard(bool showDiscard)
     {
         pb.BattleSide side = _sortedSideListFromSelf[0];
         Debug.Log("sortAndPlaceInHandCard=> side:" + side.ToString());
@@ -925,9 +906,13 @@ public class Panel_battle : WindowsBasePanel
             int type2 = Mathf.FloorToInt(y.Id / 10) + 1;
             if (type1 != lackType && type2 == lackType)
             {
-                result = 1;
+                result = -1;
             }
-            if (result == 0)
+            else if (type1 == lackType && type2 != lackType)
+            {
+                return 1;
+            }
+            else
             {
                 result = x.Id.CompareTo(y.Id);
             }
@@ -951,9 +936,9 @@ public class Panel_battle : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.UpdateUI(inhandList[i], side);
             script.transform.localScale = Vector3.one * 0.88f;
-            if (i == inhandList.Count - 1)
+            if (showDiscard && i == inhandList.Count - 1)
             {
-                curPos += (offset / 10);
+                curPos += (offset / 5);
             }
             curPos += offset;
             script.transform.localPosition = curPos;
@@ -1060,6 +1045,7 @@ public class Panel_battle : WindowsBasePanel
         return curPos.x;
     }
 
+    private int _discardItemIndex;
     private void sortAndPlaceSelfDiscard()
     {
         pb.BattleSide side = _sortedSideListFromSelf[0];
@@ -1091,10 +1077,20 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private void SortSelfCard()
+    private void SortSelfCardAfterEnsureDiscard()
     {
         // inhand
-        float offsetX = sortAndPlaceSelfInHandCard();
+        float offsetX = sortAndPlaceSelfInHandCard(false);
+        // peng
+        offsetX = sortAndPlaceSelfPengCard(offsetX + 10);
+        // gang
+        offsetX = sortAndPlaceSelfGangCard(offsetX + 5);
+    }
+
+    private void SortSelfCard(bool showDiscard = true)
+    {
+        // inhand
+        float offsetX = sortAndPlaceSelfInHandCard(showDiscard);
         // peng
         offsetX = sortAndPlaceSelfPengCard(offsetX + 10);
         // gang
@@ -1392,23 +1388,110 @@ public class Panel_battle : WindowsBasePanel
     }
 
     #region check card(hu、gang、peng)
-    private void CheckHu()
+    private void checkHu()
     {
-        if (BattleManager.Instance.IsHu())
+        if (BattleManager.Instance.CanHu())
         {
-            _battleProcess = BattleProcess.WaitingHuRet;
+            Debug.Log("胡牌！！！");
+            _battleProcess = BattleProcess.EnsureHuStart;
         }
         else
         {
-            _battleProcess = BattleProcess.CheckHuOver;
+            _battleProcess = BattleProcess.CheckingGang;
+            checkGang();
         }
     }
 
-    private void CheckGang()
+    private void checkGang()
     {
-
+        if (BattleManager.Instance.CanGang())
+        {
+            Debug.Log("能杠，显示杠牌按钮");
+            _battleProcess = BattleProcess.EnsureGangStart;
+        }
+        else
+        {
+            Debug.Log("自己手牌不能自杠，进入出牌阶段");
+            _battleProcess = BattleProcess.SelectingDiscard;
+            BattleManager.Instance.CurProcess = BattleProcess.SelectingDiscard;
+        }
     }
     #endregion
+
+    //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
+    private Vector3[] getDiscardVecBySideIndex(int sideIndex)
+    {
+        Vector3[] result = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        if (sideIndex == 0)
+        {
+            result[0] = new Vector3(-0.07f, 0.04f, -0.12f);
+            result[1] = new Vector3(0, 0, 0);
+            result[2] = new Vector3(0.033f, 0, 0);
+            result[3] = new Vector3(0, 0, -0.035f);
+            result[4] = new Vector3(0.09f, 0.16f, -0.13f);
+        }
+        else if (sideIndex == 1)
+        {
+            result[0] = new Vector3(0.45f, 0.05f, -0.235f);
+            result[1] = new Vector3(-90, -90, -90);
+            result[2] = new Vector3(0, 0, 0.035f);
+            result[3] = new Vector3(0.035f, 0, 0);
+        }
+        else if (sideIndex == 2)
+        {
+            result[0] = new Vector3(0.32f, 0.05f, 0.33f);
+            result[1] = new Vector3(-90, 180, -90);
+            result[2] = new Vector3(-0.035f, 0, 0);
+            result[3] = new Vector3(0, 0, 0.035f);
+        }
+        else if (sideIndex == 3)
+        {
+            result[0] = new Vector3(-0.45f, 0.05f, 0.235f);
+            result[1] = new Vector3(-90, 90, -90);
+            result[2] = new Vector3(0, 0, -0.035f);
+            result[3] = new Vector3(0, 0, -0.035f);
+        }
+        return result;
+    }
+
+    private void UnSelectOtherDiscard(Pai cardInfo)
+    {
+        for (int i = 0; i < _self2DCardItemList.Count; i++)
+        {
+            if (cardInfo.OID != _self2DCardItemList[i].Info.OID)
+            {
+                _self2DCardItemList[i].UnSelect();
+            }
+        }
+    }
+
+    private void EnsureDiscard(Pai cardInfo)
+    {
+        //排序
+        SortSelfCardAfterEnsureDiscard();
+
+        //播放出牌动画
+        Debug.Log("出牌：" + cardInfo.OID + "[" + cardInfo.Id + "], 播放出牌动画.");
+        Item_pai_3d script = getSelf3DCard(_discardItemIndex);
+        script.gameObject.SetActive(true);
+        script.SetInfo(cardInfo);
+        script.SetSide(_sortedSideListFromSelf[0]);
+        script.UpdatePaiMian();
+        script.transform.localScale = Vector3.one;
+        Vector3[] vecs = getDiscardVecBySideIndex(0);
+        script.transform.localEulerAngles = vecs[1];
+        int index = _discardItemIndex % 10;
+        int line = _discardItemIndex / 10;
+        Vector3 targetPos = vecs[0] + vecs[2] * index + vecs[3] * line;
+        script.transform.localPosition = targetPos + vecs[4];
+        iTween.MoveTo(script.gameObject, iTween.Hash("position", targetPos, "islocal", true, "time", 0.2f));
+        _discardItemIndex++;
+
+        //发送出牌信息
+        _battleProcess = BattleProcess.WaitingDiscardRet;
+        BattleManager.Instance.CurProcess = BattleProcess.WaitingDiscardRet;
+        GameMsgHandler.Instance.SendMsgC2GSDiscard(cardInfo.OID);
+    }
 
     #endregion
 
@@ -1454,19 +1537,16 @@ public class Panel_battle : WindowsBasePanel
                 StartSelectLackPai();
                 break;
             case BattleProcess.BattleReady:
-                _battleProcess = BattleProcess.SortCardStart;
-                break;
-            case BattleProcess.SortCardStart:
                 _battleProcess = BattleProcess.SortingCard;
                 SortCard();
                 break;
-            case BattleProcess.SortCardOver:
-                _battleProcess = BattleProcess.CheckingHu;
-                CheckHu();
-                break;
-            case BattleProcess.CheckHuOver:
-                _battleProcess = BattleProcess.CheckingGang;
-                CheckGang();
+            case BattleProcess.SortCardOver:                
+                if (BattleManager.Instance.DealerID == Player.Instance.PlayerInfo.OID)
+                {
+                    Debug.Log("dealer is self.");
+                    _battleProcess = BattleProcess.CheckingHu;
+                    checkHu();
+                }
                 break;
             default:
                 break;

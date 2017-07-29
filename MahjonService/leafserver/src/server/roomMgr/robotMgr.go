@@ -75,3 +75,10 @@ func getSeparateCardTypeMap(list []*Card) map[int][]int32 {
 	resultMap[2] = listTong
 	return resultMap
 }
+
+//获取要出的牌
+func getRobotDiscardOid(list []*Card) int32 {
+	rand.Seed(time.Now().Unix())
+	rnd := rand.Intn(len(list))
+	return list[rnd].oid
+}

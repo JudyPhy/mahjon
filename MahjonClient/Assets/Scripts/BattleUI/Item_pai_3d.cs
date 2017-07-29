@@ -65,31 +65,32 @@ public class Item_pai_3d : MonoBehaviour {
     public void UpdatePaiMian()
     {
         //牌面顶点顺序如下
-        // 56-----58
+        // 56-----57
         //  |     |
         //  |     |
         //  |     |
-        // 59-----57
+        // 59-----58
         int[] uvIndex = GetPaiUVIndex();
+        float width = 110.5f;
         Vector2[] new_uv = new Vector2[_mesh.mesh.uv.Length];
         for (int i = 0; i < _mesh.mesh.uv.Length; i++)
         {
             new_uv[i] = _mesh.mesh.uv[i];
             if (i == 56)
             {
-                new_uv[i] = new Vector2(uvIndex[0] / 9f, (uvIndex[1] + 1) / 6f);
+                new_uv[i] = new Vector2(uvIndex[0] * width / 1024f, (uvIndex[1] + 1) / 6f);
             }
             if (i == 57)
             {
-                new_uv[i] = new Vector2((uvIndex[0] + 1) / 9f, uvIndex[1] / 6f);
+                new_uv[i] = new Vector2((uvIndex[0] + 1) * width / 1024f, (uvIndex[1] + 1) / 6f);
             }
             if (i == 58)
             {
-                new_uv[i] = new Vector2((uvIndex[0] + 1) / 9f, (uvIndex[1] + 1) / 6f);
+                new_uv[i] = new Vector2((uvIndex[0] + 1) * width / 1024f, uvIndex[1] / 6f);
             }
             if (i == 59)
             {
-                new_uv[i] = new Vector2(uvIndex[0] / 9f, uvIndex[1] / 6f);
+                new_uv[i] = new Vector2(uvIndex[0] * width / 1024f, uvIndex[1] / 6f);
             }
         }
         _mesh.mesh.uv = new_uv;

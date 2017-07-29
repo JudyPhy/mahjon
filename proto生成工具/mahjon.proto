@@ -168,6 +168,18 @@ message GS2CSelectLackRet
 	repeated LackCard lackCard = 1;
 }
 
+//杠、碰（通知客户端播放动画）
+message GS2CProcAni
+{
+	required int32 playerId = 1;
+	required CardStatus status = 2;
+}
+
+message GS2CUpdateCardList
+{
+	repeated CardInfo cardList = 1;
+}
+
 message GS2CDiscardTimeOut
 {
 	required int32 playerId = 1;
@@ -175,8 +187,7 @@ message GS2CDiscardTimeOut
 
 message C2GSDiscard
 {
-	required int32 cardId = 1;
-	required DisacardStatus status = 2;
+	required int32 cardOid = 1;
 }
 
 message GS2CDiscardRet
@@ -186,13 +197,13 @@ message GS2CDiscardRet
 		FAIL = 2;
 	}
 	required ErrorCode errorCode = 1;
-	repeated CardInfo card = 2;
+	required int32 cardOid = 2;
 }
 
+//服务器转发出牌信息
 message GS2CDealCard
 {
-	required int32 playerId = 1;
-	required CardInfo card = 2;
+	required int32 cardOid = 1;
 }
 
 message C2GSWin

@@ -63,7 +63,13 @@ public class GameMsgHandler
         }
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
     }
-
+    public void SendMsgC2GSDiscard(int oid)
+    {
+        Debug.Log("SendMsgC2GSDiscard==>> [" + oid + "]");
+        pb.C2GSDiscard msg = new pb.C2GSDiscard();
+        msg.cardOid = oid;
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSDiscard, msg);
+    }
     #endregion
 
 
@@ -160,6 +166,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
         BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
+    }
+
+    public void RevMsgGS2CDealCard(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CDealCard");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CDealCard msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDealCard>(stream);
+        BattleManager.Instance.UpdateDealCardInfo(msg.cardOid);
     }
 
     public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)

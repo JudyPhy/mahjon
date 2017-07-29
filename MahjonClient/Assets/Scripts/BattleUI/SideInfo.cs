@@ -11,8 +11,8 @@ public enum PaiStatus
     Peng,
     PreGang,
     Gang,
-    PreExchange,
     Exchange,
+    PreDiscard,
     Discard,
 }
 
@@ -107,7 +107,20 @@ public class SideInfo
                 list.Add(_paiList[i]);
             }
         }
-        return list;
+        return list; 
+    }
+
+    public List<int> GetPaiIdListByStatus(PaiStatus status)
+    {
+        List<int> list = new List<int>();
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (_paiList[i].Status == status)
+            {
+                list.Add(_paiList[i].Id);
+            }
+        }
+        return list; 
     }
 
     public pb.CardType GetExchangeType()
@@ -192,6 +205,17 @@ public class SideInfo
             }
         }
         return list;
+    }
+
+    public Pai getDealCard(int cardOid) {
+        for (int i = 0; i < _paiList.Count; i++)
+        {
+            if (cardOid == _paiList[i].OID)
+            {
+                return _paiList[i];
+            }
+        }
+        return null;
     }
 
 }

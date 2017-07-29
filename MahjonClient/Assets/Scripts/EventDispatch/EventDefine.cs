@@ -13,4 +13,6 @@ public class EventDefine
     public static string EnsureLack = "EnsureLack";
     public static string ShowLackCard = "ShowLackCard";
     public static string TurnToPlayer = "TurnToPlayer";
+    public static string UnSelectOtherDiscard = "UnSelectOtherDiscard";
+    public static string EnsureDiscard = "EnsureDiscard";
 }

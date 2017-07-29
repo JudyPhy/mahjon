@@ -54,7 +54,6 @@ public class Item_lack : MonoBehaviour {
     public void UpdateWord(bool selected)
     {
         _isSelected = selected;
-        string spriteName = "";
         switch (_type)
         {
             case pb.CardType.Wan:

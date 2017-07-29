@@ -22,6 +22,7 @@ type PlayerCardMap struct {
 
 type RoomInfo struct {
 	roomId   string
+	dealerId int32
 	cardWall []*Card
 	cardMap  *PlayerCardMap
 }
@@ -150,6 +151,10 @@ func (roomInfo *RoomInfo) waitingRoomOk() {
 	}()
 }
 
+func intToString() {
+
+}
+
 func (roomInfo *RoomInfo) addRobotToRoom(oid int32) {
 	log.Debug("addRobotToRoom roomId=%v", roomInfo.roomId)
 	sideInfo := &SideInfo{}
@@ -159,7 +164,10 @@ func (roomInfo *RoomInfo) addRobotToRoom(oid int32) {
 	sideInfo.isOwner = false
 	sideInfo.playerInfo = &PlayerInfo{}
 	sideInfo.playerInfo.oid = oid
-	sideInfo.playerInfo.nickName = "游客"
+	buf := bytes.NewBufferString("游客")
+	str := strconv.Itoa(int(oid))
+	buf.Write([]byte(str))
+	sideInfo.playerInfo.nickName = buf.String()
 	sideInfo.playerInfo.headIcon = "nil"
 	sideInfo.playerInfo.gold = 0
 	sideInfo.playerInfo.diamond = 0
@@ -213,7 +221,7 @@ func (roomInfo *RoomInfo) reqDealer() int32 {
 
 func (roomInfo *RoomInfo) startBattle() {
 	log.Debug("startBattle, roomId=%v", roomInfo.roomId)
-	dealerId := roomInfo.reqDealer()
+	roomInfo.dealerId = 10000 //roomInfo.reqDealer()
 	var allPlayerCards []*pb.CardInfo
 	roomInfo.cardWall = loadAllCards()
 
@@ -230,7 +238,7 @@ func (roomInfo *RoomInfo) startBattle() {
 			roomInfo.cardWall = append(roomInfo.cardWall[:rnd], roomInfo.cardWall[rnd+1:]...)
 		}
 		log.Debug("side=%v, card list count=%v, card wall count=%v", value.side, len(value.cardList), len(roomInfo.cardWall))
-		if value.playerInfo.oid == dealerId {
+		if value.playerInfo.oid == roomInfo.dealerId {
 			rand.Seed(time.Now().Unix())
 			rnd := rand.Intn(len(roomInfo.cardWall))
 			roomInfo.cardWall[rnd].status = CardStatus_INHAND
@@ -254,7 +262,7 @@ func (roomInfo *RoomInfo) startBattle() {
 		if n == 0 {
 		}
 		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CBattleStart(dealerId, allPlayerCards, value.agent)
+			msgHandler.SendGS2CBattleStart(roomInfo.dealerId, allPlayerCards, value.agent)
 		} else if value.isRobot {
 			value.cardList = roomInfo.selectRobotExchangeCard(value.cardList)
 			value.process = ProcessStatus_EXCHANGE_OVER
@@ -561,6 +569,7 @@ func (roomInfo *RoomInfo) selectLackOver() bool {
 	return true
 }
 
+//定缺完毕，发送各家定缺的牌到客户端
 func (roomInfo *RoomInfo) sendLackCard() {
 	var result []*pb.LackCard
 	roomInfo.cardMap.lock.Lock()
@@ -577,7 +586,70 @@ func (roomInfo *RoomInfo) sendLackCard() {
 		}
 		if !value.isRobot && value.agent != nil {
 			msgHandler.SendGS2CSelectLackRet(result, value.agent)
+		} else if value.isRobot && roomInfo.dealerId == value.playerInfo.oid {
+			//机器人若是庄家，进入其操作环节
+			value.robotTurnIn()
 		}
 	}
 	roomInfo.cardMap.lock.Unlock()
+}
+
+//通知玩家有人杠牌或碰牌
+func sendProcAni(roonmId string, playerOid int32, status *pb.CardStatus) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roonmId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.cardMap.lock.Lock()
+		for playerId, sideInfo := range roomInfo.cardMap.cMap {
+			if playerId == 0 {
+			}
+			if !sideInfo.isRobot && sideInfo.agent != nil {
+				msgHandler.SendGS2CProcAni(playerOid, status, sideInfo.agent)
+			}
+		}
+		roomInfo.cardMap.lock.Unlock()
+	} else {
+		log.Debug("SendGS2CProcAni, room[%v] not exist.", roonmId)
+	}
+}
+
+//玩家手牌有更新时，通知客户端
+func sendUpdateCardInfo(roonmId string, list []*pb.CardInfo) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roonmId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.cardMap.lock.Lock()
+		for playerId, sideInfo := range roomInfo.cardMap.cMap {
+			if playerId == 0 {
+			}
+			if !sideInfo.isRobot && sideInfo.agent != nil {
+				msgHandler.SendGS2CUpdateCardList(list, sideInfo.agent)
+			}
+		}
+		roomInfo.cardMap.lock.Unlock()
+	} else {
+		log.Debug("sendUpdateCardInfo, room[%v] not exist.", roonmId)
+	}
+}
+
+//发送出的牌到客户端
+func sendDiscard(roonmId string, oid int32) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roonmId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.cardMap.lock.Lock()
+		for playerId, sideInfo := range roomInfo.cardMap.cMap {
+			if playerId == 0 {
+			}
+			if !sideInfo.isRobot && sideInfo.agent != nil {
+				msgHandler.SendGS2CDealCard(oid, sideInfo.agent)
+			}
+		}
+		roomInfo.cardMap.lock.Unlock()
+	} else {
+		log.Debug("sendUpdateCardInfo, room[%v] not exist.", roonmId)
+	}
 }

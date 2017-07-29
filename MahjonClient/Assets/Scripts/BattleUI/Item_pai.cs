@@ -15,11 +15,18 @@ public class Item_pai : MonoBehaviour
     }
     private pb.BattleSide _side;
 
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        set { _isSelected = value; }
+    }
+
     void Awake()
     {
         _pai = transform.FindChild("pai").GetComponent<UISprite>();
         _bg = transform.FindChild("bg").GetComponent<UISprite>();
         UIEventListener.Get(gameObject).onClick = OnClickPai;
+        _isSelected = false;
     }
 
     // Use this for initialization
@@ -59,6 +66,7 @@ public class Item_pai : MonoBehaviour
                     break;
             }
         }
+        _isSelected = false;
     }
 
     public void UpdateGangCard(Pai pai, pb.BattleSide side, bool showFront)
@@ -113,13 +121,41 @@ public class Item_pai : MonoBehaviour
         }
     }
 
+    public void UnSelect()
+    {
+        _isSelected = false;
+        iTween.MoveTo(gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f));
+    }
+
+    private void OnSelectDiscard()
+    {
+        Debug.Log("select card as discard, oid=" + _info.OID);
+        if (_isSelected)
+        {
+            _info.Status = PaiStatus.Discard;
+            EventDispatcher.TriggerEvent<Pai>(EventDefine.EnsureDiscard, _info);
+        }
+        else
+        {
+            _isSelected = true;
+            iTween.MoveTo(gameObject, iTween.Hash("y", -230, "islocal", true, "time", 0.2f));
+            EventDispatcher.TriggerEvent<Pai>(EventDefine.UnSelectOtherDiscard, _info);            
+        }
+    }
+
     private void OnClickPai(GameObject go)
     {
-        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString());
+        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
+            + ", curProcess=" + BattleManager.Instance.CurProcess);
         if (BattleManager.Instance.CurProcess == BattleProcess.SelectingExchangeCard)
         {
             // 选择交换牌阶段            
             OnSelectExchangeCard();
+        }
+        else if (BattleManager.Instance.CurProcess == BattleProcess.SelectingDiscard)
+        {
+            // 出牌阶段
+            OnSelectDiscard();
         }
     }
 

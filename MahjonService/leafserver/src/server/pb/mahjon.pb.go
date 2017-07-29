@@ -24,6 +24,8 @@ It has these top-level messages:
 	GS2CUpdateCardInfoAfterExchange
 	C2GSSelectLack
 	GS2CSelectLackRet
+	GS2CProcAni
+	GS2CUpdateCardList
 	GS2CDiscardTimeOut
 	C2GSDiscard
 	GS2CDiscardRet
@@ -121,11 +123,11 @@ func (x *BattleSide) UnmarshalJSON(data []byte) error {
 type CardStatus int32
 
 const (
-	CardStatus_noDeal CardStatus = 1
-	CardStatus_inHand CardStatus = 2
-	CardStatus_bePeng CardStatus = 3
-	CardStatus_beGang CardStatus = 4
-	CardStatus_dicard CardStatus = 5
+	CardStatus_noDeal  CardStatus = 1
+	CardStatus_inHand  CardStatus = 2
+	CardStatus_bePeng  CardStatus = 3
+	CardStatus_beGang  CardStatus = 4
+	CardStatus_discard CardStatus = 5
 )
 
 var CardStatus_name = map[int32]string{
@@ -133,14 +135,14 @@ var CardStatus_name = map[int32]string{
 	2: "inHand",
 	3: "bePeng",
 	4: "beGang",
-	5: "dicard",
+	5: "discard",
 }
 var CardStatus_value = map[string]int32{
-	"noDeal": 1,
-	"inHand": 2,
-	"bePeng": 3,
-	"beGang": 4,
-	"dicard": 5,
+	"noDeal":  1,
+	"inHand":  2,
+	"bePeng":  3,
+	"beGang":  4,
+	"discard": 5,
 }
 
 func (x CardStatus) Enum() *CardStatus {
@@ -483,6 +485,7 @@ type CardInfo struct {
 	CardOid          *int32      `protobuf:"varint,2,req" json:"CardOid,omitempty"`
 	CardId           *int32      `protobuf:"varint,3,req" json:"CardId,omitempty"`
 	Status           *CardStatus `protobuf:"varint,4,req,enum=pb.CardStatus" json:"Status,omitempty"`
+	FromOther        *bool       `protobuf:"varint,5,opt,name=fromOther" json:"fromOther,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -516,6 +519,13 @@ func (m *CardInfo) GetStatus() CardStatus {
 		return *m.Status
 	}
 	return CardStatus_noDeal
+}
+
+func (m *CardInfo) GetFromOther() bool {
+	if m != nil && m.FromOther != nil {
+		return *m.FromOther
+	}
+	return false
 }
 
 type BattlePlayerInfo struct {
@@ -839,6 +849,47 @@ func (m *GS2CSelectLackRet) GetLackCard() []*LackCard {
 	return nil
 }
 
+// 杠、碰（通知客户端播放动画）
+type GS2CProcAni struct {
+	PlayerId         *int32      `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
+	Status           *CardStatus `protobuf:"varint,2,req,name=status,enum=pb.CardStatus" json:"status,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CProcAni) Reset()         { *m = GS2CProcAni{} }
+func (m *GS2CProcAni) String() string { return proto.CompactTextString(m) }
+func (*GS2CProcAni) ProtoMessage()    {}
+
+func (m *GS2CProcAni) GetPlayerId() int32 {
+	if m != nil && m.PlayerId != nil {
+		return *m.PlayerId
+	}
+	return 0
+}
+
+func (m *GS2CProcAni) GetStatus() CardStatus {
+	if m != nil && m.Status != nil {
+		return *m.Status
+	}
+	return CardStatus_noDeal
+}
+
+type GS2CUpdateCardList struct {
+	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CUpdateCardList) Reset()         { *m = GS2CUpdateCardList{} }
+func (m *GS2CUpdateCardList) String() string { return proto.CompactTextString(m) }
+func (*GS2CUpdateCardList) ProtoMessage()    {}
+
+func (m *GS2CUpdateCardList) GetCardList() []*CardInfo {
+	if m != nil {
+		return m.CardList
+	}
+	return nil
+}
+
 type GS2CDiscardTimeOut struct {
 	PlayerId         *int32 `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
@@ -904,27 +955,19 @@ func (m *GS2CDiscardRet) GetCard() []*CardInfo {
 }
 
 type GS2CDealCard struct {
-	PlayerId         *int32    `protobuf:"varint,1,req,name=playerId" json:"playerId,omitempty"`
-	Card             *CardInfo `protobuf:"bytes,2,req,name=card" json:"card,omitempty"`
-	XXX_unrecognized []byte    `json:"-"`
+	CardOid          *int32 `protobuf:"varint,1,req,name=cardOid" json:"cardOid,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
 }
 
 func (m *GS2CDealCard) Reset()         { *m = GS2CDealCard{} }
 func (m *GS2CDealCard) String() string { return proto.CompactTextString(m) }
 func (*GS2CDealCard) ProtoMessage()    {}
 
-func (m *GS2CDealCard) GetPlayerId() int32 {
-	if m != nil && m.PlayerId != nil {
-		return *m.PlayerId
+func (m *GS2CDealCard) GetCardOid() int32 {
+	if m != nil && m.CardOid != nil {
+		return *m.CardOid
 	}
 	return 0
-}
-
-func (m *GS2CDealCard) GetCard() *CardInfo {
-	if m != nil {
-		return m.Card
-	}
-	return nil
 }
 
 type C2GSWin struct {
