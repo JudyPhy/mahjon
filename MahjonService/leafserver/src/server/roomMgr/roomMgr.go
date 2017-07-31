@@ -20,6 +20,12 @@ const (
 	ProcessStatus_DEFAULT       ProcessStatus = 1
 	ProcessStatus_EXCHANGE_OVER ProcessStatus = 2
 	ProcessStatus_LACK_OVER     ProcessStatus = 3
+	ProcessStatus_TURN_START    ProcessStatus = 4
+	ProcessStatus_TURN_OVER     ProcessStatus = 5
+	ProcessStatus_WAITING_HU    ProcessStatus = 6
+	ProcessStatus_WAITING_GANG  ProcessStatus = 7
+	ProcessStatus_WAITING_PENG  ProcessStatus = 8
+	ProcessStatus_GAME_OVER     ProcessStatus = 9
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
@@ -165,6 +171,40 @@ func UpdateLackCard(lackType *pb.CardType, a gate.Agent) {
 			if roomInfo.selectLackOver() {
 				roomInfo.sendLackCard()
 			}
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func UpdateDiscard(cardOid int32, a gate.Agent) {
+	log.Debug("UpdateDiscard")
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.updateDiscard(player.oid, cardOid)
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func PlayerTurnOver(a gate.Agent) {
+	log.Debug("PlayerTurnOver")
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.sideInfoTurnOver(player.oid)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

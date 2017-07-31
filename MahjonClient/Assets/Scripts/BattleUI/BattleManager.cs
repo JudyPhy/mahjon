@@ -56,6 +56,8 @@ public enum BattleProcess
 
     CheckPengOver,
     EnsurePG,
+
+    SelfTurnOver,
 }
 
 public class BattleManager
@@ -88,6 +90,10 @@ public class BattleManager
 
     //playing params
     private pb.BattleSide _curPlaySide;
+    public pb.BattleSide CurPlaySide
+    {
+        get { return _curPlaySide; }
+    }
 
     private BattleProcess _curProcess;
     public BattleProcess CurProcess
@@ -248,7 +254,7 @@ public class BattleManager
             }
         }
         _dealerId = msg.dealerId;
-        _curPlaySide = getSideByPlayerOID(_dealerId);
+        _curPlaySide = GetSideByPlayerOID(_dealerId);
         Debug.Log("_dealerId=" + _dealerId + ", side=" + _curPlaySide.ToString());
         EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
     }
@@ -452,10 +458,10 @@ public class BattleManager
 
     public pb.BattleSide GetDealerSide()
     {
-        return getSideByPlayerOID(_dealerId);
+        return GetSideByPlayerOID(_dealerId);
     }
 
-    private pb.BattleSide getSideByPlayerOID(int playerOid)
+    public pb.BattleSide GetSideByPlayerOID(int playerOid)
     {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
@@ -468,10 +474,22 @@ public class BattleManager
     }
 
     #region playing
-    public void TurnToNextPlayer(int playerOid)
+    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard)
     {
-        _curPlaySide = getSideByPlayerOID(playerOid);
-        EventDispatcher.TriggerEvent<pb.BattleSide>(EventDefine.TurnToPlayer, _curPlaySide);
+        Debug.Log("切换到下一个玩家:" + playerOid);
+        if (drawnCard != null)
+        {
+            Debug.Log("摸牌：" + drawnCard.CardOid);
+        }
+        _curPlaySide = GetSideByPlayerOID(playerOid);
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid && drawnCard != null)
+            {
+                _playerPaiInfoList[i].AddPai(drawnCard);
+            }
+        }
+        EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardInfo>(EventDefine.TurnToPlayer, _curPlaySide, drawnCard);
     }
 
     private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
@@ -486,13 +504,9 @@ public class BattleManager
         return null;
     }
 
-    public bool CanHu()
+    public bool CanHu(List<int> inhandList, List<int> pList, List<int> gList)
     {
         Debug.Log("check hu pai...");
-        pb.BattleSide side = GetSelfSide();
-        List<int> inhandList = GetCardIdListBySideAndStatus(side, PaiStatus.InHand);
-        List<int> pList = GetCardIdListBySideAndStatus(side, PaiStatus.Peng);
-        List<int> gList = GetCardIdListBySideAndStatus(side, PaiStatus.Gang);
 
         int count = inhandList.Count + pList.Count + gList.Count;
         Debug.Log("check hu==> all card count is " + count);
@@ -575,9 +589,9 @@ public class BattleManager
         }
         return true;
     }
-    
+
     private bool checkCommonHu(List<int> list)
-    {       
+    {
         list.Sort((x, y) => { return x.CompareTo(y); });
 
         string str = "checkCommonHu list: ";
@@ -588,7 +602,7 @@ public class BattleManager
         Debug.LogError(str);
 
         for (int i = 0; i < list.Count; i++)
-        {      
+        {
             List<int> tempList = new List<int>(list);
             List<int> ds = tempList.FindAll(delegate (int id) { return id == list[i]; });
             if (ds.Count >= 2)
@@ -648,13 +662,20 @@ public class BattleManager
         }
     }
 
-    public bool CanGang()
+    public bool CanGang(List<int> list)
     {
         Debug.Log("check gang pai...");
-        List<int> inhandList = BattleManager.Instance.GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.InHand);
-        for (int i = 0; i < inhandList.Count; i++)
+
+        string str = "";
+        for (int i = 0; i < list.Count; i++)
         {
-            List<int> tempList = inhandList.FindAll(delegate (int id) { return id == inhandList[i]; });
+            str += list[i] + ", ";
+        }
+        Debug.Log(str);
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            List<int> tempList = list.FindAll(delegate (int id) { return id == list[i]; });
             if (tempList.Count == 4)
             {
                 return true;
@@ -663,30 +684,79 @@ public class BattleManager
         return false;
     }
 
-    public void UpdateDealCardInfo(int dealCardOid)
+    public bool CanPeng(List<int> list, int pCard)
     {
-        Debug.LogError("cur turn playr deal card[" + dealCardOid + "].");
+        Debug.Log("check peng pai...");
+
+        string str = "";
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i] + ", ";
+        }
+        Debug.Log(str);
+
+        List<int> tempList = list.FindAll(delegate (int id) { return id == pCard; });
+        if (tempList.Count == 3)
+        {
+            return true;
+        }
+        return false;
+    }
+    #endregion
+
+    public Pai GetCardInfoByCurTurnOid(int oid)
+    {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
         {
-            if (_playerPaiInfoList[i].Side == _curPlaySide)
+            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+            for (int j = 0; j < list.Count; j++)
             {
-                Pai dealCard = _playerPaiInfoList[i].getDealCard(dealCardOid);
-                if (dealCard != null)
+                if (list[j].OID == oid)
                 {
-                    checkDealHuPGByDealCard(dealCard);
-                }
-                else
-                {
-                    Debug.LogError("player[" + _playerPaiInfoList[i].PlayerInfo.OID + "] dealr card[" + dealCardOid + "] fail.");
+                    list[j].Status = PaiStatus.Discard;
+                    return list[j];
                 }
             }
         }
+        return null;
     }
 
-    //出牌后检查各方胡牌、碰、杠情况
-    private void checkDealHuPGByDealCard(Pai dealCard)
+    //收到玩家(包括自己)碰或杠的消息
+    public void UpdateCardInfoByPG(List<pb.CardInfo> list, pb.CardStatus type)
     {
-
+        Debug.Log("收到碰或杠的消息, type=" + type.ToString() + ", 玩家:" + list[0].playerId);
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            if (_playerPaiInfoList[i].PlayerInfo.OID == list[0].playerId)
+            {
+                _playerPaiInfoList[i].UpdatePai(list);
+                EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardStatus>(EventDefine.SomePlayerPG, _playerPaiInfoList[i].Side, type);
+                break;
+            }
+        }        
     }
-    #endregion
+
+    public Pai GetCardInfoByCardOid(int cardOid)
+    {
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+            for (int j = 0; j < list.Count; j++)
+            {
+                if (list[j].OID == cardOid)
+                {
+                    return list[j];
+                }
+            }
+        }
+        return null;
+    }
+
+    //收到出牌反馈
+    public void UpdateCardInfoByDiscardRet(int discardOid)
+    {
+        Pai discardInfo = GetCardInfoByCardOid(discardOid);
+        discardInfo.Status = PaiStatus.Discard;
+    }
+
 }

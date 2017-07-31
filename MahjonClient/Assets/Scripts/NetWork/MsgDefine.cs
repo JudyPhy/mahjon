@@ -15,7 +15,9 @@ public enum MsgDef
     GS2CUpdateCardInfoAfterExchange = 8,
     C2GSSelectLack = 9,
     GS2CSelectLackRet = 10,
-    GS2CDiscardTimeOut = 11,
-    C2GSDiscard = 12,
-    GS2CDiscardRet = 13,
+    C2GSDiscard = 11,
+    GS2CDiscardRet = 12,
+    GS2CUpdateCardInfoByPG = 13,
+    C2GSCurTurnOver = 14,
+    GS2CTurnToNext = 15,
 }

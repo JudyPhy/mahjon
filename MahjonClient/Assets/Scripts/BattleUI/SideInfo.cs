@@ -182,6 +182,30 @@ public class SideInfo
         _paiList.Add(pai);
     }
 
+    public void UpdatePai(List<pb.CardInfo> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            bool isFind = false;
+            for (int j = 0; j < _paiList.Count; j++)
+            {
+                if (_paiList[j].OID == list[i].CardOid)
+                {
+                    _paiList[j].PlayerID = list[i].playerId;
+                    _paiList[j].Id = list[i].CardId;
+                    _paiList[j].Status = getPaiStatus(list[i].Status);
+                    _paiList[j].IsFromOther = list[i].fromOther;
+                    isFind = true;
+                    break;
+                }
+            }
+            if (!isFind)
+            {
+                AddPai(list[i]);
+            }
+        }
+    }
+
     public void RemoveExchangeCard()
     {
         for (int i = 0; i < _paiList.Count; i++)

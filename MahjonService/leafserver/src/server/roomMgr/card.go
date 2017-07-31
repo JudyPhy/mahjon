@@ -35,13 +35,14 @@ func (x MJCardCount) Enum() *MJCardCount {
 type CardStatus int32
 
 const (
-	CardStatus_NODEAL   CardStatus = 1
-	CardStatus_INHAND   CardStatus = 2
-	CardStatus_PENG     CardStatus = 3
-	CardStatus_GANG     CardStatus = 4
-	CardStatus_EXCHANGE CardStatus = 5
-	CardStatus_DEAL     CardStatus = 6
-	CardStatus_DISCARD  CardStatus = 7
+	CardStatus_NODEAL      CardStatus = 1
+	CardStatus_INHAND      CardStatus = 2
+	CardStatus_PENG        CardStatus = 3
+	CardStatus_GANG        CardStatus = 4
+	CardStatus_EXCHANGE    CardStatus = 5
+	CardStatus_DEAL        CardStatus = 6
+	CardStatus_PRE_DISCARD CardStatus = 7
+	CardStatus_DISCARD     CardStatus = 8
 )
 
 func (x CardStatus) Enum() *CardStatus {
@@ -90,20 +91,7 @@ func loadAllCards() []*Card {
 	return cardWall
 }
 
-func IsHu(cardList []*Card) bool {
-	var inhand []int32
-	var peng []int32
-	var gang []int32
-	for i := 0; i < len(cardList); i++ {
-		if cardList[i].status == CardStatus_INHAND {
-			inhand = append(inhand, cardList[i].id)
-		} else if cardList[i].status == CardStatus_PENG {
-			peng = append(peng, cardList[i].id)
-		} else if cardList[i].status == CardStatus_GANG {
-			gang = append(gang, cardList[i].id)
-		}
-	}
-
+func IsHu(inhand []int, peng []int, gang []int) bool {
 	sumCount := len(inhand) + len(peng) + len(gang)
 	if sumCount < 14 || sumCount > 18 {
 		log.Debug("sumCount[%v] is error.", sumCount)
@@ -133,12 +121,12 @@ func IsHu(cardList []*Card) bool {
 
 //检查碰牌
 //list是cardId数组
-func checkPeng(list []int32) bool {
+func checkPeng(list []int) bool {
 	if len(list)%3 != 0 {
 		log.Error("peng card count[%v] is error", len(list))
 		return false
 	}
-	dict := make(map[int32]int) //cardId : count
+	dict := make(map[int]int) //cardId : count
 	for i := 0; i < len(list); i++ {
 		count, ok := dict[list[i]]
 		if ok {
@@ -158,12 +146,12 @@ func checkPeng(list []int32) bool {
 
 //检查杠牌
 //list是cardId数组
-func checkGang(list []int32) bool {
+func checkGang(list []int) bool {
 	if len(list)%4 != 0 {
 		log.Error("gang card count[%v] is error", len(list))
 		return false
 	}
-	dict := make(map[int32]int) //cardId : count
+	dict := make(map[int]int) //cardId : count
 	for i := 0; i < len(list); i++ {
 		count, ok := dict[list[i]]
 		if ok {
@@ -183,12 +171,21 @@ func checkGang(list []int32) bool {
 
 //检查手牌
 //list是cardId数组
-func checkInHand(list []int32) bool {
+func checkInHand(list []int) bool {
 	var sortList []int
 	for i := 0; i < len(list); i++ {
 		sortList = append(sortList, int(list[i]))
 	}
 	sort.Ints(sortList)
+
+	logStr := "判定胡牌的原始牌队列, sortList: "
+	buf := bytes.NewBufferString(logStr)
+	for i := 0; i < len(sortList); i++ {
+		str := strconv.Itoa(sortList[i])
+		buf.Write([]byte(str))
+		buf.Write([]byte(", "))
+	}
+	log.Debug(buf.String())
 
 	//检查七小对
 	if isSevenPair(sortList) {
@@ -206,12 +203,14 @@ func checkInHand(list []int32) bool {
 		}
 
 		count := getCountInListById(sortList[i], sortList)
+		//log.Debug("card[%v], count[%v]", sortList[i], count)
 		//判断是否能做将牌
 		if count >= 2 {
+			log.Debug("将牌：[%v]", sortList[i])
 			//移除两张将牌
-			tempList = removeJiang(tempList[i], tempList)
+			tempList = removeJiang(sortList[i], tempList)
 			//避免重复运算 将光标移到其他牌上
-			i += 2
+			i = i + count - 1
 			//检查剩余牌顺子、刻子情况
 			if huPaiPanDin(tempList) {
 				return true
@@ -251,13 +250,14 @@ func removeJiang(id int, list []int) []int {
 			if count == 2 {
 				break
 			}
+			i--
 		}
 	}
 	return list
 }
 
 func huPaiPanDin(list []int) bool {
-	logStr := "list: "
+	logStr := "huPaiPanDin, list: "
 	buf := bytes.NewBufferString(logStr)
 	for i := 0; i < len(list); i++ {
 		str := strconv.Itoa(list[i])
@@ -311,13 +311,33 @@ func isSevenPair(list []int) bool {
 			dict[list[i]] = 1
 		}
 	}
-	for id, count := range dict {
-		log.Debug("seven pair=> id[%v], count[%v]", id, count)
+	for _, count := range dict {
+		//log.Debug("seven pair=> id[%v], count[%v]", id, count)
 		if count%2 != 0 {
 			return false
 		}
 	}
 	return true
+}
+
+func getPengCardIdList(list []*Card) []int {
+	var result []int
+	for i := 0; i < len(list); i++ {
+		if list[i].status == CardStatus_PENG {
+			result = append(result, int(list[i].id))
+		}
+	}
+	return result
+}
+
+func getGangCardIdList(list []*Card) []int {
+	var result []int
+	for i := 0; i < len(list); i++ {
+		if list[i].status == CardStatus_GANG {
+			result = append(result, int(list[i].id))
+		}
+	}
+	return result
 }
 
 func getInHandCardIdList(list []*Card) []int {
@@ -330,7 +350,8 @@ func getInHandCardIdList(list []*Card) []int {
 	return result
 }
 
-func canGang(list []int) int {
+//返回杠牌ID
+func canGang(list []int, card *Card) int {
 	dict := make(map[int]int) //id : count
 	for i := 0; i < len(list); i++ {
 		count, ok := dict[list[i]]
@@ -340,11 +361,43 @@ func canGang(list []int) int {
 			dict[list[i]] = 1
 		}
 	}
-	for id, count := range dict {
-		log.Debug("can gang => id[%v], count[%v]", id, count)
-		if count == 4 {
-			return id
+	if card == nil {
+		for id, count := range dict {
+			//log.Debug("can gang => id[%v], count[%v]", id, count)
+			if count == 4 {
+				return id
+			}
+		}
+	} else {
+		if dict[int(card.id)] == 4 {
+			return int(card.id)
 		}
 	}
 	return 0
+}
+
+func canPeng(list []int, discard *Card) bool {
+	count := 0
+	for i := 0; i < len(list); i++ {
+		if int(discard.id) == list[i] {
+			count++
+		}
+	}
+	log.Debug("canPeng: count=%v, cardId=%v", count, discard.id)
+	return count == 3
+}
+
+//获取CardStatus_PRE_DISCARD状态的牌
+func (roomInfo *RoomInfo) getPreDiscard() *Card {
+	//roomInfo.cardMap.lock.Lock()
+	for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, card := range sideInfo.cardList {
+			if card.status == CardStatus_PRE_DISCARD {
+				//roomInfo.cardMap.lock.Unlock()
+				return card
+			}
+		}
+	}
+	//roomInfo.cardMap.lock.Unlock()
+	return nil
 }

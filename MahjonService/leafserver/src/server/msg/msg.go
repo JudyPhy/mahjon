@@ -20,4 +20,9 @@ func init() {
 	Processor.Register(&pb.GS2CUpdateCardInfoAfterExchange{}) //8
 	Processor.Register(&pb.C2GSSelectLack{})                  //9
 	Processor.Register(&pb.GS2CSelectLackRet{})               //10
+	Processor.Register(&pb.C2GSDiscard{})                     //11
+	Processor.Register(&pb.GS2CDiscardRet{})                  //12
+	Processor.Register(&pb.GS2CUpdateCardInfoByPG{})          //13
+	Processor.Register(&pb.C2GSCurTurnOver{})                 //14
+	Processor.Register(&pb.GS2CTurnToNext{})                  //15
 }

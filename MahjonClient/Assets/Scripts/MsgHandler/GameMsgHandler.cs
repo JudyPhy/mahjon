@@ -70,6 +70,13 @@ public class GameMsgHandler
         msg.cardOid = oid;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSDiscard, msg);
     }
+
+    public void SendMsgC2GSCurTurnOver()
+    {
+        Debug.Log("SendMsgC2GSCurTurnOver==>>");
+        pb.C2GSCurTurnOver msg = new pb.C2GSCurTurnOver();
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSCurTurnOver, msg);
+    }
     #endregion
 
 
@@ -168,20 +175,29 @@ public class GameMsgHandler
         BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
     }
 
-    public void RevMsgGS2CDealCard(int pid, byte[] msgBuf, int msgSize)
+    public void RevMsgGS2CDiscardRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CDealCard");
+        Debug.Log("==>> RevMsgGS2CDiscardRet");
         Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CDealCard msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDealCard>(stream);
-        BattleManager.Instance.UpdateDealCardInfo(msg.cardOid);
+        pb.GS2CDiscardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardRet>(stream);
+        Debug.LogError("discardOid=" + msg.cardOid);
+        EventDispatcher.TriggerEvent<int>(EventDefine.DiscardRet, msg.cardOid);
     }
 
-    public void RevMsgGS2CDiscardTimeOut(int pid, byte[] msgBuf, int msgSize)
+    public void RevMsgGS2CTurnToNext(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CDiscardTimeOut");
+        Debug.Log("==>> RevMsgGS2CTurnToNext");
         Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CDiscardTimeOut msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardTimeOut>(stream);
-        BattleManager.Instance.DiscardTimeOut(msg.playerId);
+        pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
+        BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card);
+    }
+
+    public void RevMsgGS2CUpdateCardInfoByPG(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CUpdateCardInfoByPG");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CUpdateCardInfoByPG msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoByPG>(stream);
+        BattleManager.Instance.UpdateCardInfoByPG(msg.cardList, msg.procType);
     }
     #endregion
 }

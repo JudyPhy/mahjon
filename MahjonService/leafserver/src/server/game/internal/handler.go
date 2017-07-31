@@ -14,6 +14,8 @@ func init() {
 	handler(&pb.C2GSEnterGame{}, recvC2GSEnterGame)
 	handler(&pb.C2GSExchangeCard{}, recvC2GSExchangeCard)
 	handler(&pb.C2GSSelectLack{}, recvC2GSSelectLack)
+	handler(&pb.C2GSDiscard{}, recvC2GSDiscard)
+	handler(&pb.C2GSCurTurnOver{}, recvC2GSCurTurnOver)
 }
 
 func handler(m interface{}, h interface{}) {
@@ -57,4 +59,17 @@ func recvC2GSSelectLack(args []interface{}) {
 	m := args[0].(*pb.C2GSSelectLack)
 	a := args[1].(gate.Agent)
 	roomMgr.UpdateLackCard(m.Type, a)
+}
+
+func recvC2GSDiscard(args []interface{}) {
+	log.Debug("recvC2GSDiscard <<--")
+	m := args[0].(*pb.C2GSDiscard)
+	a := args[1].(gate.Agent)
+	roomMgr.UpdateDiscard(m.GetCardOid(), a)
+}
+
+func recvC2GSCurTurnOver(args []interface{}) {
+	log.Debug("recvC2GSCurTurnOver <<--")
+	a := args[1].(gate.Agent)
+	roomMgr.PlayerTurnOver(a)
 }

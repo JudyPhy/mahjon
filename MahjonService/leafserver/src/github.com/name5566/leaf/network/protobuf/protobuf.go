@@ -4,11 +4,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math"
+	"reflect"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/chanrpc"
 	"github.com/name5566/leaf/log"
-	"math"
-	"reflect"
 )
 
 // -------------------------
@@ -141,6 +142,8 @@ func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 	} else {
 		id = binary.BigEndian.Uint16(data)
 	}
+
+	log.Debug("Recv--->>>msg id[%v]", id)
 	if id >= uint16(len(p.msgInfo)) {
 		return nil, fmt.Errorf("message id %v not registered", id)
 	}
@@ -151,7 +154,9 @@ func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 		return MsgRaw{id, data[2:]}, nil
 	} else {
 		msg := reflect.New(i.msgType.Elem()).Interface()
-		return msg, proto.UnmarshalMerge(data[2:], msg.(proto.Message))
+		error := proto.UnmarshalMerge(data[2:], msg.(proto.Message))
+		log.Debug("msg===========%v, %v", error, msg)
+		return msg, error
 	}
 }
 

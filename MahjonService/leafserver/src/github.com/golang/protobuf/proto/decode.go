@@ -443,7 +443,6 @@ func (p *Buffer) Unmarshal(pb Message) error {
 		p.index = len(p.buf)
 		return err
 	}
-
 	typ, base, err := getbase(pb)
 	if err != nil {
 		return err
@@ -483,11 +482,13 @@ func (o *Buffer) unmarshalType(st reflect.Type, prop *StructProperties, is_group
 			}
 			return fmt.Errorf("proto: %s: wiretype end group for non-group", st)
 		}
+
 		tag := int(u >> 3)
 		if tag <= 0 {
 			return fmt.Errorf("proto: %s: illegal tag %d (wire type %d)", st, tag, wire)
 		}
 		fieldnum, ok := prop.decoderTags.get(tag)
+
 		if !ok {
 			// Maybe it's an extension?
 			if prop.extendable {
@@ -501,6 +502,7 @@ func (o *Buffer) unmarshalType(st reflect.Type, prop *StructProperties, is_group
 					continue
 				}
 			}
+
 			// Maybe it's a oneof?
 			if prop.oneofUnmarshaler != nil {
 				m := structPointer_Interface(base, st).(Message)
@@ -519,7 +521,6 @@ func (o *Buffer) unmarshalType(st reflect.Type, prop *StructProperties, is_group
 			continue
 		}
 		p := prop.Prop[fieldnum]
-
 		if p.dec == nil {
 			fmt.Fprintf(os.Stderr, "proto: no protobuf decoder for %s.%s\n", st, st.Field(fieldnum).Name)
 			continue
@@ -534,10 +535,12 @@ func (o *Buffer) unmarshalType(st reflect.Type, prop *StructProperties, is_group
 				continue
 			}
 		}
+
 		decErr := dec(o, p, base)
 		if decErr != nil && !state.shouldContinue(decErr, p) {
 			err = decErr
 		}
+
 		if err == nil && p.Required {
 			// Successfully decoded a required field.
 			if tag <= 64 {
@@ -557,6 +560,7 @@ func (o *Buffer) unmarshalType(st reflect.Type, prop *StructProperties, is_group
 			}
 		}
 	}
+
 	if err == nil {
 		if is_group {
 			return io.ErrUnexpectedEOF

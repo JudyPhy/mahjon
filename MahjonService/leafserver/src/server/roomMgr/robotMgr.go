@@ -77,8 +77,38 @@ func getSeparateCardTypeMap(list []*Card) map[int][]int32 {
 }
 
 //获取要出的牌
-func getRobotDiscardOid(list []*Card) int32 {
+func getRobotDiscard(list []*Card) *Card {
 	rand.Seed(time.Now().Unix())
 	rnd := rand.Intn(len(list))
-	return list[rnd].oid
+	return list[rnd]
+}
+
+//出牌后，机器人根据出牌信息判断自方情况
+func (sideInfo *SideInfo) robotProcAfterDiscard(card *Card) {
+	log.Debug("robot: proc after discard, playerOid[%v]", sideInfo.playerInfo.oid)
+	if curTurnPlayerOid == sideInfo.playerInfo.oid {
+		return
+	}
+	handCard := getInHandCardIdList(sideInfo.cardList)
+	handCard = append(handCard, int(card.id))
+	pList := getPengCardIdList(sideInfo.cardList)
+	gList := getGangCardIdList(sideInfo.cardList)
+
+	if IsHu(handCard, pList, gList) {
+		log.Debug("胡牌")
+		sideInfo.process = ProcessStatus_WAITING_HU
+	} else {
+		if canGang(handCard, card) != 0 {
+			log.Debug("可以杠")
+			sideInfo.process = ProcessStatus_WAITING_GANG
+		} else {
+			if canPeng(handCard, card) {
+				log.Debug("可以碰")
+				sideInfo.process = ProcessStatus_WAITING_PENG
+			} else {
+				log.Debug("机器人本轮不能胡、杠、碰，结束")
+				sideInfo.process = ProcessStatus_TURN_OVER
+			}
+		}
+	}
 }

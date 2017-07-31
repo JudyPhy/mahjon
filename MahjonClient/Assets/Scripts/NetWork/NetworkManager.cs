@@ -69,7 +69,7 @@ public class NetworkManager : MonoBehaviour
 
     //注册需要处理的消息函数
     public void RegisterAllNetworkMsgHandler()
-    {
+    {        
         RegisterMessageHandler((int)MsgDef.GS2CLoginRet, GameMsgHandler.Instance.RevMsgGS2CLoginRet);
         RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomInfo, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomInfo);
@@ -77,7 +77,8 @@ public class NetworkManager : MonoBehaviour
         RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
         RegisterMessageHandler((int)MsgDef.GS2CExchangeCardRet, GameMsgHandler.Instance.RevMsgGS2CExchangeCardRet);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateCardInfoAfterExchange, GameMsgHandler.Instance.RevMsgGS2CUpdateCardInfoAfterExchange);
-        RegisterMessageHandler((int)MsgDef.GS2CDiscardTimeOut, GameMsgHandler.Instance.RevMsgGS2CDiscardTimeOut);
+        RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);
+        RegisterMessageHandler((int)MsgDef.GS2CTurnToNext, GameMsgHandler.Instance.RevMsgGS2CTurnToNext);
     }
 
     private void RegisterMessageHandler(int pid, PacketHandle hander)
