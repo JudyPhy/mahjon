@@ -68,7 +68,7 @@ func (sideInfo *SideInfo) selectLack() {
 
 //接口必须在摸牌后执行
 func (sideInfo *SideInfo) robotTurnSwitch() {
-	log.Debug("机器人收到切换操作方消息，进入自己操作过程")
+	log.Debug("机器人%v收到切换操作方消息，进入自己操作过程", sideInfo.playerInfo.oid)
 	inhandList := getInHandCardIdList(sideInfo.cardList)
 	gList := getGangCardIdList(sideInfo.cardList)
 	pList := getPengCardIdList(sideInfo.cardList)
@@ -86,7 +86,7 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 		//出牌
 		log.Debug("不能自杠，出牌")
 		discard := getRobotDiscard(sideInfo.cardList)
-		log.Debug("discard[%v]", discard.oid)
+		log.Debug("discard[%v](%v)", discard.oid, discard.id)
 		for i := 0; i < len(sideInfo.cardList); i++ {
 			if sideInfo.cardList[i].oid == discard.oid {
 				sideInfo.cardList[i].status = CardStatus_PRE_DISCARD

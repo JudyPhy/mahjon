@@ -1394,6 +1394,7 @@ public class Panel_battle : WindowsBasePanel
         Debug.Log("出牌反馈后，播放出牌动画，discardOid=" + cardOid);
         Pai cardInfo = BattleManager.Instance.GetCardInfoByCardOid(cardOid);
         cardInfo.Status = PaiStatus.Discard;
+        Debug.LogError("cardInfo id=" + cardInfo.Id);
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(cardInfo.PlayerID);
         int sideIndex = getSideIndexFromSelf(side);
         Item_pai_3d script = null;
@@ -1411,21 +1412,24 @@ public class Panel_battle : WindowsBasePanel
         {
             Debug.LogError("未获取到对应item");
         }
-        script.gameObject.SetActive(true);
-        script.SetInfo(cardInfo);
-        script.SetSide(side);
-        script.UpdatePaiMian();
-        script.transform.localScale = Vector3.one;
-        Vector3[] vecs = getDiscardVecBySideIndex(sideIndex);   //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
-        script.transform.localEulerAngles = vecs[1];
-        int index = _discardItemIndex[sideIndex] % 10 - 1;
-        int line = _discardItemIndex[sideIndex] / 10;
-        Vector3 targetPos = vecs[0] + vecs[2] * index + vecs[3] * line;
-        Debug.Log("targetPos=" + targetPos.x + ", " + targetPos.y + ", " + targetPos.z);
-        script.transform.localPosition = vecs[4];
-        iTween.MoveTo(script.gameObject, iTween.Hash("position", targetPos, "islocal", true, "time", 0.5f));
+        else
+        {
+            script.gameObject.SetActive(true);
+            script.SetInfo(cardInfo);
+            script.SetSide(side);
+            script.UpdatePaiMian();
+            script.transform.localScale = Vector3.one;
+            Vector3[] vecs = getDiscardVecBySideIndex(sideIndex);   //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
+            script.transform.localEulerAngles = vecs[1];
+            int index = _discardItemIndex[sideIndex] % 10 - 1;
+            int line = _discardItemIndex[sideIndex] / 10;
+            Vector3 targetPos = vecs[0] + vecs[2] * index + vecs[3] * line;
+            Debug.Log("targetPos=" + targetPos.x + ", " + targetPos.y + ", " + targetPos.z);
+            script.transform.localPosition = vecs[4];
+            iTween.MoveTo(script.gameObject, iTween.Hash("position", targetPos, "islocal", true, "time", 0.5f));
 
-        AfterDiscard(cardInfo);
+            AfterDiscard(cardInfo);
+        }
     }
 
     //收到出牌信息后

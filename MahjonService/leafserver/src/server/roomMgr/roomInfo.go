@@ -687,8 +687,9 @@ func (roomInfo *RoomInfo) isTurnOver() bool {
 func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
 	//roomInfo.cardMap.lock.Lock()
 	for _, v := range roomInfo.cardMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER || v.process != ProcessStatus_WAITING_GANG ||
-			v.process != ProcessStatus_WAITING_HU || v.process != ProcessStatus_WAITING_PENG {
+		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_WAITING_GANG ||
+			v.process != ProcessStatus_WAITING_HU && v.process != ProcessStatus_WAITING_PENG {
+			log.Debug("player[%v] process=%v", v.playerInfo.oid, v.process)
 			return false
 		}
 	}
@@ -715,7 +716,7 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 		//roomInfo.cardMap.lock.Unlock()
 		roomInfo.turnToNextPlayer()
 	} else {
-		if roomInfo.isEveryoneProcDiscardOver() {
+		if !roomInfo.isEveryoneProcDiscardOver() {
 			log.Debug("出牌后，还有玩家未反馈情况,等待")
 		} else {
 			log.Debug("出牌后，所有玩家均反馈完情况，且有玩家需要处理胡牌、碰或杠")
@@ -753,30 +754,31 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 }
 
 func (roomInfo *RoomInfo) getSideByPlayerOid(playerOid int32) pb.BattleSide {
-	roomInfo.cardMap.lock.Lock()
+	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.playerInfo.oid == playerOid {
-			roomInfo.cardMap.lock.Unlock()
+			//roomInfo.cardMap.lock.Unlock()
 			return sideInfo.side
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
+	//roomInfo.cardMap.lock.Unlock()
 	return pb.BattleSide_none
 }
 
 func (roomInfo *RoomInfo) nextSideCanProc(nextSide pb.BattleSide) bool {
-	roomInfo.cardMap.lock.Lock()
+	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.side == nextSide && sideInfo.process != ProcessStatus_GAME_OVER {
-			roomInfo.cardMap.lock.Unlock()
+			//roomInfo.cardMap.lock.Unlock()
 			return true
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
+	//roomInfo.cardMap.lock.Unlock()
 	return false
 }
 
 func (roomInfo *RoomInfo) turnToNextPlayer() {
+	log.Debug("turnToNextPlayer")
 	curSide := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
 	if curSide != pb.BattleSide_none {
 		count := 0
@@ -823,7 +825,7 @@ func (roomInfo *RoomInfo) getPlayerOidBySide(side pb.BattleSide) int32 {
 //发送进入下一轮的消息
 func (roomInfo *RoomInfo) sendTurnToNext(nextSide pb.BattleSide) {
 	log.Debug("sendTurnToNext[%v]", nextSide)
-	roomInfo.cardMap.lock.Lock()
+	//roomInfo.cardMap.lock.Lock()
 	newCard := &pb.CardInfo{}
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.side == nextSide {
@@ -842,6 +844,7 @@ func (roomInfo *RoomInfo) sendTurnToNext(nextSide pb.BattleSide) {
 			break
 		}
 	}
+
 	//先发送进入下一轮的消息，若下一轮为机器人，再进入机器人过程，否则会卡死
 	nextIsRobot := false
 	for _, sideInfo := range roomInfo.cardMap.cMap {
@@ -852,7 +855,7 @@ func (roomInfo *RoomInfo) sendTurnToNext(nextSide pb.BattleSide) {
 			nextIsRobot = true
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
+	//roomInfo.cardMap.lock.Unlock()
 
 	if nextIsRobot {
 		log.Debug("下一轮是机器人")
@@ -861,14 +864,14 @@ func (roomInfo *RoomInfo) sendTurnToNext(nextSide pb.BattleSide) {
 }
 
 func (roomInfo *RoomInfo) getCurTurnSideInfo() *SideInfo {
-	roomInfo.cardMap.lock.Lock()
+	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.playerInfo.oid == curTurnPlayerOid {
 			return sideInfo
 			break
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
+	//roomInfo.cardMap.lock.Unlock()
 	return nil
 }
 
