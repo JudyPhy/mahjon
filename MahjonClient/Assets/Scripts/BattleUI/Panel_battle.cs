@@ -1116,13 +1116,13 @@ public class Panel_battle : WindowsBasePanel
         else if (sideIndex == 2)
         {
             result[0] = new Vector3(0.32f, 0.05f, 0.33f);
-            result[1] = new Vector3(-90, 180, -90);
-            result[2] = new Vector3(-0.035f, 0, 0);
+            result[1] = new Vector3(-90, 180, 0);
+            result[2] = new Vector3(-0.045f, 0, 0);
         }
         else if (sideIndex == 3)
         {
             result[0] = new Vector3(-0.45f, 0.05f, 0.235f);
-            result[1] = new Vector3(-90, 90, -90);
+            result[1] = new Vector3(-90, 90, 0);
             result[2] = new Vector3(0, 0, -0.035f);
         }
         return result;
@@ -1350,17 +1350,19 @@ public class Panel_battle : WindowsBasePanel
         }
         else if (sideIndex == 2)
         {
-            result[0] = new Vector3(0.32f, 0.05f, 0.33f);
-            result[1] = new Vector3(-90, 180, -90);
-            result[2] = new Vector3(-0.035f, 0, 0);
-            result[3] = new Vector3(0, 0, 0.035f);
+            result[0] = new Vector3(0.085f, 0.04f, 0.1f);
+            result[1] = new Vector3(0, 180, 0);
+            result[2] = new Vector3(-0.033f, 0, 0);
+            result[3] = new Vector3(0, 0, 0.045f);
+            result[4] = new Vector3(0f, 0.2f, 0.15f);
         }
         else if (sideIndex == 3)
         {
-            result[0] = new Vector3(-0.45f, 0.05f, 0.235f);
-            result[1] = new Vector3(-90, 90, -90);
+            result[0] = new Vector3(-0.135f, 0.04f, 0.05f);
+            result[1] = new Vector3(0, 90, 0);
             result[2] = new Vector3(0, 0, -0.035f);
-            result[3] = new Vector3(0, 0, -0.035f);
+            result[3] = new Vector3(-0.045f, 0, 0);
+            result[4] = new Vector3(-0.439f, 0.08f, 0);
         }
         return result;
     }
@@ -1391,8 +1393,13 @@ public class Panel_battle : WindowsBasePanel
     //收到服务器出牌成功的反馈，播放牌进入弃牌堆动画
     private void PlayDiscardAni(int cardOid)
     {
-        Debug.Log("出牌反馈后，播放出牌动画，=" + cardOid);
+        Debug.Log("出牌反馈后，播放出牌动画，cardOid=" + cardOid);
         Pai cardInfo = BattleManager.Instance.GetCardInfoByCardOid(cardOid);
+        if (cardInfo == null)
+        {
+            Debug.LogError("出的牌不在玩家手牌中");
+            return;
+        }
         cardInfo.Status = PaiStatus.Discard;
         Debug.LogError("discardOid=" + cardOid + ", id=" + cardInfo.Id);
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(cardInfo.PlayerID);
@@ -1438,7 +1445,7 @@ public class Panel_battle : WindowsBasePanel
         Debug.Log("CurPlaySide:" + BattleManager.Instance.CurPlaySide);
         if (BattleManager.Instance.CurPlaySide != _sortedSideListFromSelf[0])
         {
-            //不是自己出牌，隐藏出牌方出的牌
+            //不是自己出牌，隐藏出牌方出的牌，并重新排序
             int sideIndex = getSideIndexFromSelf(BattleManager.Instance.CurPlaySide);
             sortAndPlaceOtherCard(sideIndex, false);
 

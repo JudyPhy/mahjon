@@ -227,7 +227,7 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
-func ProcPlayerPG(procType *pb.ProcType, a gate.Agent) {
+func ProcPlayerPG(procType pb.ProcType, a gate.Agent) {
 	log.Debug("ProcPlayerPG")
 	player := getPlayerBtAgent(a)
 	if player != nil {

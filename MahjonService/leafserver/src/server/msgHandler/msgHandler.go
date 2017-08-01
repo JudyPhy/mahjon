@@ -63,7 +63,7 @@ func SendGS2CDiscardRet(cardOid int32, a gate.Agent) {
 }
 
 func SendGS2CTurnToNext(playerOid int32, newCard *pb.CardInfo, a gate.Agent) {
-	log.Debug("SendGS2CTurnToNext-->>")
+	log.Debug("SendGS2CTurnToNext-->> playerOid=%v, newCard=%v(%v)", playerOid, newCard.GetCardOid(), newCard.GetCardId())
 	data := &pb.GS2CTurnToNext{}
 	data.PlayerOid = proto.Int32(playerOid)
 	data.Card = newCard

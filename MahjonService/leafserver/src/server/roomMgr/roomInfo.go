@@ -700,15 +700,13 @@ func (roomInfo *RoomInfo) isTurnOver() bool {
 }
 
 func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
-	//roomInfo.cardMap.lock.Lock()
 	for _, v := range roomInfo.cardMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_WAITING_GANG ||
+		log.Debug("player[%v] process=%v", v.playerInfo.oid, v.process)
+		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_WAITING_GANG &&
 			v.process != ProcessStatus_WAITING_HU && v.process != ProcessStatus_WAITING_PENG {
-			log.Debug("player[%v] process=%v", v.playerInfo.oid, v.process)
 			return false
 		}
 	}
-	//roomInfo.cardMap.lock.Unlock()
 	return true
 }
 
@@ -724,31 +722,26 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 		}
 
 		log.Debug("本轮结束，转入下一个操作方")
-		//roomInfo.cardMap.lock.Lock()
 		for _, sideInfo := range roomInfo.cardMap.cMap {
 			sideInfo.process = ProcessStatus_TURN_START
 		}
-		//roomInfo.cardMap.lock.Unlock()
 		roomInfo.turnToNextPlayer()
 	} else {
 		if !roomInfo.isEveryoneProcDiscardOver() {
-			log.Debug("出牌后，还有玩家未反馈情况,等待")
+			log.Debug("出牌后，还有玩家未收到出牌信息，等待")
 		} else {
 			log.Debug("出牌后，所有玩家均反馈完情况，且有玩家需要处理胡牌、碰或杠")
 			playerOid := make([]int32, 0)
-			//roomInfo.cardMap.lock.Lock()
 			for _, v := range roomInfo.cardMap.cMap {
 				if v.process == ProcessStatus_WAITING_HU {
 					playerOid = append(playerOid, v.playerInfo.oid)
 				}
 			}
-			//roomInfo.cardMap.lock.Unlock()
 			if len(playerOid) > 0 {
 				log.Debug("广播胡牌，切换到下一个操作方")
 			} else {
 				if preDiscard != nil {
 					log.Debug("处理碰、杠牌")
-					//roomInfo.cardMap.lock.Lock()
 					for _, sideInfo := range roomInfo.cardMap.cMap {
 						log.Debug("playerOid:%v", sideInfo.playerInfo.oid)
 						if sideInfo.process == ProcessStatus_WAITING_GANG ||
@@ -759,7 +752,6 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 							sideInfo.deleteDiscard(preDiscard)
 						}
 					}
-					//roomInfo.cardMap.lock.Unlock()
 				} else {
 					log.Error("没有找到当前出的牌")
 				}
@@ -894,11 +886,11 @@ func (roomInfo *RoomInfo) sideInfoTurnOver(playerOid int32) {
 	roomInfo.checkTurnOver()
 }
 
-func (roomInfo *RoomInfo) procPlayerPG(playerOid int32, provType *pb.ProcType) {
+func (roomInfo *RoomInfo) procPlayerPG(playerOid int32, provType pb.ProcType) {
 	log.Debug("player[%v] proc[%v]", playerOid, provType.String())
 	for player, sideInfo := range roomInfo.cardMap.cMap {
 		if player == playerOid {
-			if provType == pb.ProcType_Peng.Enum() {
+			if provType == pb.ProcType_Peng {
 				preDiscard := roomInfo.getPreDiscard()
 				if preDiscard != nil {
 					log.Debug("current discard is %v(%v)", preDiscard.oid, preDiscard.id)

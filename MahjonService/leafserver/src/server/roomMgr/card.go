@@ -98,23 +98,23 @@ func IsHu(inhand []int, peng []int, gang []int) bool {
 		return false
 	}
 
-	log.Debug("peng count=[%v]", len(peng))
+	//log.Debug("peng count=[%v]", len(peng))
 	if !checkPeng(peng) {
 		return false
 	}
-	log.Debug("after peng count=[%v]", len(peng))
+	//log.Debug("after peng count=[%v]", len(peng))
 
-	log.Debug("gang count=[%v]", len(gang))
+	//log.Debug("gang count=[%v]", len(gang))
 	if !checkGang(gang) {
 		return false
 	}
-	log.Debug("after gang count=[%v]", len(gang))
+	//log.Debug("after gang count=[%v]", len(gang))
 
-	log.Debug("inhand count=[%v]", len(inhand))
+	//log.Debug("inhand count=[%v]", len(inhand))
 	if !checkInHand(inhand) {
 		return false
 	}
-	log.Debug("after inhand count=[%v]", len(inhand))
+	//log.Debug("after inhand count=[%v]", len(inhand))
 
 	return true
 }
@@ -206,7 +206,7 @@ func checkInHand(list []int) bool {
 		//log.Debug("card[%v], count[%v]", sortList[i], count)
 		//判断是否能做将牌
 		if count >= 2 {
-			log.Debug("将牌：[%v]", sortList[i])
+			//log.Debug("将牌：[%v]", sortList[i])
 			//移除两张将牌
 			tempList = removeJiang(sortList[i], tempList)
 			//避免重复运算 将光标移到其他牌上
@@ -257,14 +257,14 @@ func removeJiang(id int, list []int) []int {
 }
 
 func huPaiPanDin(list []int) bool {
-	logStr := "huPaiPanDin, list: "
+	/*logStr := "huPaiPanDin, list: "
 	buf := bytes.NewBufferString(logStr)
 	for i := 0; i < len(list); i++ {
 		str := strconv.Itoa(list[i])
 		buf.Write([]byte(str))
 		buf.Write([]byte(", "))
 	}
-	log.Debug(buf.String())
+	log.Debug(buf.String())*/
 
 	if len(list) == 0 {
 		return true
