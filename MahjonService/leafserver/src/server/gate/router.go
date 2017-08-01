@@ -16,4 +16,5 @@ func init() {
 	msg.Processor.SetRouter(&pb.C2GSSelectLack{}, game.ChanRPC)
 	msg.Processor.SetRouter(&pb.C2GSDiscard{}, game.ChanRPC)
 	msg.Processor.SetRouter(&pb.C2GSCurTurnOver{}, game.ChanRPC)
+	msg.Processor.SetRouter(&pb.C2GSProcPG{}, game.ChanRPC)
 }

@@ -102,6 +102,20 @@ public class BattleManager
         get { return _curProcess; }
     }
 
+    private int _curTurnDrawnCardOid;
+    public int CurTurnDrawnCardOid
+    {
+        set { _curTurnDrawnCardOid = value; }
+        get { return _curTurnDrawnCardOid; }
+    }
+
+    private int _curTurnDiscard;
+    public int CurTurnDiscard
+    {
+        set { _curTurnDiscard = value; }
+        get { return _curTurnDiscard; }
+    }
+
     private SideInfo getSideInfoBySide(pb.BattleSide side)
     {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
@@ -722,18 +736,41 @@ public class BattleManager
     }
 
     //收到玩家(包括自己)碰或杠的消息
-    public void UpdateCardInfoByPG(List<pb.CardInfo> list, pb.CardStatus type)
+    public void UpdateCardInfoByPG(pb.GS2CUpdateCardInfoByPG msg)
     {
-        Debug.Log("收到碰或杠的消息, type=" + type.ToString() + ", 玩家:" + list[0].playerId);
-        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        Debug.Log("UpdateCardInfoByPG");
+        Dictionary <int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
+        for (int i = 0; i < msg.cardList.Count; i++)
         {
-            if (_playerPaiInfoList[i].PlayerInfo.OID == list[0].playerId)
+            if (dict.ContainsKey(msg.cardList[i].playerId))
             {
-                _playerPaiInfoList[i].UpdatePai(list);
-                EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardStatus>(EventDefine.SomePlayerPG, _playerPaiInfoList[i].Side, type);
-                break;
+                dict[msg.cardList[i].playerId].Add(msg.cardList[i]);
             }
-        }        
+            else
+            {
+                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
+                cardList.Add(msg.cardList[i]);
+                dict.Add(msg.cardList[i].playerId, cardList);
+            }
+        }
+        //更新牌信息
+        foreach (int playerOid in dict.Keys)
+        {
+            Debug.Log("current player[" + playerOid + "] has card count=" + dict[playerOid].Count);
+            for (int i = 0; i < _playerPaiInfoList.Count; i++)
+            {
+                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+                {
+                    _playerPaiInfoList[i].ClearPai();
+                    for (int n = 0; n < dict[playerOid].Count; n++)
+                    {
+                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
+                    }
+                }
+            }
+        }
+        //处理操作动画
+        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.SomePlayerPG, msg.procPlayer, msg.beProcPlayer, msg.procType);
     }
 
     public Pai GetCardInfoByCardOid(int cardOid)

@@ -83,10 +83,46 @@ func getRobotDiscard(list []*Card) *Card {
 	return list[rnd]
 }
 
+//接口必须在摸牌后执行
+func (sideInfo *SideInfo) robotTurnSwitch() {
+	log.Debug("机器人%v收到切换操作方消息，进入自己操作过程", sideInfo.playerInfo.oid)
+	timer := time.NewTimer(time.Second * 2)
+	<-timer.C
+	//2秒后执行
+	inhandList := getInHandCardIdList(sideInfo.cardList)
+	gList := getGangCardIdList(sideInfo.cardList)
+	pList := getPengCardIdList(sideInfo.cardList)
+	if IsHu(inhandList, gList, pList) {
+		log.Debug("胡牌，游戏结束")
+	} else {
+		//未胡牌
+		log.Debug("判断杠牌")
+		inhandIdList := getInHandCardIdList(sideInfo.cardList)
+		gangCardId := canGang(inhandIdList, nil)
+		if gangCardId != 0 {
+			sideInfo.procSelfGang(gangCardId)
+			return
+		}
+		//出牌
+		log.Debug("不能自杠，出牌")
+		discard := getRobotDiscard(sideInfo.cardList)
+		log.Debug("discard[%v](%v)", discard.oid, discard.id)
+		for _, card := range sideInfo.cardList {
+			if card.oid == discard.oid {
+				card.status = CardStatus_PRE_DISCARD
+				sideInfo.process = ProcessStatus_TURN_OVER
+				sendDiscard(sideInfo.playerInfo.roomId, discard)
+				break
+			}
+		}
+	}
+}
+
 //出牌后，机器人根据出牌信息判断自方情况
 func (sideInfo *SideInfo) robotProcAfterDiscard(card *Card) {
-	log.Debug("robot: proc after discard, playerOid[%v]", sideInfo.playerInfo.oid)
+	log.Debug("机器人%v处理出牌%v(%v)", sideInfo.playerInfo.oid, card.oid, card.id)
 	if curTurnPlayerOid == sideInfo.playerInfo.oid {
+		log.Debug("自己出的牌自己不用处理")
 		return
 	}
 	handCard := getInHandCardIdList(sideInfo.cardList)

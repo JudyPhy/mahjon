@@ -25,4 +25,5 @@ func init() {
 	Processor.Register(&pb.GS2CUpdateCardInfoByPG{})          //13
 	Processor.Register(&pb.C2GSCurTurnOver{})                 //14
 	Processor.Register(&pb.GS2CTurnToNext{})                  //15
+	Processor.Register(&pb.C2GSProcPG{})                      //16
 }

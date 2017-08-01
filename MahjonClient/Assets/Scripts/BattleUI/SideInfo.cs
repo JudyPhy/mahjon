@@ -14,6 +14,7 @@ public enum PaiStatus
     Exchange,
     PreDiscard,
     Discard,
+    DrawnCard,
 }
 
 public class Pai

@@ -369,7 +369,8 @@ func canGang(list []int, card *Card) int {
 			}
 		}
 	} else {
-		if dict[int(card.id)] == 4 {
+		count, ok := dict[int(card.id)]
+		if ok && count == 4 {
 			return int(card.id)
 		}
 	}

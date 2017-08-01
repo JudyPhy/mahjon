@@ -17,15 +17,16 @@ import (
 type ProcessStatus int32
 
 const (
-	ProcessStatus_DEFAULT       ProcessStatus = 1
-	ProcessStatus_EXCHANGE_OVER ProcessStatus = 2
-	ProcessStatus_LACK_OVER     ProcessStatus = 3
-	ProcessStatus_TURN_START    ProcessStatus = 4
-	ProcessStatus_TURN_OVER     ProcessStatus = 5
-	ProcessStatus_WAITING_HU    ProcessStatus = 6
-	ProcessStatus_WAITING_GANG  ProcessStatus = 7
-	ProcessStatus_WAITING_PENG  ProcessStatus = 8
-	ProcessStatus_GAME_OVER     ProcessStatus = 9
+	ProcessStatus_DEFAULT         ProcessStatus = 1
+	ProcessStatus_EXCHANGE_OVER   ProcessStatus = 2
+	ProcessStatus_LACK_OVER       ProcessStatus = 3
+	ProcessStatus_TURN_START      ProcessStatus = 4
+	ProcessStatus_TURN_START_OVER ProcessStatus = 5
+	ProcessStatus_TURN_OVER       ProcessStatus = 6
+	ProcessStatus_WAITING_HU      ProcessStatus = 7
+	ProcessStatus_WAITING_GANG    ProcessStatus = 8
+	ProcessStatus_WAITING_PENG    ProcessStatus = 9
+	ProcessStatus_GAME_OVER       ProcessStatus = 10
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
@@ -205,6 +206,36 @@ func PlayerTurnOver(a gate.Agent) {
 		RoomManager.lock.Unlock()
 		if ok {
 			roomInfo.sideInfoTurnOver(player.oid)
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func robotSelfGangOver(roomId string) {
+	log.Debug("robotSelfGangOver")
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		side := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
+		roomInfo.sendTurnToNext(side)
+	} else {
+		log.Debug("room[%v] not exist.")
+	}
+}
+
+func ProcPlayerPG(procType *pb.ProcType, a gate.Agent) {
+	log.Debug("ProcPlayerPG")
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.procPlayerPG(player.oid, procType)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

@@ -26,6 +26,8 @@ It has these top-level messages:
 	GS2CSelectLackRet
 	C2GSDiscard
 	GS2CDiscardRet
+	C2GSProcPG
+	GS2CProcPGRet
 	GS2CUpdateCardInfoByPG
 	C2GSCurTurnOver
 	GS2CTurnToNext
@@ -234,6 +236,48 @@ func (x *ExchangeType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type ProcType int32
+
+const (
+	ProcType_SelfGang  ProcType = 1
+	ProcType_GangOther ProcType = 2
+	ProcType_Peng      ProcType = 3
+	ProcType_SelfHu    ProcType = 4
+	ProcType_HuSelf    ProcType = 5
+)
+
+var ProcType_name = map[int32]string{
+	1: "SelfGang",
+	2: "GangOther",
+	3: "Peng",
+	4: "SelfHu",
+	5: "HuSelf",
+}
+var ProcType_value = map[string]int32{
+	"SelfGang":  1,
+	"GangOther": 2,
+	"Peng":      3,
+	"SelfHu":    4,
+	"HuSelf":    5,
+}
+
+func (x ProcType) Enum() *ProcType {
+	p := new(ProcType)
+	*p = x
+	return p
+}
+func (x ProcType) String() string {
+	return proto.EnumName(ProcType_name, int32(x))
+}
+func (x *ProcType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(ProcType_value, data, "ProcType")
+	if err != nil {
+		return err
+	}
+	*x = ProcType(value)
+	return nil
+}
+
 type GS2CLoginRet_ErrorCode int32
 
 const (
@@ -378,6 +422,39 @@ func (x *GS2CExchangeCardRet_ErrorCode) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = GS2CExchangeCardRet_ErrorCode(value)
+	return nil
+}
+
+type GS2CProcPGRet_ErrorCode int32
+
+const (
+	GS2CProcPGRet_SUCCESS GS2CProcPGRet_ErrorCode = 1
+	GS2CProcPGRet_FAIL    GS2CProcPGRet_ErrorCode = 2
+)
+
+var GS2CProcPGRet_ErrorCode_name = map[int32]string{
+	1: "SUCCESS",
+	2: "FAIL",
+}
+var GS2CProcPGRet_ErrorCode_value = map[string]int32{
+	"SUCCESS": 1,
+	"FAIL":    2,
+}
+
+func (x GS2CProcPGRet_ErrorCode) Enum() *GS2CProcPGRet_ErrorCode {
+	p := new(GS2CProcPGRet_ErrorCode)
+	*p = x
+	return p
+}
+func (x GS2CProcPGRet_ErrorCode) String() string {
+	return proto.EnumName(GS2CProcPGRet_ErrorCode_name, int32(x))
+}
+func (x *GS2CProcPGRet_ErrorCode) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GS2CProcPGRet_ErrorCode_value, data, "GS2CProcPGRet_ErrorCode")
+	if err != nil {
+		return err
+	}
+	*x = GS2CProcPGRet_ErrorCode(value)
 	return nil
 }
 
@@ -808,10 +885,44 @@ func (m *GS2CDiscardRet) GetCardOid() int32 {
 	return 0
 }
 
+type C2GSProcPG struct {
+	ProcType         *ProcType `protobuf:"varint,1,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (m *C2GSProcPG) Reset()         { *m = C2GSProcPG{} }
+func (m *C2GSProcPG) String() string { return proto.CompactTextString(m) }
+func (*C2GSProcPG) ProtoMessage()    {}
+
+func (m *C2GSProcPG) GetProcType() ProcType {
+	if m != nil && m.ProcType != nil {
+		return *m.ProcType
+	}
+	return ProcType_SelfGang
+}
+
+type GS2CProcPGRet struct {
+	ErrorCode        *GS2CProcPGRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CProcPGRet_ErrorCode" json:"errorCode,omitempty"`
+	XXX_unrecognized []byte                   `json:"-"`
+}
+
+func (m *GS2CProcPGRet) Reset()         { *m = GS2CProcPGRet{} }
+func (m *GS2CProcPGRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CProcPGRet) ProtoMessage()    {}
+
+func (m *GS2CProcPGRet) GetErrorCode() GS2CProcPGRet_ErrorCode {
+	if m != nil && m.ErrorCode != nil {
+		return *m.ErrorCode
+	}
+	return GS2CProcPGRet_SUCCESS
+}
+
 // 碰、杠后更新玩家手牌
 type GS2CUpdateCardInfoByPG struct {
-	ProcType         *CardStatus `protobuf:"varint,1,req,name=procType,enum=pb.CardStatus" json:"procType,omitempty"`
-	CardList         []*CardInfo `protobuf:"bytes,2,rep,name=cardList" json:"cardList,omitempty"`
+	ProcPlayer       *int32      `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
+	ProcType         *ProcType   `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
+	BeProcPlayer     *int32      `protobuf:"varint,3,opt,name=beProcPlayer" json:"beProcPlayer,omitempty"`
+	CardList         []*CardInfo `protobuf:"bytes,4,rep,name=cardList" json:"cardList,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
@@ -819,11 +930,25 @@ func (m *GS2CUpdateCardInfoByPG) Reset()         { *m = GS2CUpdateCardInfoByPG{}
 func (m *GS2CUpdateCardInfoByPG) String() string { return proto.CompactTextString(m) }
 func (*GS2CUpdateCardInfoByPG) ProtoMessage()    {}
 
-func (m *GS2CUpdateCardInfoByPG) GetProcType() CardStatus {
+func (m *GS2CUpdateCardInfoByPG) GetProcPlayer() int32 {
+	if m != nil && m.ProcPlayer != nil {
+		return *m.ProcPlayer
+	}
+	return 0
+}
+
+func (m *GS2CUpdateCardInfoByPG) GetProcType() ProcType {
 	if m != nil && m.ProcType != nil {
 		return *m.ProcType
 	}
-	return CardStatus_noDeal
+	return ProcType_SelfGang
+}
+
+func (m *GS2CUpdateCardInfoByPG) GetBeProcPlayer() int32 {
+	if m != nil && m.BeProcPlayer != nil {
+		return *m.BeProcPlayer
+	}
+	return 0
 }
 
 func (m *GS2CUpdateCardInfoByPG) GetCardList() []*CardInfo {
@@ -873,8 +998,10 @@ func init() {
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
 	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
 	proto.RegisterEnum("pb.ExchangeType", ExchangeType_name, ExchangeType_value)
+	proto.RegisterEnum("pb.ProcType", ProcType_name, ProcType_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CUpdateRoomInfo_Status", GS2CUpdateRoomInfo_Status_name, GS2CUpdateRoomInfo_Status_value)
 	proto.RegisterEnum("pb.GS2CExchangeCardRet_ErrorCode", GS2CExchangeCardRet_ErrorCode_name, GS2CExchangeCardRet_ErrorCode_value)
+	proto.RegisterEnum("pb.GS2CProcPGRet_ErrorCode", GS2CProcPGRet_ErrorCode_name, GS2CProcPGRet_ErrorCode_value)
 }

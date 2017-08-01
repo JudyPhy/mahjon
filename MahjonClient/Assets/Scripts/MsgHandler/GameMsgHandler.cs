@@ -77,6 +77,14 @@ public class GameMsgHandler
         pb.C2GSCurTurnOver msg = new pb.C2GSCurTurnOver();
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSCurTurnOver, msg);
     }
+
+    public void SendMsgC2GSProcPG(pb.ProcType type)
+    {
+        Debug.Log("SendMsgC2GSProcPG==>>");
+        pb.C2GSProcPG msg = new pb.C2GSProcPG();
+        msg.procType = type;
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSProcPG, msg);
+    }
     #endregion
 
 
@@ -180,7 +188,7 @@ public class GameMsgHandler
         Debug.Log("==>> RevMsgGS2CDiscardRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CDiscardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardRet>(stream);
-        Debug.LogError("discardOid=" + msg.cardOid);
+        BattleManager.Instance.CurTurnDiscard = msg.cardOid;
         EventDispatcher.TriggerEvent<int>(EventDefine.DiscardRet, msg.cardOid);
     }
 
@@ -189,6 +197,7 @@ public class GameMsgHandler
         Debug.Log("==>> RevMsgGS2CTurnToNext");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
+        BattleManager.Instance.CurTurnDrawnCardOid = msg.card.CardOid;
         BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card);
     }
 
@@ -197,7 +206,7 @@ public class GameMsgHandler
         Debug.Log("==>> RevMsgGS2CUpdateCardInfoByPG");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateCardInfoByPG msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoByPG>(stream);
-        BattleManager.Instance.UpdateCardInfoByPG(msg.cardList, msg.procType);
+        BattleManager.Instance.UpdateCardInfoByPG(msg);
     }
     #endregion
 }

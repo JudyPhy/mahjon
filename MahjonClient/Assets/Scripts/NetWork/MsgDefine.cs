@@ -20,4 +20,5 @@ public enum MsgDef
     GS2CUpdateCardInfoByPG = 13,
     C2GSCurTurnOver = 14,
     GS2CTurnToNext = 15,
+    C2GSProcPG = 16,
 }

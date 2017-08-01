@@ -43,6 +43,15 @@ enum ExchangeType
 	Opposite = 3;
 }
 
+enum ProcType
+{
+	SelfGang = 1;
+	GangOther = 2;
+	Peng = 3;
+	SelfHu = 4;
+	HuOther = 5;
+}
+
 message LackCard
 {
 	required int32 playerId = 1;
@@ -172,11 +181,27 @@ message GS2CDiscardRet
 	required int32 cardOid = 1;
 }
 
+message C2GSProcPG
+{
+	required ProcType procType = 1;
+}
+
+message GS2CProcPGRet
+{
+	enum ErrorCode{
+		SUCCESS = 1; 
+		FAIL = 2;
+	}
+	required ErrorCode errorCode = 1;
+}
+
 //碰、杠后更新玩家手牌
 message GS2CUpdateCardInfoByPG
 {
-	required CardStatus procType = 1;
-	repeated CardInfo cardList = 2;
+	required int32 procPlayer = 1;
+	required ProcType procType = 2;
+	optional int32 beProcPlayer = 3;
+	repeated CardInfo cardList = 4;
 }
 
 //本轮结束

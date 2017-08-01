@@ -66,38 +66,6 @@ func (sideInfo *SideInfo) selectLack() {
 	sideInfo.process = ProcessStatus_LACK_OVER
 }
 
-//接口必须在摸牌后执行
-func (sideInfo *SideInfo) robotTurnSwitch() {
-	log.Debug("机器人%v收到切换操作方消息，进入自己操作过程", sideInfo.playerInfo.oid)
-	inhandList := getInHandCardIdList(sideInfo.cardList)
-	gList := getGangCardIdList(sideInfo.cardList)
-	pList := getPengCardIdList(sideInfo.cardList)
-	if IsHu(inhandList, gList, pList) {
-		log.Debug("胡牌，游戏结束")
-	} else {
-		//未胡牌
-		log.Debug("判断杠牌")
-		inhandIdList := getInHandCardIdList(sideInfo.cardList)
-		gangCardId := canGang(inhandIdList, nil)
-		if gangCardId != 0 {
-			sideInfo.procGang(gangCardId)
-			return
-		}
-		//出牌
-		log.Debug("不能自杠，出牌")
-		discard := getRobotDiscard(sideInfo.cardList)
-		log.Debug("discard[%v](%v)", discard.oid, discard.id)
-		for i := 0; i < len(sideInfo.cardList); i++ {
-			if sideInfo.cardList[i].oid == discard.oid {
-				sideInfo.cardList[i].status = CardStatus_PRE_DISCARD
-				sideInfo.process = ProcessStatus_TURN_OVER
-				sendDiscard(sideInfo.playerInfo.roomId, discard)
-				break
-			}
-		}
-	}
-}
-
 func cardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
 	switch status {
 	case CardStatus_INHAND:
@@ -112,9 +80,9 @@ func cardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
 	return pb.CardStatus_noDeal
 }
 
-//机器人处理杠操作
-func (sideInfo *SideInfo) procGang(gangCardId int) {
-	log.Debug("机器人[%v]处理杠牌[%v]", sideInfo.playerInfo.oid, gangCardId)
+//机器人处理自杠
+func (sideInfo *SideInfo) procSelfGang(gangCardId int) {
+	log.Debug("机器人%v处理自杠Id[%v]", sideInfo.playerInfo.oid, gangCardId)
 	var newCardList []*pb.CardInfo
 	for _, curCard := range sideInfo.cardList {
 		if curCard.id == int32(gangCardId) {
@@ -127,7 +95,9 @@ func (sideInfo *SideInfo) procGang(gangCardId int) {
 		card.Status = cardStatusToPbCardStatus(curCard.status).Enum()
 		newCardList = append(newCardList, card)
 	}
-	sendUpdateCardInfoByPG(sideInfo.playerInfo.roomId, newCardList, pb.CardStatus_beGang.Enum())
+	sendUpdateCardInfoBySelfGang(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, newCardList)
+
+	robotSelfGangOver(sideInfo.playerInfo.roomId)
 }
 
 func (sideInfo *SideInfo) unpdateDiscard(cardOid int32) {
@@ -172,4 +142,14 @@ func (sideInfo *SideInfo) deleteDiscard(card *Card) {
 func (sideInfo *SideInfo) drawNewCard(newCard *Card) {
 	log.Debug("切换操作方，摸牌[%v]", newCard.oid)
 	sideInfo.cardList = append(sideInfo.cardList, newCard)
+}
+
+func (sideInfo *SideInfo) checkPengOk(discard *Card) bool {
+	count := 0
+	for _, card := range sideInfo.cardList {
+		if card.status == CardStatus_INHAND && card.id == discard.id {
+			count++
+		}
+	}
+	return count >= 2
 }

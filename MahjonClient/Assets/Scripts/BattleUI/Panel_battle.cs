@@ -152,7 +152,7 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
         EventDispatcher.AddEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.AddEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
-        EventDispatcher.AddEventListener<pb.BattleSide, pb.CardStatus>(EventDefine.SomePlayerPG, SomePlayerPG);
+        EventDispatcher.AddEventListener<int, int, pb.ProcType>(EventDefine.SomePlayerPG, SomePlayerPG);
     }
 
     public override void OnRemoveEvent()
@@ -170,7 +170,7 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
         EventDispatcher.RemoveEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.RemoveEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
-        EventDispatcher.RemoveEventListener<pb.BattleSide, pb.CardStatus>(EventDefine.SomePlayerPG, SomePlayerPG);
+        EventDispatcher.RemoveEventListener<int, int, pb.ProcType>(EventDefine.SomePlayerPG, SomePlayerPG);
     }
 
     private void hideAllRoleItem()
@@ -1391,10 +1391,10 @@ public class Panel_battle : WindowsBasePanel
     //收到服务器出牌成功的反馈，播放牌进入弃牌堆动画
     private void PlayDiscardAni(int cardOid)
     {
-        Debug.Log("出牌反馈后，播放出牌动画，discardOid=" + cardOid);
+        Debug.Log("出牌反馈后，播放出牌动画，=" + cardOid);
         Pai cardInfo = BattleManager.Instance.GetCardInfoByCardOid(cardOid);
         cardInfo.Status = PaiStatus.Discard;
-        Debug.LogError("cardInfo id=" + cardInfo.Id);
+        Debug.LogError("discardOid=" + cardOid + ", id=" + cardInfo.Id);
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(cardInfo.PlayerID);
         int sideIndex = getSideIndexFromSelf(side);
         Item_pai_3d script = null;
@@ -1520,6 +1520,7 @@ public class Panel_battle : WindowsBasePanel
             Item_procBtn script = getProcBtnItem(i);
             script.gameObject.SetActive(true);
             script.UpdateUI(types[i]);
+            script.EnableClick(true);
         }
         _procGrid.repositionNow = true;
     }
@@ -1538,15 +1539,32 @@ public class Panel_battle : WindowsBasePanel
     }
     #endregion
 
-    private void SomePlayerPG(pb.BattleSide side, pb.CardStatus type)
+    private void SomePlayerPG(int procPlayer, int beProcPlayer,pb.ProcType type)
     {
-        Debug.Log("有玩家碰或杠，播放其碰杠动画，且重新排列手牌");
-
+        switch (type)
+        {
+            case pb.ProcType.SelfGang:
+                PlaySelfGangAni(procPlayer);
+                break;
+            default:
+                break;
+        }
     }
 
-    private void OnClickProcBtn(GameObject go)
+    private void PlaySelfGangAni(int player)
     {
-
+        pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(player);
+        Vector3[] targetPos = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        int sideIndex = getSideIndexFromSelf(side);
+        hideAllProcItem();
+        Item_procBtn script = getProcBtnItem(0);
+        script.gameObject.SetActive(true);
+        script.UpdateUI(ProcBtnType.Gang);
+        script.EnableClick(false);
+        script.transform.localPosition = targetPos[sideIndex];
+        script.transform.localScale = Vector3.zero;
+        iTween.ScaleTo(script.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutExpo));
+        sortAndPlaceOtherCard(sideIndex, true);
     }
 
     public override void OnUpdate()
