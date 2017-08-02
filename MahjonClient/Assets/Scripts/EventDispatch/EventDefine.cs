@@ -16,5 +16,5 @@ public class EventDefine
     public static string UnSelectOtherDiscard = "UnSelectOtherDiscard";
     public static string EnsureDiscard = "EnsureDiscard";
     public static string DiscardRet = "DiscardRet";
-    public static string SomePlayerPG = "SomePlayerPG";
+    public static string RobotProc = "SomePlayerPG";
 }

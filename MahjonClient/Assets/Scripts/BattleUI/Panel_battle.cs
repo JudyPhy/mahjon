@@ -23,8 +23,6 @@ public class Panel_battle : WindowsBasePanel
     // side pai   
     private GameObject _self2DCardItemRoot;
     private List<Item_pai> _self2DCardItemList = new List<Item_pai>();
-    private GameObject _self3DCardItemRoot;
-    private List<Item_pai_3d> _self3DCardItemList = new List<Item_pai_3d>();
     private List<GameObject> _otherCardObjRoot = new List<GameObject>();
     private Dictionary<pb.BattleSide, List<Item_pai_3d>> _sideCardObjDict = new Dictionary<pb.BattleSide, List<Item_pai_3d>>();
 
@@ -91,8 +89,7 @@ public class Panel_battle : WindowsBasePanel
 
         // pai
         _self2DCardItemRoot = transform.FindChild("Root_pai/Side0").gameObject;
-        _self3DCardItemRoot = _tableRoot.transform.FindChild("Side0").gameObject;
-        for (int i = 1; i < 4; i++)
+        for (int i = 0; i < 4; i++)
         {
             GameObject root = _tableRoot.transform.FindChild("Side" + i.ToString()).gameObject;
             _otherCardObjRoot.Add(root);
@@ -148,11 +145,11 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener<pb.CardType>(EventDefine.SelectLack, SelectLack);
         EventDispatcher.AddEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
-        EventDispatcher.AddEventListener<pb.BattleSide, pb.CardInfo>(EventDefine.TurnToPlayer, TurnToPlayer);
+        EventDispatcher.AddEventListener<pb.BattleSide, pb.CardInfo, pb.TurnSwitchType>(EventDefine.TurnToPlayer, TurnToPlayer);
         EventDispatcher.AddEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
         EventDispatcher.AddEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.AddEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
-        EventDispatcher.AddEventListener<int, int, pb.ProcType>(EventDefine.SomePlayerPG, SomePlayerPG);
+        EventDispatcher.AddEventListener<int, int, pb.ProcType>(EventDefine.RobotProc, RobotProcPG);
     }
 
     public override void OnRemoveEvent()
@@ -166,11 +163,11 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener<pb.CardType>(EventDefine.SelectLack, SelectLack);
         EventDispatcher.RemoveEventListener<pb.CardType>(EventDefine.EnsureLack, EnsureLack);
         EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
-        EventDispatcher.RemoveEventListener<pb.BattleSide, pb.CardInfo>(EventDefine.TurnToPlayer, TurnToPlayer);
+        EventDispatcher.RemoveEventListener<pb.BattleSide, pb.CardInfo, pb.TurnSwitchType>(EventDefine.TurnToPlayer, TurnToPlayer);
         EventDispatcher.RemoveEventListener<Pai>(EventDefine.EnsureDiscard, EnsureDiscard);
         EventDispatcher.RemoveEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.RemoveEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
-        EventDispatcher.RemoveEventListener<int, int, pb.ProcType>(EventDefine.SomePlayerPG, SomePlayerPG);
+        EventDispatcher.RemoveEventListener<int, int, pb.ProcType>(EventDefine.RobotProc, RobotProcPG);
     }
 
     private void hideAllRoleItem()
@@ -369,7 +366,7 @@ public class Panel_battle : WindowsBasePanel
         {
             return itemList[itemIndex];
         }
-        GameObject root = _otherCardObjRoot[sideIndex - 1];
+        GameObject root = _otherCardObjRoot[sideIndex];
         Item_pai_3d script = UIManager.AddChild<Item_pai_3d>(root);
         itemList.Add(script);
         return script;
@@ -598,34 +595,14 @@ public class Panel_battle : WindowsBasePanel
         SortCardAfterExchange();
     }
 
-    private Item_pai_3d getSelf3DCard(int index)
-    {
-        if (index < _self3DCardItemList.Count)
-        {
-            return _self3DCardItemList[index];
-        }
-        GameObject pai = UIManager.AddGameObject("3d/model/pai", _self3DCardItemRoot);
-        Item_pai_3d script = pai.AddComponent<Item_pai_3d>();
-        _self3DCardItemList.Add(script);
-        return script;
-    }
-
-    private void hideAllSelf3DCard()
-    {
-        for (int i = 0; i < _self3DCardItemList.Count; i++)
-        {
-            _self3DCardItemList[i].gameObject.SetActive(false);
-        }
-    }
-
     private void PlaceSelfExchange3DCards()
     {
-        hideAllSelf3DCard();
+        hide3DDiscardObjBySide(_sortedSideListFromSelf[0]);
         List<Item_pai_3d> exchangeObjList = new List<Item_pai_3d>();
         Vector3 startPos = new Vector3(-0.047f, 0.04f, -0.17f);
         for (int i = 0; i < 3; i++)
         {
-            Item_pai_3d item = getSelf3DCard(i);
+            Item_pai_3d item = get3DDiscardObj(0, i);
             item.UpdatePaiMian();
             item.transform.localScale = new Vector3(1.4f, 1, 1);
             item.transform.localEulerAngles = new Vector3(180, 0, 0);
@@ -728,7 +705,7 @@ public class Panel_battle : WindowsBasePanel
         Debug.Log("ArrowAniOver");
         _exchangeCardContainer.SetActive(false);
         // self
-        hideAllSelf3DCard();
+        hide3DDiscardObjBySide(_sortedSideListFromSelf[0]);
         List<Pai> handCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
         handCards.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
         List<Pai> exchangeCards = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Exchange);
@@ -891,7 +868,7 @@ public class Panel_battle : WindowsBasePanel
     }
     #endregion
 
-    private void TurnToPlayer(pb.BattleSide side, pb.CardInfo newCard)
+    private void TurnToPlayer(pb.BattleSide side, pb.CardInfo newCard, pb.TurnSwitchType type)
     {
         Debug.Log("current play side=" + side.ToString());
 
@@ -1177,7 +1154,7 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private void hideOther3DDiscardObjBySide(pb.BattleSide side)
+    private void hide3DDiscardObjBySide(pb.BattleSide side)
     {
         if (_other3DDiscard.ContainsKey(side))
         {
@@ -1188,7 +1165,7 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private Item_pai_3d getOther3DDiscardObj(int sideIndex, int index)
+    private Item_pai_3d get3DDiscardObj(int sideIndex, int index)
     {
         pb.BattleSide side = _sortedSideListFromSelf[sideIndex];
         if (!_other3DDiscard.ContainsKey(side))
@@ -1202,7 +1179,7 @@ public class Panel_battle : WindowsBasePanel
         }
         else
         {
-            Item_pai_3d script = UIManager.AddChild<Item_pai_3d>(_otherCardObjRoot[sideIndex - 1]);
+            Item_pai_3d script = UIManager.AddChild<Item_pai_3d>(_otherCardObjRoot[sideIndex]);
             objList.Add(script);
             return script;
         }
@@ -1407,12 +1384,12 @@ public class Panel_battle : WindowsBasePanel
         Item_pai_3d script = null;
         if (cardInfo.PlayerID == Player.Instance.PlayerInfo.OID)
         {
-            script = getSelf3DCard(_discardItemIndex[0]);
+            script = get3DDiscardObj(0, _discardItemIndex[0]);
             _discardItemIndex[0]++;
         }
         else
         {
-            script = getOther3DDiscardObj(sideIndex, _discardItemIndex[sideIndex]);
+            script = get3DDiscardObj(sideIndex, _discardItemIndex[sideIndex]);
             _discardItemIndex[sideIndex]++;
         }
         if (script == null)
@@ -1546,12 +1523,16 @@ public class Panel_battle : WindowsBasePanel
     }
     #endregion
 
-    private void SomePlayerPG(int procPlayer, int beProcPlayer,pb.ProcType type)
+    #region process robot proc
+    private void RobotProcPG(int procPlayer, int beProcPlayer,pb.ProcType type)
     {
         switch (type)
         {
             case pb.ProcType.SelfGang:
                 PlaySelfGangAni(procPlayer);
+                break;
+            case pb.ProcType.Peng:
+                PlayRobotPengAni(procPlayer, beProcPlayer);
                 break;
             default:
                 break;
@@ -1560,6 +1541,7 @@ public class Panel_battle : WindowsBasePanel
 
     private void PlaySelfGangAni(int player)
     {
+        Debug.Log("robot" + player + " self gang.");
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(player);
         Vector3[] targetPos = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
         int sideIndex = getSideIndexFromSelf(side);
@@ -1573,6 +1555,59 @@ public class Panel_battle : WindowsBasePanel
         iTween.ScaleTo(script.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutExpo));
         sortAndPlaceOtherCard(sideIndex, true);
     }
+
+    private void PlayRobotPengAni(int procPlayer, int beProcPlayer)
+    {
+        Debug.Log("PlayRobotPengAni, procPlayer=" + procPlayer + ", beProcPlayer=" + beProcPlayer);
+        //碰的一方播放动画，更新手牌排序，显示要出的牌
+        pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(procPlayer);
+        Vector3[] targetPos = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        int sideIndex = getSideIndexFromSelf(side);
+        hideAllProcItem();
+        Item_procBtn script = getProcBtnItem(0);
+        script.gameObject.SetActive(true);
+        script.UpdateUI(ProcBtnType.Peng);
+        script.EnableClick(false);
+        script.transform.localPosition = targetPos[sideIndex];
+        script.transform.localScale = Vector3.zero;
+        iTween.ScaleTo(script.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutExpo));
+        sortAndPlaceOtherCard(sideIndex, true);
+        //被碰的一方更新手牌和弃牌堆
+        int beProcSideIndex = getSideIndexFromSelf(BattleManager.Instance.CurPlaySide);
+        if (beProcPlayer == Player.Instance.PlayerInfo.OID)
+        {
+            sortAndPlaceSelfCard(null, false);
+        }
+        else
+        {
+            sortAndPlaceOtherCard(beProcSideIndex, false);
+        }
+        sortAllDiscrdBySideIndex(beProcSideIndex);
+        //动画播放完毕，给服务器反馈
+        GameMsgHandler.Instance.SendMsgC2GSRobotProcOver(procPlayer, pb.ProcType.Peng);
+    }
+
+    private void sortAllDiscrdBySideIndex(int sideIndex)
+    {
+        Debug.Log("sortAllDiscrdBySideIndex, sideIndex=" + sideIndex);
+        hide3DDiscardObjBySide(_sortedSideListFromSelf[sideIndex]);
+        List<Pai> cardList = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[sideIndex], PaiStatus.Discard);
+        Vector3[] vecs = getDiscardVecBySideIndex(sideIndex);   //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
+        for (int i = 0; i < cardList.Count; i++)
+        {
+            Item_pai_3d script = get3DDiscardObj(sideIndex, i);
+            script.gameObject.SetActive(true);
+            script.SetSide(_sortedSideListFromSelf[sideIndex]);
+            script.SetInfo(cardList[i]);
+            script.UpdatePaiMian();
+            script.transform.localEulerAngles = vecs[1];
+            script.transform.localScale = sideIndex % 2 == 0 ? Vector3.one * 1.2f : Vector3.one;
+            int index = i % 6;
+            int line = i / 6;
+            script.transform.localPosition = vecs[0] + index * vecs[2] + line * vecs[3];
+        }
+    }
+    #endregion
 
     public override void OnUpdate()
     {

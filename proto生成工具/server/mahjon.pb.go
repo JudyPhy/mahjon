@@ -31,6 +31,8 @@ It has these top-level messages:
 	GS2CUpdateCardInfoByPG
 	C2GSCurTurnOver
 	GS2CTurnToNext
+	GS2CRobotProc
+	C2GSRobotProcOver
 */
 package pb
 
@@ -243,7 +245,7 @@ const (
 	ProcType_GangOther ProcType = 2
 	ProcType_Peng      ProcType = 3
 	ProcType_SelfHu    ProcType = 4
-	ProcType_HuSelf    ProcType = 5
+	ProcType_HuOther   ProcType = 5
 )
 
 var ProcType_name = map[int32]string{
@@ -251,14 +253,14 @@ var ProcType_name = map[int32]string{
 	2: "GangOther",
 	3: "Peng",
 	4: "SelfHu",
-	5: "HuSelf",
+	5: "HuOther",
 }
 var ProcType_value = map[string]int32{
 	"SelfGang":  1,
 	"GangOther": 2,
 	"Peng":      3,
 	"SelfHu":    4,
-	"HuSelf":    5,
+	"HuOther":   5,
 }
 
 func (x ProcType) Enum() *ProcType {
@@ -275,6 +277,39 @@ func (x *ProcType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = ProcType(value)
+	return nil
+}
+
+type TurnSwitchType int32
+
+const (
+	TurnSwitchType_Normal         TurnSwitchType = 1
+	TurnSwitchType_JustCanDiscard TurnSwitchType = 2
+)
+
+var TurnSwitchType_name = map[int32]string{
+	1: "Normal",
+	2: "JustCanDiscard",
+}
+var TurnSwitchType_value = map[string]int32{
+	"Normal":         1,
+	"JustCanDiscard": 2,
+}
+
+func (x TurnSwitchType) Enum() *TurnSwitchType {
+	p := new(TurnSwitchType)
+	*p = x
+	return p
+}
+func (x TurnSwitchType) String() string {
+	return proto.EnumName(TurnSwitchType_name, int32(x))
+}
+func (x *TurnSwitchType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(TurnSwitchType_value, data, "TurnSwitchType")
+	if err != nil {
+		return err
+	}
+	*x = TurnSwitchType(value)
 	return nil
 }
 
@@ -917,7 +952,6 @@ func (m *GS2CProcPGRet) GetErrorCode() GS2CProcPGRet_ErrorCode {
 	return GS2CProcPGRet_SUCCESS
 }
 
-// 碰、杠后更新玩家手牌
 type GS2CUpdateCardInfoByPG struct {
 	ProcPlayer       *int32      `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
 	ProcType         *ProcType   `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
@@ -958,7 +992,6 @@ func (m *GS2CUpdateCardInfoByPG) GetCardList() []*CardInfo {
 	return nil
 }
 
-// 本轮结束
 type C2GSCurTurnOver struct {
 	XXX_unrecognized []byte `json:"-"`
 }
@@ -967,11 +1000,11 @@ func (m *C2GSCurTurnOver) Reset()         { *m = C2GSCurTurnOver{} }
 func (m *C2GSCurTurnOver) String() string { return proto.CompactTextString(m) }
 func (*C2GSCurTurnOver) ProtoMessage()    {}
 
-// 切换出牌方
 type GS2CTurnToNext struct {
-	PlayerOid        *int32    `protobuf:"varint,1,req,name=playerOid" json:"playerOid,omitempty"`
-	Card             *CardInfo `protobuf:"bytes,2,req,name=card" json:"card,omitempty"`
-	XXX_unrecognized []byte    `json:"-"`
+	PlayerOid        *int32          `protobuf:"varint,1,req,name=playerOid" json:"playerOid,omitempty"`
+	Card             *CardInfo       `protobuf:"bytes,2,opt,name=card" json:"card,omitempty"`
+	Type             *TurnSwitchType `protobuf:"varint,3,req,name=type,enum=pb.TurnSwitchType" json:"type,omitempty"`
+	XXX_unrecognized []byte          `json:"-"`
 }
 
 func (m *GS2CTurnToNext) Reset()         { *m = GS2CTurnToNext{} }
@@ -992,6 +1025,77 @@ func (m *GS2CTurnToNext) GetCard() *CardInfo {
 	return nil
 }
 
+func (m *GS2CTurnToNext) GetType() TurnSwitchType {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return TurnSwitchType_Normal
+}
+
+type GS2CRobotProc struct {
+	ProcPlayer       *int32      `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
+	ProcType         *ProcType   `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
+	BeProcPlayer     *int32      `protobuf:"varint,3,opt,name=beProcPlayer" json:"beProcPlayer,omitempty"`
+	CardList         []*CardInfo `protobuf:"bytes,4,rep,name=cardList" json:"cardList,omitempty"`
+	XXX_unrecognized []byte      `json:"-"`
+}
+
+func (m *GS2CRobotProc) Reset()         { *m = GS2CRobotProc{} }
+func (m *GS2CRobotProc) String() string { return proto.CompactTextString(m) }
+func (*GS2CRobotProc) ProtoMessage()    {}
+
+func (m *GS2CRobotProc) GetProcPlayer() int32 {
+	if m != nil && m.ProcPlayer != nil {
+		return *m.ProcPlayer
+	}
+	return 0
+}
+
+func (m *GS2CRobotProc) GetProcType() ProcType {
+	if m != nil && m.ProcType != nil {
+		return *m.ProcType
+	}
+	return ProcType_SelfGang
+}
+
+func (m *GS2CRobotProc) GetBeProcPlayer() int32 {
+	if m != nil && m.BeProcPlayer != nil {
+		return *m.BeProcPlayer
+	}
+	return 0
+}
+
+func (m *GS2CRobotProc) GetCardList() []*CardInfo {
+	if m != nil {
+		return m.CardList
+	}
+	return nil
+}
+
+type C2GSRobotProcOver struct {
+	RobotOid         *int32    `protobuf:"varint,1,req,name=robotOid" json:"robotOid,omitempty"`
+	ProcType         *ProcType `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
+}
+
+func (m *C2GSRobotProcOver) Reset()         { *m = C2GSRobotProcOver{} }
+func (m *C2GSRobotProcOver) String() string { return proto.CompactTextString(m) }
+func (*C2GSRobotProcOver) ProtoMessage()    {}
+
+func (m *C2GSRobotProcOver) GetRobotOid() int32 {
+	if m != nil && m.RobotOid != nil {
+		return *m.RobotOid
+	}
+	return 0
+}
+
+func (m *C2GSRobotProcOver) GetProcType() ProcType {
+	if m != nil && m.ProcType != nil {
+		return *m.ProcType
+	}
+	return ProcType_SelfGang
+}
+
 func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
@@ -999,6 +1103,7 @@ func init() {
 	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
 	proto.RegisterEnum("pb.ExchangeType", ExchangeType_name, ExchangeType_value)
 	proto.RegisterEnum("pb.ProcType", ProcType_name, ProcType_value)
+	proto.RegisterEnum("pb.TurnSwitchType", TurnSwitchType_name, TurnSwitchType_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CUpdateRoomInfo_Status", GS2CUpdateRoomInfo_Status_name, GS2CUpdateRoomInfo_Status_value)

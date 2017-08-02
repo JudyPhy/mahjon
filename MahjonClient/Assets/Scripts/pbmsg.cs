@@ -600,12 +600,83 @@ namespace pb
       get { return _playerOid; }
       set { _playerOid = value; }
     }
-    private pb.CardInfo _card;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"card", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    private pb.CardInfo _card = null;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"card", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(null)]
     public pb.CardInfo card
     {
       get { return _card; }
       set { _card = value; }
+    }
+    private pb.TurnSwitchType _type;
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.TurnSwitchType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CRobotProc")]
+  public partial class GS2CRobotProc : global::ProtoBuf.IExtensible
+  {
+    public GS2CRobotProc() {}
+    
+    private int _procPlayer;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int procPlayer
+    {
+      get { return _procPlayer; }
+      set { _procPlayer = value; }
+    }
+    private pb.ProcType _procType;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.ProcType procType
+    {
+      get { return _procType; }
+      set { _procType = value; }
+    }
+    private int _beProcPlayer = default(int);
+    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"beProcPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::System.ComponentModel.DefaultValue(default(int))]
+    public int beProcPlayer
+    {
+      get { return _beProcPlayer; }
+      set { _beProcPlayer = value; }
+    }
+    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
+    [global::ProtoBuf.ProtoMember(4, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public global::System.Collections.Generic.List<pb.CardInfo> cardList
+    {
+      get { return _cardList; }
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSRobotProcOver")]
+  public partial class C2GSRobotProcOver : global::ProtoBuf.IExtensible
+  {
+    public C2GSRobotProcOver() {}
+    
+    private int _robotOid;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"robotOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int robotOid
+    {
+      get { return _robotOid; }
+      set { _robotOid = value; }
+    }
+    private pb.ProcType _procType;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.ProcType procType
+    {
+      get { return _procType; }
+      set { _procType = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
@@ -713,8 +784,19 @@ namespace pb
       [global::ProtoBuf.ProtoEnum(Name=@"SelfHu", Value=4)]
       SelfHu = 4,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"HuSelf", Value=5)]
-      HuSelf = 5
+      [global::ProtoBuf.ProtoEnum(Name=@"HuOther", Value=5)]
+      HuOther = 5
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"TurnSwitchType")]
+    public enum TurnSwitchType
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Normal", Value=1)]
+      Normal = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"JustCanDiscard", Value=2)]
+      JustCanDiscard = 2
     }
   
 }

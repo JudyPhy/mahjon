@@ -3,6 +3,7 @@ package roomMgr
 import (
 	"bytes"
 	"math/rand"
+	"server/pb"
 	"strconv"
 	"time"
 
@@ -85,7 +86,7 @@ func getRobotDiscard(list []*Card) *Card {
 
 //接口必须在摸牌后执行
 func (sideInfo *SideInfo) robotTurnSwitch() {
-	log.Debug("机器人%v收到切换操作方消息，进入自己操作过程", sideInfo.playerInfo.oid)
+	log.Debug("turn switch to robot%v", sideInfo.playerInfo.oid)
 	timer := time.NewTimer(time.Second * 2)
 	<-timer.C
 	//2秒后执行
@@ -93,58 +94,62 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 	gList := getGangCardIdList(sideInfo.cardList)
 	pList := getPengCardIdList(sideInfo.cardList)
 	if IsHu(inhandList, gList, pList) {
-		log.Debug("胡牌，游戏结束")
+		log.Debug("Game over!")
 	} else {
-		//未胡牌
-		log.Debug("判断杠牌")
+		log.Debug("Is can self gang")
 		inhandIdList := getInHandCardIdList(sideInfo.cardList)
 		gangCardId := canGang(inhandIdList, nil)
 		if gangCardId != 0 {
 			sideInfo.procSelfGang(gangCardId)
 			return
 		}
-		//出牌
-		log.Debug("不能自杠，出牌")
+		log.Debug("can't self gang, proc discard")
 		discard := getRobotDiscard(sideInfo.cardList)
 		log.Debug("discard[%v](%v)", discard.oid, discard.id)
 		for _, card := range sideInfo.cardList {
 			if card.oid == discard.oid {
 				card.status = CardStatus_PRE_DISCARD
 				sideInfo.process = ProcessStatus_TURN_OVER
-				sendDiscard(sideInfo.playerInfo.roomId, discard)
+				broadcastDiscard(sideInfo.playerInfo.roomId, discard)
 				break
 			}
 		}
 	}
 }
 
-//出牌后，机器人根据出牌信息判断自方情况
-func (sideInfo *SideInfo) robotProcAfterDiscard(card *Card) {
-	log.Debug("机器人%v处理出牌%v(%v)", sideInfo.playerInfo.oid, card.oid, card.id)
+func (sideInfo *SideInfo) robotProcDiscard(discard *Card) {
+	log.Debug("robot:%v process discard:%v(%v)", sideInfo.playerInfo.oid, discard.oid, discard.id)
 	if curTurnPlayerOid == sideInfo.playerInfo.oid {
-		log.Debug("自己出的牌自己不用处理")
+		log.Debug("robot self turn, don't need process.")
 		return
 	}
 	handCard := getInHandCardIdList(sideInfo.cardList)
-	handCard = append(handCard, int(card.id))
+	handCard = append(handCard, int(discard.id))
 	pList := getPengCardIdList(sideInfo.cardList)
 	gList := getGangCardIdList(sideInfo.cardList)
 
 	if IsHu(handCard, pList, gList) {
-		log.Debug("胡牌")
+		log.Debug("robot can Hu!")
 		sideInfo.process = ProcessStatus_WAITING_HU
 	} else {
-		if canGang(handCard, card) != 0 {
-			log.Debug("可以杠")
+		if canGang(handCard, discard) != 0 {
+			log.Debug("robot can Gang!")
 			sideInfo.process = ProcessStatus_WAITING_GANG
 		} else {
-			if canPeng(handCard, card) {
-				log.Debug("可以碰")
+			if canPeng(handCard, discard) {
+				log.Debug("robot can Peng!")
 				sideInfo.process = ProcessStatus_WAITING_PENG
 			} else {
-				log.Debug("机器人本轮不能胡、杠、碰，结束")
+				log.Debug("robot turn over.")
 				sideInfo.process = ProcessStatus_TURN_OVER
 			}
 		}
+	}
+}
+
+func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
+	if procType == pb.ProcType_Peng {
+		log.Debug("robot peng over, turn switch.")
+		sideInfo.process = ProcessStatus_TURN_OVER_PENG
 	}
 }

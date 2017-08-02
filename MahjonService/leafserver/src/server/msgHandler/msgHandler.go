@@ -62,17 +62,31 @@ func SendGS2CDiscardRet(cardOid int32, a gate.Agent) {
 	a.WriteMsg(data)
 }
 
-func SendGS2CTurnToNext(playerOid int32, newCard *pb.CardInfo, a gate.Agent) {
-	log.Debug("SendGS2CTurnToNext-->> playerOid=%v, newCard=%v(%v)", playerOid, newCard.GetCardOid(), newCard.GetCardId())
+func SendGS2CTurnToNext(playerOid int32, newCard *pb.CardInfo, turnType *pb.TurnSwitchType, a gate.Agent) {
+	log.Debug("SendGS2CTurnToNext-->> playerOid=%v, type=%v", playerOid, turnType)
+	if newCard == nil {
+		log.Debug("newCard=%v(%v)", newCard.GetCardOid(), newCard.GetCardId())
+	}
 	data := &pb.GS2CTurnToNext{}
 	data.PlayerOid = proto.Int32(playerOid)
 	data.Card = newCard
+	data.Type = turnType
 	a.WriteMsg(data)
 }
 
 func SendGS2CUpdateCardInfoByPG(procPlayerOid int32, procType *pb.ProcType, beProcPlayerOid int32, list []*pb.CardInfo, a gate.Agent) {
 	log.Debug("SendGS2CUpdateCardInfoByPG-->>")
 	data := &pb.GS2CUpdateCardInfoByPG{}
+	data.ProcPlayer = proto.Int32(procPlayerOid)
+	data.ProcType = procType
+	data.BeProcPlayer = proto.Int32(beProcPlayerOid)
+	data.CardList = list
+	a.WriteMsg(data)
+}
+
+func SendGS2CRobotProc(procPlayerOid int32, procType *pb.ProcType, beProcPlayerOid int32, list []*pb.CardInfo, a gate.Agent) {
+	log.Debug("SendGS2CRobotProc-->>")
+	data := &pb.GS2CRobotProc{}
 	data.ProcPlayer = proto.Int32(procPlayerOid)
 	data.ProcType = procType
 	data.BeProcPlayer = proto.Int32(beProcPlayerOid)

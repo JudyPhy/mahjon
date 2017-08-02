@@ -23,14 +23,31 @@ const (
 	ProcessStatus_TURN_START      ProcessStatus = 4
 	ProcessStatus_TURN_START_OVER ProcessStatus = 5
 	ProcessStatus_TURN_OVER       ProcessStatus = 6
-	ProcessStatus_WAITING_HU      ProcessStatus = 7
-	ProcessStatus_WAITING_GANG    ProcessStatus = 8
-	ProcessStatus_WAITING_PENG    ProcessStatus = 9
-	ProcessStatus_GAME_OVER       ProcessStatus = 10
+	ProcessStatus_TURN_OVER_PENG  ProcessStatus = 7
+	ProcessStatus_WAITING_HU      ProcessStatus = 8  //robot
+	ProcessStatus_WAITING_GANG    ProcessStatus = 9  //robot
+	ProcessStatus_WAITING_PENG    ProcessStatus = 10 //robot
+	ProcessStatus_GAME_OVER       ProcessStatus = 11
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
 	p := new(ProcessStatus)
+	*p = x
+	return p
+}
+
+type TurnOverType int32
+
+const (
+	TurnOverType_DEFAULT TurnOverType = 1
+	TurnOverType_NORMAL  TurnOverType = 2
+	TurnOverType_PENG    TurnOverType = 3
+	TurnOverType_GANG    TurnOverType = 4
+	TurnOverType_HU      TurnOverType = 5
+)
+
+func (x TurnOverType) Enum() *TurnOverType {
+	p := new(TurnOverType)
 	*p = x
 	return p
 }
@@ -188,7 +205,7 @@ func UpdateDiscard(cardOid int32, a gate.Agent) {
 		roomInfo, ok := RoomManager.roomMap[player.roomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.updateDiscard(player.oid, cardOid)
+			roomInfo.recvDiscard(player.oid, cardOid)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}
@@ -221,7 +238,7 @@ func robotSelfGangOver(roomId string) {
 	RoomManager.lock.Unlock()
 	if ok {
 		side := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
-		roomInfo.sendTurnToNext(side)
+		roomInfo.sendNormalTurnToNext(side)
 	} else {
 		log.Debug("room[%v] not exist.")
 	}
@@ -241,5 +258,33 @@ func ProcPlayerPG(procType pb.ProcType, a gate.Agent) {
 		}
 	} else {
 		log.Error("player not login.")
+	}
+}
+
+func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
+	log.Debug("RobotProcOver, robotOid=%v, procType=%v", robotOid, procType)
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.robotProcOver(robotOid, procType)
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func broadcastDiscard(roomId string, discard *Card) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.broadcastDiscard(discard)
+	} else {
+		log.Error("no room[%v]", roomId)
 	}
 }

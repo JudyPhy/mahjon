@@ -100,7 +100,7 @@ func (sideInfo *SideInfo) procSelfGang(gangCardId int) {
 	robotSelfGangOver(sideInfo.playerInfo.roomId)
 }
 
-func (sideInfo *SideInfo) unpdateDiscard(cardOid int32) {
+func (sideInfo *SideInfo) unpdateDiscardInfo(cardOid int32) *Card {
 	isFind := false
 	var card *Card
 	for _, value := range sideInfo.cardList {
@@ -114,10 +114,11 @@ func (sideInfo *SideInfo) unpdateDiscard(cardOid int32) {
 	}
 	if isFind {
 		log.Debug("玩家[%v]出牌[%v(%v)]成功", sideInfo.playerInfo.oid, card.oid, card.id)
-		sendDiscard(sideInfo.playerInfo.roomId, card)
+		broadcastDiscard(sideInfo.playerInfo.roomId, card)
 	} else {
 		log.Debug("玩家出牌[%v]不在自己手牌中", cardOid)
 	}
+	return card
 }
 
 //将被碰或杠的牌添加到对应玩家手牌中

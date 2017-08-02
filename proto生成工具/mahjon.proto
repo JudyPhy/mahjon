@@ -52,6 +52,12 @@ enum ProcType
 	HuOther = 5;
 }
 
+enum TurnSwitchType
+{
+	Normal = 1;
+	JustCanDiscard = 2;
+}
+
 message LackCard
 {
 	required int32 playerId = 1;
@@ -195,7 +201,6 @@ message GS2CProcPGRet
 	required ErrorCode errorCode = 1;
 }
 
-//碰、杠后更新玩家手牌
 message GS2CUpdateCardInfoByPG
 {
 	required int32 procPlayer = 1;
@@ -204,18 +209,30 @@ message GS2CUpdateCardInfoByPG
 	repeated CardInfo cardList = 4;
 }
 
-//本轮结束
 message C2GSCurTurnOver
 {
 }
 
-//切换出牌方
 message GS2CTurnToNext
 {
 	required int32 playerOid = 1;
-	required CardInfo card = 2;
+	optional CardInfo card = 2;
+	required TurnSwitchType type = 3;
 }
 
+message GS2CRobotProc
+{
+	required int32 procPlayer = 1;
+	required ProcType procType = 2;
+	optional int32 beProcPlayer = 3;
+	repeated CardInfo cardList = 4;
+}
+
+message C2GSRobotProcOver
+{
+	required int32 robotOid = 1;
+	required ProcType procType = 2;
+}
 
 
 

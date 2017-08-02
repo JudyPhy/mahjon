@@ -488,12 +488,12 @@ public class BattleManager
     }
 
     #region playing
-    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard)
+    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard, pb.TurnSwitchType type)
     {
-        Debug.Log("切换到下一个玩家:" + playerOid);
+        Debug.Log("turn to next:" + playerOid);
         if (drawnCard != null)
         {
-            Debug.Log("摸牌：" + drawnCard.CardOid);
+            Debug.Log("draw new card：" + drawnCard.CardOid);
         }
         _curPlaySide = GetSideByPlayerOID(playerOid);
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
@@ -503,7 +503,7 @@ public class BattleManager
                 _playerPaiInfoList[i].AddPai(drawnCard);
             }
         }
-        EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardInfo>(EventDefine.TurnToPlayer, _curPlaySide, drawnCard);
+        EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardInfo, pb.TurnSwitchType>(EventDefine.TurnToPlayer, _curPlaySide, drawnCard, type);
     }
 
     private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
@@ -770,7 +770,7 @@ public class BattleManager
             }
         }
         //处理操作动画
-        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.SomePlayerPG, msg.procPlayer, msg.beProcPlayer, msg.procType);
+        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
     }
 
     public Pai GetCardInfoByCardOid(int cardOid)
@@ -794,6 +794,43 @@ public class BattleManager
     {
         Pai discardInfo = GetCardInfoByCardOid(discardOid);
         discardInfo.Status = PaiStatus.Discard;
+    }
+
+    public void ProcessRobotProc(pb.GS2CRobotProc msg)
+    {
+        Debug.Log("ProcessRobotProc, procRobot=" + msg.procPlayer + ", beProcPlayer=" + msg.beProcPlayer + ", type=" + msg.procType.ToString());
+        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
+        for (int i = 0; i < msg.cardList.Count; i++)
+        {
+            if (dict.ContainsKey(msg.cardList[i].playerId))
+            {
+                dict[msg.cardList[i].playerId].Add(msg.cardList[i]);
+            }
+            else
+            {
+                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
+                cardList.Add(msg.cardList[i]);
+                dict.Add(msg.cardList[i].playerId, cardList);
+            }
+        }
+        //更新牌信息
+        foreach (int playerOid in dict.Keys)
+        {
+            Debug.Log("current player[" + playerOid + "] has card count=" + dict[playerOid].Count);
+            for (int i = 0; i < _playerPaiInfoList.Count; i++)
+            {
+                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+                {
+                    _playerPaiInfoList[i].ClearPai();
+                    for (int n = 0; n < dict[playerOid].Count; n++)
+                    {
+                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
+                    }
+                }
+            }
+        }
+        //处理操作动画
+        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
     }
 
 }

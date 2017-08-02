@@ -17,6 +17,7 @@ func init() {
 	handler(&pb.C2GSDiscard{}, recvC2GSDiscard)
 	handler(&pb.C2GSCurTurnOver{}, recvC2GSCurTurnOver)
 	handler(&pb.C2GSProcPG{}, recvC2GSProcPG)
+	handler(&pb.C2GSRobotProcOver{}, recvC2GSRobotProcOver)
 }
 
 func handler(m interface{}, h interface{}) {
@@ -80,4 +81,11 @@ func recvC2GSProcPG(args []interface{}) {
 	m := args[0].(*pb.C2GSProcPG)
 	a := args[1].(gate.Agent)
 	roomMgr.ProcPlayerPG(m.GetProcType(), a)
+}
+
+func recvC2GSRobotProcOver(args []interface{}) {
+	log.Debug("recvC2GSRobotProcOver <<--")
+	m := args[0].(*pb.C2GSRobotProcOver)
+	a := args[1].(gate.Agent)
+	roomMgr.RobotProcOver(m.GetRobotOid(), m.GetProcType(), a)
 }

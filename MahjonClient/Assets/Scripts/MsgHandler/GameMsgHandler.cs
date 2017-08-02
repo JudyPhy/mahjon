@@ -85,6 +85,15 @@ public class GameMsgHandler
         msg.procType = type;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSProcPG, msg);
     }
+
+    public void SendMsgC2GSRobotProcOver(int robotOid, pb.ProcType type)
+    {
+        Debug.Log("SendMsgC2GSRobotProcOver==>>");
+        pb.C2GSRobotProcOver msg = new pb.C2GSRobotProcOver();
+        msg.robotOid = robotOid;
+        msg.procType = type;
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSRobotProcOver, msg);
+    }
     #endregion
 
 
@@ -198,7 +207,7 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
         BattleManager.Instance.CurTurnDrawnCardOid = msg.card.CardOid;
-        BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card);
+        BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card, msg.type);
     }
 
     public void RevMsgGS2CUpdateCardInfoByPG(int pid, byte[] msgBuf, int msgSize)
@@ -207,6 +216,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateCardInfoByPG msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoByPG>(stream);
         BattleManager.Instance.UpdateCardInfoByPG(msg);
+    }
+
+    public void RevMsgGS2CRobotProc(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CRobotProc");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CRobotProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CRobotProc>(stream);
+        BattleManager.Instance.ProcessRobotProc(msg);
     }
     #endregion
 }

@@ -21,4 +21,5 @@ public enum MsgDef
     C2GSCurTurnOver = 14,
     GS2CTurnToNext = 15,
     C2GSProcPG = 16,
+    C2GSRobotProcOver = 17,
 }
