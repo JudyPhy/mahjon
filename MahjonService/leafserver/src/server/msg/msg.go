@@ -26,5 +26,6 @@ func init() {
 	Processor.Register(&pb.C2GSCurTurnOver{})                 //14
 	Processor.Register(&pb.GS2CTurnToNext{})                  //15
 	Processor.Register(&pb.C2GSProcPG{})                      //16
-	Processor.Register(&pb.C2GSRobotProcOver{})               //17
+	Processor.Register(&pb.GS2CRobotProc{})                   //17
+	Processor.Register(&pb.C2GSRobotProcOver{})               //18
 }

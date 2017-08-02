@@ -87,9 +87,9 @@ func getRobotDiscard(list []*Card) *Card {
 //接口必须在摸牌后执行
 func (sideInfo *SideInfo) robotTurnSwitch() {
 	log.Debug("turn switch to robot%v", sideInfo.playerInfo.oid)
-	timer := time.NewTimer(time.Second * 2)
+	timer := time.NewTimer(time.Second * 1)
 	<-timer.C
-	//2秒后执行
+	//1秒后执行
 	inhandList := getInHandCardIdList(sideInfo.cardList)
 	gList := getGangCardIdList(sideInfo.cardList)
 	pList := getPengCardIdList(sideInfo.cardList)

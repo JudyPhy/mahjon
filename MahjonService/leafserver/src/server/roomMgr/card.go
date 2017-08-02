@@ -384,7 +384,7 @@ func canPeng(list []int, discard *Card) bool {
 			count++
 		}
 	}
-	log.Debug("canPeng: count=%v, cardId=%v", count, discard.id)
+	//log.Debug("canPeng: count=%v, cardId=%v", count, discard.id)
 	return count == 3
 }
 

@@ -284,6 +284,7 @@ func broadcastDiscard(roomId string, discard *Card) {
 	RoomManager.lock.Unlock()
 	if ok {
 		roomInfo.broadcastDiscard(discard)
+		roomInfo.checkTurnOver()
 	} else {
 		log.Error("no room[%v]", roomId)
 	}

@@ -114,22 +114,27 @@ func (sideInfo *SideInfo) unpdateDiscardInfo(cardOid int32) *Card {
 	}
 	if isFind {
 		log.Debug("玩家[%v]出牌[%v(%v)]成功", sideInfo.playerInfo.oid, card.oid, card.id)
-		broadcastDiscard(sideInfo.playerInfo.roomId, card)
 	} else {
 		log.Debug("玩家出牌[%v]不在自己手牌中", cardOid)
 	}
 	return card
 }
 
-//将被碰或杠的牌添加到对应玩家手牌中
 func (sideInfo *SideInfo) addDiscardAsPG(card *Card) {
 	log.Debug("将牌%v(%v)加入到玩家[%v]的碰杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_PENG
 	card.fromOther = true
 	sideInfo.cardList = append(sideInfo.cardList, card)
+	for i := 0; i < 2; i++ {
+		for _, value := range sideInfo.cardList {
+			if value.status == CardStatus_INHAND && value.id == card.id {
+				value.status = CardStatus_PENG
+				break
+			}
+		}
+	}
 }
 
-//从当前操作方手牌中去除被碰或杠的牌
 func (sideInfo *SideInfo) deleteDiscard(card *Card) {
 	log.Debug("将牌%v(%v)从玩家[%v]的牌堆中去除", card.oid, card.id, sideInfo.playerInfo.oid)
 	for i, value := range sideInfo.cardList {

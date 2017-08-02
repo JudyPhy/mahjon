@@ -494,6 +494,7 @@ public class BattleManager
         if (drawnCard != null)
         {
             Debug.Log("draw new card：" + drawnCard.CardOid);
+            BattleManager.Instance.CurTurnDrawnCardOid = drawnCard.CardOid;
         }
         _curPlaySide = GetSideByPlayerOID(playerOid);
         for (int i = 0; i < _playerPaiInfoList.Count; i++)
@@ -621,7 +622,7 @@ public class BattleManager
             List<int> ds = tempList.FindAll(delegate (int id) { return id == list[i]; });
             if (ds.Count >= 2)
             {
-                Debug.LogError("将牌：" + ds[0]);
+                //Debug.LogError("将牌：" + ds[0]);
                 //选择将牌
                 tempList.Remove(list[i]);
                 tempList.Remove(list[i]);
@@ -638,12 +639,12 @@ public class BattleManager
 
     private bool huPaiPanDing(List<int> list)
     {
-        string str = "huPaiPanDing list: ";
-        for (int i = 0; i < list.Count; i++)
-        {
-            str += list[i].ToString() + ", ";
-        }
-        Debug.LogError(str);
+        //string str = "huPaiPanDing list: ";
+        //for (int i = 0; i < list.Count; i++)
+        //{
+        //    str += list[i].ToString() + ", ";
+        //}
+        //Debug.LogError(str);
 
         if (list.Count == 0)
         {
@@ -655,7 +656,7 @@ public class BattleManager
         //检查刻子
         if (tempList.Count == 3)
         {
-            Debug.Log("去除刻子:" + list[0]);
+            //Debug.Log("去除刻子:" + list[0]);
             list.Remove(list[0]);
             list.Remove(list[0]);
             list.Remove(list[0]);
@@ -665,13 +666,13 @@ public class BattleManager
         {
             if (list.Contains(list[0] + 1) && list.Contains(list[0] + 2))
             {
-                Debug.Log("去除顺子:" + list[0] + ", " + (list[0] + 1) + ", " + (list[0] + 2));
+                //Debug.Log("去除顺子:" + list[0] + ", " + (list[0] + 1) + ", " + (list[0] + 2));
                 list.Remove(list[0] + 2);
                 list.Remove(list[0] + 1);
                 list.Remove(list[0]);
                 return huPaiPanDing(list);
             }
-            Debug.Log("没顺子，没刻子");
+            //Debug.Log("没顺子，没刻子");
             return false;
         }
     }
@@ -680,12 +681,12 @@ public class BattleManager
     {
         Debug.Log("check gang pai...");
 
-        string str = "";
-        for (int i = 0; i < list.Count; i++)
-        {
-            str += list[i] + ", ";
-        }
-        Debug.Log(str);
+        //string str = "";
+        //for (int i = 0; i < list.Count; i++)
+        //{
+        //    str += list[i] + ", ";
+        //}
+        //Debug.Log(str);
 
         for (int i = 0; i < list.Count; i++)
         {
@@ -702,12 +703,12 @@ public class BattleManager
     {
         Debug.Log("check peng pai...");
 
-        string str = "";
-        for (int i = 0; i < list.Count; i++)
-        {
-            str += list[i] + ", ";
-        }
-        Debug.Log(str);
+        //string str = "";
+        //for (int i = 0; i < list.Count; i++)
+        //{
+        //    str += list[i] + ", ";
+        //}
+        //Debug.Log(str);
 
         List<int> tempList = list.FindAll(delegate (int id) { return id == pCard; });
         if (tempList.Count == 3)

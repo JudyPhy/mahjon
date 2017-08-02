@@ -205,8 +205,7 @@ public class GameMsgHandler
     {
         Debug.Log("==>> RevMsgGS2CTurnToNext");
         Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
-        BattleManager.Instance.CurTurnDrawnCardOid = msg.card.CardOid;
+        pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);        
         BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card, msg.type);
     }
 

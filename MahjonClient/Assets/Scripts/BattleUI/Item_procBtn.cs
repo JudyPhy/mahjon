@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EventTransmit;
 
 public enum ProcBtnType
 {
@@ -81,7 +82,7 @@ public class Item_procBtn : MonoBehaviour {
                 }
                 else
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.HuSelf);
+                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.HuOther);
                 }
                 break;
             case ProcBtnType.Pass:
@@ -89,6 +90,7 @@ public class Item_procBtn : MonoBehaviour {
             default:
                 break;
         }
+        EventDispatcher.TriggerEvent(EventDefine.EnsureProcPG);
     }
 
     // Update is called once per frame

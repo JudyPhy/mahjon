@@ -802,7 +802,7 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 
 //---------------------------------------- robot proc ----------------------------------------
 func (roomInfo *RoomInfo) sendRobotProc(procPlayer int32, beProcPlayer int32, procType pb.ProcType) {
-	log.Debug("sendUpdateCardInfoByPG, procPlayer=%v, beProcPlayer=%v", procPlayer, beProcPlayer, procType)
+	log.Debug("sendRobotProc, procPlayer=%v, beProcPlayer=%v， procType=%v", procPlayer, beProcPlayer, procType)
 	var cardList []*pb.CardInfo
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.playerInfo.oid == procPlayer || sideInfo.playerInfo.oid == beProcPlayer {
@@ -904,7 +904,6 @@ func (roomInfo *RoomInfo) getPlayerOidBySide(side pb.BattleSide) int32 {
 
 func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	log.Debug("sendNormalTurnToNext[%v]", nextSide)
-	var curTurnPlayerOid int32
 	newCard := &pb.CardInfo{}
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.side == nextSide {
@@ -912,14 +911,15 @@ func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 			rand.Seed(time.Now().Unix())
 			rnd := rand.Intn(len(roomInfo.cardWall))
 			roomInfo.cardWall[rnd].status = CardStatus_INHAND
-			sideInfo.drawNewCard(roomInfo.cardWall[rnd])
-			roomInfo.cardWall = append(roomInfo.cardWall[:rnd], roomInfo.cardWall[rnd+1:]...)
 
 			newCard.CardOid = proto.Int32(roomInfo.cardWall[rnd].oid)
 			newCard.CardId = proto.Int32(roomInfo.cardWall[rnd].id)
 			newCard.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
 			newCard.FromOther = proto.Bool(false)
 			newCard.Status = pb.CardStatus_inHand.Enum()
+
+			sideInfo.drawNewCard(roomInfo.cardWall[rnd])
+			roomInfo.cardWall = append(roomInfo.cardWall[:rnd], roomInfo.cardWall[rnd+1:]...)
 			break
 		}
 	}
@@ -939,6 +939,11 @@ func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 func (roomInfo *RoomInfo) sendPengTurnToNext(nextSide pb.BattleSide) {
 	log.Debug("sendPengTurnToNext, nextSide=[%v]", nextSide)
 	for _, sideInfo := range roomInfo.cardMap.cMap {
+		if nextSide == sideInfo.side {
+			curTurnPlayerOid = sideInfo.playerInfo.oid
+		}
+	}
+	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if !sideInfo.isRobot && sideInfo.agent != nil {
 			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_JustCanDiscard.Enum(), sideInfo.agent)
 		}
@@ -946,25 +951,21 @@ func (roomInfo *RoomInfo) sendPengTurnToNext(nextSide pb.BattleSide) {
 }
 
 func (roomInfo *RoomInfo) getCurTurnSideInfo() *SideInfo {
-	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.playerInfo.oid == curTurnPlayerOid {
 			return sideInfo
 		}
 	}
-	//roomInfo.cardMap.lock.Unlock()
 	return nil
 }
 
 func (roomInfo *RoomInfo) sideInfoTurnOver(playerOid int32) {
-	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.playerInfo.oid == playerOid {
 			sideInfo.process = ProcessStatus_TURN_OVER
 			break
 		}
 	}
-	//roomInfo.cardMap.lock.Unlock()
 
 	roomInfo.checkTurnOver()
 }
