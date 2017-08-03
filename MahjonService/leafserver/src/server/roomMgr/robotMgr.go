@@ -79,9 +79,16 @@ func getSeparateCardTypeMap(list []*Card) map[int][]int32 {
 
 //获取要出的牌
 func getRobotDiscard(list []*Card) *Card {
+	var ableDiscardList []*Card
+	for _, curCard := range list {
+		if curCard.status == CardStatus_INHAND {
+			ableDiscardList = append(ableDiscardList, curCard)
+		}
+	}
+	log.Debug("robot inhand card count=%v", len(ableDiscardList))
 	rand.Seed(time.Now().Unix())
-	rnd := rand.Intn(len(list))
-	return list[rnd]
+	rnd := rand.Intn(len(ableDiscardList))
+	return ableDiscardList[rnd]
 }
 
 //接口必须在摸牌后执行
@@ -104,15 +111,20 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 			return
 		}
 		log.Debug("can't self gang, proc discard")
-		discard := getRobotDiscard(sideInfo.cardList)1111111111
-		log.Debug("discard[%v](%v)", discard.oid, discard.id)
+		discard := getRobotDiscard(sideInfo.cardList)
+		log.Debug("robot 出牌[%v](%v)", discard.oid, discard.id)
+		isFind := false
 		for _, card := range sideInfo.cardList {
 			if card.oid == discard.oid {
 				card.status = CardStatus_PRE_DISCARD
 				sideInfo.process = ProcessStatus_TURN_OVER
 				broadcastDiscard(sideInfo.playerInfo.roomId, discard)
+				isFind = true
 				break
 			}
+		}
+		if !isFind {
+			log.Error("robot discard is not in it's cardList.")
 		}
 	}
 }

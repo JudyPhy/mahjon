@@ -874,14 +874,12 @@ func (roomInfo *RoomInfo) turnToNextPlayer() {
 }
 
 func (roomInfo *RoomInfo) getPlayerOidBySide(side pb.BattleSide) int32 {
-	roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.side == side {
 			roomInfo.cardMap.lock.Unlock()
 			return sideInfo.playerInfo.oid
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
 	return 0
 }
 
