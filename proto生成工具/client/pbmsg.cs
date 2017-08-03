@@ -683,6 +683,79 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CPlayerEnsureProc")]
+  public partial class GS2CPlayerEnsureProc : global::ProtoBuf.IExtensible
+  {
+    public GS2CPlayerEnsureProc() {}
+    
+    private int _procPlayer;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int procPlayer
+    {
+      get { return _procPlayer; }
+      set { _procPlayer = value; }
+    }
+    private pb.ProcType _procType;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.ProcType procType
+    {
+      get { return _procType; }
+      set { _procType = value; }
+    }
+    private int _beProcPlayer = default(int);
+    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"beProcPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::System.ComponentModel.DefaultValue(default(int))]
+    public int beProcPlayer
+    {
+      get { return _beProcPlayer; }
+      set { _beProcPlayer = value; }
+    }
+    private int _procCardId;
+    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int procCardId
+    {
+      get { return _procCardId; }
+      set { _procCardId = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSPlayerEnsureProcRet")]
+  public partial class C2GSPlayerEnsureProcRet : global::ProtoBuf.IExtensible
+  {
+    public C2GSPlayerEnsureProcRet() {}
+    
+    private pb.ProcType _procType;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.ProcType procType
+    {
+      get { return _procType; }
+      set { _procType = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateCardAfterPlayerProc")]
+  public partial class GS2CUpdateCardAfterPlayerProc : global::ProtoBuf.IExtensible
+  {
+    public GS2CUpdateCardAfterPlayerProc() {}
+    
+    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    public global::System.Collections.Generic.List<pb.CardInfo> cardList
+    {
+      get { return _cardList; }
+    }
+  
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
     [global::ProtoBuf.ProtoContract(Name=@"GameMode")]
     public enum GameMode
     {

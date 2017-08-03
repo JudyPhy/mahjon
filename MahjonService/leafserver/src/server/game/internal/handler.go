@@ -18,6 +18,7 @@ func init() {
 	handler(&pb.C2GSCurTurnOver{}, recvC2GSCurTurnOver)
 	handler(&pb.C2GSProcPG{}, recvC2GSProcPG)
 	handler(&pb.C2GSRobotProcOver{}, recvC2GSRobotProcOver)
+	handler(&pb.C2GSPlayerEnsureProcRet{}, recvC2GSPlayerEnsureProcRet)
 }
 
 func handler(m interface{}, h interface{}) {
@@ -78,9 +79,6 @@ func recvC2GSCurTurnOver(args []interface{}) {
 
 func recvC2GSProcPG(args []interface{}) {
 	log.Debug("recvC2GSProcPG <<--")
-	m := args[0].(*pb.C2GSProcPG)
-	a := args[1].(gate.Agent)
-	roomMgr.ProcPlayerPG(m.GetProcType(), a)
 }
 
 func recvC2GSRobotProcOver(args []interface{}) {
@@ -88,4 +86,11 @@ func recvC2GSRobotProcOver(args []interface{}) {
 	m := args[0].(*pb.C2GSRobotProcOver)
 	a := args[1].(gate.Agent)
 	roomMgr.RobotProcOver(m.GetRobotOid(), m.GetProcType(), a)
+}
+
+func recvC2GSPlayerEnsureProcRet(args []interface{}) {
+	log.Debug("recvC2GSPlayerEnsureProcRet <<--")
+	m := args[0].(*pb.C2GSPlayerEnsureProcRet)
+	a := args[1].(gate.Agent)
+	roomMgr.PlayerEnsureProc(m.GetProcType(), a)
 }

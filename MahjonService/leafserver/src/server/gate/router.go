@@ -18,4 +18,5 @@ func init() {
 	msg.Processor.SetRouter(&pb.C2GSCurTurnOver{}, game.ChanRPC)
 	msg.Processor.SetRouter(&pb.C2GSProcPG{}, game.ChanRPC)
 	msg.Processor.SetRouter(&pb.C2GSRobotProcOver{}, game.ChanRPC)
+	msg.Processor.SetRouter(&pb.C2GSPlayerEnsureProcRet{}, game.ChanRPC)
 }

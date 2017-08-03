@@ -136,7 +136,7 @@ func checkPeng(list []int) bool {
 		}
 	}
 	for id, count := range dict {
-		log.Debug("[HU] check peng => id[%v], count[%v]", id, count)
+		log.Debug("check peng => id[%v], count[%v]", id, count)
 		if count != 3 {
 			return false
 		}
@@ -390,15 +390,12 @@ func canPeng(list []int, discard *Card) bool {
 
 //获取CardStatus_PRE_DISCARD状态的牌
 func (roomInfo *RoomInfo) getPreDiscard() *Card {
-	//roomInfo.cardMap.lock.Lock()
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		for _, card := range sideInfo.cardList {
 			if card.status == CardStatus_PRE_DISCARD {
-				//roomInfo.cardMap.lock.Unlock()
 				return card
 			}
 		}
 	}
-	//roomInfo.cardMap.lock.Unlock()
 	return nil
 }

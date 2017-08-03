@@ -120,6 +120,36 @@ func (sideInfo *SideInfo) unpdateDiscardInfo(cardOid int32) *Card {
 	return card
 }
 
+func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
+	log.Debug("player:%v process discard:%v(%v)", sideInfo.playerInfo.oid, discard.oid, discard.id)
+	if curTurnPlayerOid == sideInfo.playerInfo.oid {
+		log.Debug("player self turn, don't need process.")
+		return
+	}
+	handCard := getInHandCardIdList(sideInfo.cardList)
+	handCard = append(handCard, int(discard.id))
+	pList := getPengCardIdList(sideInfo.cardList)
+	gList := getGangCardIdList(sideInfo.cardList)
+
+	if IsHu(handCard, pList, gList) {
+		log.Debug("player can Hu!")
+		sideInfo.process = ProcessStatus_WAITING_HU
+	} else {
+		if canGang(handCard, discard) != 0 {
+			log.Debug("player can Gang!")
+			sideInfo.process = ProcessStatus_WAITING_GANG
+		} else {
+			if canPeng(handCard, discard) {
+				log.Debug("player can Peng!")
+				sideInfo.process = ProcessStatus_WAITING_PENG
+			} else {
+				log.Debug("player turn over.")
+				sideInfo.process = ProcessStatus_TURN_OVER
+			}
+		}
+	}
+}
+
 func (sideInfo *SideInfo) addDiscardAsPG(card *Card) {
 	log.Debug("将牌%v(%v)加入到玩家[%v]的碰杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_PENG
@@ -146,7 +176,7 @@ func (sideInfo *SideInfo) deleteDiscard(card *Card) {
 }
 
 func (sideInfo *SideInfo) drawNewCard(newCard *Card) {
-	log.Debug("切换操作方，摸牌[%v]", newCard.oid)
+	log.Debug("切换操作方，摸牌%v(%v)", newCard.oid, newCard.id)
 	sideInfo.cardList = append(sideInfo.cardList, newCard)
 }
 

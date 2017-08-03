@@ -24,9 +24,9 @@ const (
 	ProcessStatus_TURN_START_OVER ProcessStatus = 5
 	ProcessStatus_TURN_OVER       ProcessStatus = 6
 	ProcessStatus_TURN_OVER_PENG  ProcessStatus = 7
-	ProcessStatus_WAITING_HU      ProcessStatus = 8  //robot
-	ProcessStatus_WAITING_GANG    ProcessStatus = 9  //robot
-	ProcessStatus_WAITING_PENG    ProcessStatus = 10 //robot
+	ProcessStatus_WAITING_HU      ProcessStatus = 8
+	ProcessStatus_WAITING_GANG    ProcessStatus = 9
+	ProcessStatus_WAITING_PENG    ProcessStatus = 10
 	ProcessStatus_GAME_OVER       ProcessStatus = 11
 )
 
@@ -244,23 +244,6 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
-func ProcPlayerPG(procType pb.ProcType, a gate.Agent) {
-	log.Debug("ProcPlayerPG")
-	player := getPlayerBtAgent(a)
-	if player != nil {
-		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
-		RoomManager.lock.Unlock()
-		if ok {
-			roomInfo.procPlayerPG(player.oid, procType)
-		} else {
-			log.Error("no room[%v]", player.roomId)
-		}
-	} else {
-		log.Error("player not login.")
-	}
-}
-
 func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 	log.Debug("RobotProcOver, robotOid=%v, procType=%v", robotOid, procType)
 	player := getPlayerBtAgent(a)
@@ -270,6 +253,23 @@ func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 		RoomManager.lock.Unlock()
 		if ok {
 			roomInfo.robotProcOver(robotOid, procType)
+		} else {
+			log.Error("no room[%v]", player.roomId)
+		}
+	} else {
+		log.Error("player not login.")
+	}
+}
+
+func PlayerEnsureProc(procType pb.ProcType, a gate.Agent) {
+	log.Debug("PlayerEnsureProc, procType=%v", procType)
+	player := getPlayerBtAgent(a)
+	if player != nil {
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.playerEnsureProc(player.oid, procType)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

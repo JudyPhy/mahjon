@@ -17,6 +17,7 @@ public class Item_procBtn : MonoBehaviour {
     private BoxCollider _collider;
 
     private ProcBtnType _type;
+    private int _targetCardId;
 
     private void Awake() {
         _sprite = transform.GetComponent<UISprite>();
@@ -29,9 +30,10 @@ public class Item_procBtn : MonoBehaviour {
 		
 	}
 
-    public void UpdateUI(ProcBtnType type)
+    public void UpdateUI(ProcBtnType type, int targetCardId)
     {
         _type = type;
+        _targetCardId = targetCardId;
         switch (_type)
         {
             case ProcBtnType.Peng:
@@ -63,26 +65,26 @@ public class Item_procBtn : MonoBehaviour {
         switch (_type)
         {
             case ProcBtnType.Peng:
-                GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.Peng);
+                GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.Peng);
                 break;
             case ProcBtnType.Gang:
                 if (BattleManager.Instance.CurPlaySide == BattleManager.Instance.GetSideByPlayerOID(Player.Instance.PlayerInfo.OID))
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.SelfGang);
+                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.SelfGang);
                 }
                 else
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.GangOther);
+                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.GangOther);
                 }
                 break;
             case ProcBtnType.Hu:
                 if (BattleManager.Instance.CurPlaySide == BattleManager.Instance.GetSideByPlayerOID(Player.Instance.PlayerInfo.OID))
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.SelfHu);
+                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.SelfHu);
                 }
                 else
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSProcPG(pb.ProcType.HuOther);
+                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.HuOther);
                 }
                 break;
             case ProcBtnType.Pass:

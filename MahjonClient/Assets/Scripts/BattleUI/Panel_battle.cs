@@ -151,6 +151,8 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.AddEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
         EventDispatcher.AddEventListener<int, int, pb.ProcType>(EventDefine.RobotProc, RobotProcPG);
         EventDispatcher.AddEventListener(EventDefine.EnsureProcPG, EnsureProcPG);
+        EventDispatcher.AddEventListener<int, pb.ProcType, int>(EventDefine.SelfEnsureProc, SelfEnsureProc);
+        EventDispatcher.AddEventListener<List<int>>(EventDefine.ReplacePlayerCards, ReplacePlayerCards);
     }
 
     public override void OnRemoveEvent()
@@ -169,7 +171,9 @@ public class Panel_battle : WindowsBasePanel
         EventDispatcher.RemoveEventListener<Pai>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.RemoveEventListener<int>(EventDefine.DiscardRet, PlayDiscardAni);
         EventDispatcher.RemoveEventListener<int, int, pb.ProcType>(EventDefine.RobotProc, RobotProcPG);
-        EventDispatcher.AddEventListener(EventDefine.EnsureProcPG, EnsureProcPG);
+        EventDispatcher.RemoveEventListener(EventDefine.EnsureProcPG, EnsureProcPG);
+        EventDispatcher.RemoveEventListener<int, pb.ProcType, int>(EventDefine.SelfEnsureProc, SelfEnsureProc);
+        EventDispatcher.RemoveEventListener<List<int>>(EventDefine.ReplacePlayerCards, ReplacePlayerCards);
     }
 
     private void hideAllRoleItem()
@@ -1115,7 +1119,7 @@ public class Panel_battle : WindowsBasePanel
             result[0] = new Vector3(-0.45f, 0.05f, 0.235f);
             result[1] = new Vector3(-90, 90, 0);
             result[2] = new Vector3(0, 0, -0.035f);
-            result[3] = new Vector3(-90, -90, 0);
+            result[3] = new Vector3(0, 90, 0);
         }
         return result;
     }
@@ -1125,15 +1129,15 @@ public class Panel_battle : WindowsBasePanel
         Vector3 result = Vector3.zero;
         if (sideIndex == 1)
         {
-            result = new Vector3(0, 0, 0.048f);
+            result = new Vector3(0, 0, 0.028f);
         }
         else if (sideIndex == 2)
         {
-            result = new Vector3(-0.048f, 0, 0);
+            result = new Vector3(-0.028f, 0, 0);
         }
         else if (sideIndex == 3)
         {
-            result = new Vector3(0, 0, -0.048f);
+            result = new Vector3(0, 0, -0.028f);
         }
         return result;
     }
@@ -1209,7 +1213,7 @@ public class Panel_battle : WindowsBasePanel
 
         List<Pai> inhandList = BattleManager.Instance.GetCardListBySideAndStatus(side, PaiStatus.InHand);
         Vector3[] vecs = getNonDiscardVecBySideIndex(sideIndex); //startPos、rotate_inhand、offsetInLine、rotate_peng
-     _curOther3DItemIndex_playing[sideIndex] = 0;
+        _curOther3DItemIndex_playing[sideIndex] = 0;
         Vector3 curPos = vecs[0];
         for (int i = 0; i < inhandList.Count; i++, _curOther3DItemIndex_playing[sideIndex]++)
         {
@@ -1225,7 +1229,7 @@ public class Panel_battle : WindowsBasePanel
             script.transform.localPosition = curPos;
             curPos += vecs[2];
         }
-        Debug.Log("place inhand count=" + _curOther3DItemIndex_playing[sideIndex] + 
+        Debug.Log("place inhand count=" + _curOther3DItemIndex_playing[sideIndex] +
             ", curPos=" + curPos.x + "," + curPos.y + "," + curPos.z);
 
         //碰牌
@@ -1442,7 +1446,7 @@ public class Panel_battle : WindowsBasePanel
             int sideIndex = getSideIndexFromSelf(BattleManager.Instance.CurPlaySide);
             sortAndPlaceOtherCard(sideIndex, false);
 
-            Debug.Log("不是自己出牌，判断胡牌、杠、碰情况");
+            /*Debug.Log("不是自己出牌，判断胡牌、杠、碰情况");
             _battleProcess = BattleProcess.CheckingHu;
 
             List<int> inhandList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
@@ -1478,7 +1482,7 @@ public class Panel_battle : WindowsBasePanel
                         Invoke("sendTurnOver", 1f);                        
                     }
                 }
-            }
+            }*/
         }
         else
         {
@@ -1511,33 +1515,6 @@ public class Panel_battle : WindowsBasePanel
         return script;
     }
 
-    private void showProcPeng()
-    {
-        _procGrid.gameObject.SetActive(true);
-        ProcBtnType[] types = { ProcBtnType.Peng, ProcBtnType.Pass };
-        for (int i = 0; i < 2; i++)
-        {
-            Item_procBtn script = getProcBtnItem(i);
-            script.gameObject.SetActive(true);
-            script.UpdateUI(types[i]);
-            script.EnableClick(true);
-        }
-        _procGrid.repositionNow = true;
-    }
-
-    private void showProcGang()
-    {
-        _procGrid.gameObject.SetActive(true);
-        ProcBtnType[] types = { ProcBtnType.Gang, ProcBtnType.Peng, ProcBtnType.Pass };
-        for (int i = 0; i < 3; i++)
-        {
-            Item_procBtn script = getProcBtnItem(i);
-            script.gameObject.SetActive(true);
-            script.UpdateUI(types[i]);
-        }
-        _procGrid.repositionNow = true;
-    }
-
     private void EnsureProcPG()
     {
         _procGrid.gameObject.SetActive(false);
@@ -1550,7 +1527,7 @@ public class Panel_battle : WindowsBasePanel
         switch (type)
         {
             case pb.ProcType.SelfGang:
-                PlaySelfGangAni(procPlayer);
+                PlayRobotSelfGangAni(procPlayer);
                 break;
             case pb.ProcType.Peng:
                 PlayRobotPengAni(procPlayer, beProcPlayer);
@@ -1560,7 +1537,7 @@ public class Panel_battle : WindowsBasePanel
         }
     }
 
-    private void PlaySelfGangAni(int player)
+    private void PlayRobotSelfGangAni(int player)
     {
         Debug.Log("robot" + player + " self gang.");
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(player);
@@ -1569,7 +1546,7 @@ public class Panel_battle : WindowsBasePanel
         hideAllProcItem();
         Item_procBtn script = getProcBtnItem(0);
         script.gameObject.SetActive(true);
-        script.UpdateUI(ProcBtnType.Gang);
+        script.UpdateUI(ProcBtnType.Gang, 0);
         script.EnableClick(false);
         script.transform.localPosition = targetPos[sideIndex];
         script.transform.localScale = Vector3.zero;
@@ -1593,7 +1570,7 @@ public class Panel_battle : WindowsBasePanel
         hideAllProcItem();
         Item_procBtn script = getProcBtnItem(0);
         script.gameObject.SetActive(true);
-        script.UpdateUI(ProcBtnType.Peng);
+        script.UpdateUI(ProcBtnType.Peng, 0);
         script.EnableClick(false);
         script.transform.localPosition = targetPos[sideIndex];
         script.transform.localScale = Vector3.zero;
@@ -1637,6 +1614,64 @@ public class Panel_battle : WindowsBasePanel
     }
     #endregion
 
+    #region player proc
+    private void SelfEnsureProc(int beProcPlayer, pb.ProcType type, int procCardId)
+    {
+        switch (type)
+        {
+            case pb.ProcType.Peng:
+                Debug.Log("self can peng card" + procCardId);
+                showProcPeng(procCardId);
+                break;
+        }
+    }
+
+    private void showProcPeng(int procCardId)
+    {
+        _procGrid.gameObject.SetActive(true);
+        ProcBtnType[] types = { ProcBtnType.Peng, ProcBtnType.Pass };
+        for (int i = 0; i < 2; i++)
+        {
+            Item_procBtn script = getProcBtnItem(i);
+            script.gameObject.SetActive(true);
+            script.UpdateUI(types[i], procCardId);
+            script.EnableClick(true);
+        }
+        _procGrid.repositionNow = true;
+    }
+
+    private void showProcGang()
+    {
+        //_procGrid.gameObject.SetActive(true);
+        //ProcBtnType[] types = { ProcBtnType.Gang, ProcBtnType.Peng, ProcBtnType.Pass };
+        //for (int i = 0; i < 3; i++)
+        //{
+        //    Item_procBtn script = getProcBtnItem(i);
+        //    script.gameObject.SetActive(true);
+        //    script.UpdateUI(types[i]);
+        //}
+        //_procGrid.repositionNow = true;
+    }
+
+    private void ReplacePlayerCards(List<int> playerOids)
+    {
+        Debug.Log("ReplacePlayerCards");
+        for (int i = 0; i < playerOids.Count; i++)
+        {
+            pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(playerOids[i]);
+            int sideIndex = getSideIndexFromSelf(side);
+            if (sideIndex == 0)
+            {
+                sortAndPlaceSelfCard(null, true);   //我方处理碰、杠后才会进入此函数，所以要显示要出的牌
+            }
+            else
+            {
+                sortAndPlaceOtherCard(sideIndex, false);
+            }
+            sortAllDiscrdBySideIndex(sideIndex);
+        }
+    }
+    #endregion
     public override void OnUpdate()
     {
         base.OnUpdate();

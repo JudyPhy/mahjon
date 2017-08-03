@@ -175,13 +175,11 @@ message GS2CSelectLackRet
 	repeated LackCard lackCard = 1;
 }
 
-//出牌
 message C2GSDiscard
 {
 	required int32 cardOid = 1;
 }
 
-//出牌反馈
 message GS2CDiscardRet
 {
 	required int32 cardOid = 1;
@@ -232,6 +230,24 @@ message C2GSRobotProcOver
 {
 	required int32 robotOid = 1;
 	required ProcType procType = 2;
+}
+
+message GS2CPlayerEnsureProc
+{
+	required int32 procPlayer = 1;
+	required ProcType procType = 2;
+	optional int32 beProcPlayer = 3;
+	required int32 procCardId = 4;
+}
+
+message C2GSPlayerEnsureProcRet
+{
+	required ProcType procType = 1;
+}
+
+message GS2CUpdateCardAfterPlayerProc
+{
+	repeated CardInfo cardList = 1;
 }
 
 

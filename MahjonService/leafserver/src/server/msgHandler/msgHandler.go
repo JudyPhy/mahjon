@@ -93,3 +93,20 @@ func SendGS2CRobotProc(procPlayerOid int32, procType *pb.ProcType, beProcPlayerO
 	data.CardList = list
 	a.WriteMsg(data)
 }
+
+func SendGS2CPlayerEnsureProc(procPlayerOid int32, procType *pb.ProcType, beProcPlayerOid int32, procCardId int32, a gate.Agent) {
+	log.Debug("SendGS2CPlayerEnsureProc-->>")
+	data := &pb.GS2CPlayerEnsureProc{}
+	data.ProcPlayer = proto.Int32(procPlayerOid)
+	data.ProcType = procType
+	data.BeProcPlayer = proto.Int32(beProcPlayerOid)
+	data.ProcCardId = proto.Int32(procCardId)
+	a.WriteMsg(data)
+}
+
+func SendGS2CUpdateCardAfterPlayerProc(cardList []*pb.CardInfo, a gate.Agent) {
+	log.Debug("SendGS2CUpdateCardAfterPlayerProc-->>")
+	data := &pb.GS2CUpdateCardAfterPlayerProc{}
+	data.CardList = cardList
+	a.WriteMsg(data)
+}

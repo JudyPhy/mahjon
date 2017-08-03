@@ -28,4 +28,7 @@ func init() {
 	Processor.Register(&pb.C2GSProcPG{})                      //16
 	Processor.Register(&pb.GS2CRobotProc{})                   //17
 	Processor.Register(&pb.C2GSRobotProcOver{})               //18
+	Processor.Register(&pb.GS2CPlayerEnsureProc{})            //19
+	Processor.Register(&pb.C2GSPlayerEnsureProcRet{})         //20
+	Processor.Register(&pb.GS2CUpdateCardAfterPlayerProc{})   //21
 }

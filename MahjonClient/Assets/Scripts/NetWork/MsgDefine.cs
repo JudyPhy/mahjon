@@ -23,4 +23,7 @@ public enum MsgDef
     C2GSProcPG = 16,
     GS2CRobotProc = 17,
     C2GSRobotProcOver = 18,
+    GS2CPlayerEnsureProc = 19,
+    C2GSPlayerEnsureProcRet = 20,
+    GS2CUpdateCardAfterPlayerProc = 21,
 }

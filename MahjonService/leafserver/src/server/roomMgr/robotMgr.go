@@ -104,7 +104,7 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 			return
 		}
 		log.Debug("can't self gang, proc discard")
-		discard := getRobotDiscard(sideInfo.cardList)
+		discard := getRobotDiscard(sideInfo.cardList)1111111111
 		log.Debug("discard[%v](%v)", discard.oid, discard.id)
 		for _, card := range sideInfo.cardList {
 			if card.oid == discard.oid {
@@ -117,32 +117,19 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 	}
 }
 
-func (sideInfo *SideInfo) robotProcDiscard(discard *Card) {
-	log.Debug("robot:%v process discard:%v(%v)", sideInfo.playerInfo.oid, discard.oid, discard.id)
-	if curTurnPlayerOid == sideInfo.playerInfo.oid {
-		log.Debug("robot self turn, don't need process.")
-		return
-	}
-	handCard := getInHandCardIdList(sideInfo.cardList)
-	handCard = append(handCard, int(discard.id))
-	pList := getPengCardIdList(sideInfo.cardList)
-	gList := getGangCardIdList(sideInfo.cardList)
-
-	if IsHu(handCard, pList, gList) {
-		log.Debug("robot can Hu!")
-		sideInfo.process = ProcessStatus_WAITING_HU
-	} else {
-		if canGang(handCard, discard) != 0 {
-			log.Debug("robot can Gang!")
-			sideInfo.process = ProcessStatus_WAITING_GANG
-		} else {
-			if canPeng(handCard, discard) {
-				log.Debug("robot can Peng!")
-				sideInfo.process = ProcessStatus_WAITING_PENG
-			} else {
-				log.Debug("robot turn over.")
-				sideInfo.process = ProcessStatus_TURN_OVER
-			}
+func (sideInfo *SideInfo) robotTurnSwitchAfterPeng() {
+	log.Debug("turn switch to robot%v after peng", sideInfo.playerInfo.oid)
+	timer := time.NewTimer(time.Second * 1)
+	<-timer.C
+	//1秒后执行
+	discard := getRobotDiscard(sideInfo.cardList)
+	log.Debug("discard[%v](%v)", discard.oid, discard.id)
+	for _, card := range sideInfo.cardList {
+		if card.oid == discard.oid {
+			card.status = CardStatus_PRE_DISCARD
+			sideInfo.process = ProcessStatus_TURN_OVER
+			broadcastDiscard(sideInfo.playerInfo.roomId, discard)
+			break
 		}
 	}
 }

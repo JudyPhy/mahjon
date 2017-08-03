@@ -800,6 +800,7 @@ public class BattleManager
     public void ProcessRobotProc(pb.GS2CRobotProc msg)
     {
         Debug.Log("ProcessRobotProc, procRobot=" + msg.procPlayer + ", beProcPlayer=" + msg.beProcPlayer + ", type=" + msg.procType.ToString());
+        //更新牌信息
         Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
         for (int i = 0; i < msg.cardList.Count; i++)
         {
@@ -813,8 +814,7 @@ public class BattleManager
                 cardList.Add(msg.cardList[i]);
                 dict.Add(msg.cardList[i].playerId, cardList);
             }
-        }
-        //更新牌信息
+        }        
         foreach (int playerOid in dict.Keys)
         {
             Debug.Log("current player[" + playerOid + "] has card count=" + dict[playerOid].Count);
@@ -827,11 +827,69 @@ public class BattleManager
                     {
                         _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
                     }
+                    break;
                 }
             }
         }
         //处理操作动画
         EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
+    }
+
+    public void ProcessPlayerProc(pb.GS2CPlayerEnsureProc msg)
+    {
+        Debug.Log("ProcessPlayerProc");
+        if (msg.procPlayer == Player.Instance.PlayerInfo.OID)
+        {
+            EventDispatcher.TriggerEvent<int, pb.ProcType, int>(EventDefine.SelfEnsureProc, msg.beProcPlayer, msg.procType, msg.procCardId);
+        }
+    }
+
+    public void UpdateCardInfoByPlayerProcOver(List<pb.CardInfo> list)
+    {
+        //更新牌信息
+        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (dict.ContainsKey(list[i].playerId))
+            {
+                dict[list[i].playerId].Add(list[i]);
+            }
+            else
+            {
+                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
+                cardList.Add(list[i]);
+                dict.Add(list[i].playerId, cardList);
+            }
+        }
+        List<int> updatePlayerOid = new List<int>();
+        foreach (int playerOid in dict.Keys)
+        {
+            updatePlayerOid.Add(playerOid);
+            string str = "update player[" + playerOid + "]'s card: ";
+            for (int i = 0; i < _playerPaiInfoList.Count; i++)
+            {
+                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+                {
+                    _playerPaiInfoList[i].ClearPai();
+                    for (int n = 0; n < dict[playerOid].Count; n++)
+                    {
+                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
+                    }
+
+                    //log
+                    List<Pai> logCardList = _playerPaiInfoList[i].GetPaiList();
+                    logCardList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+                    for (int m = 0; m < logCardList.Count; m++)
+                    {
+                        str += logCardList[m].Id + "(" + logCardList[m].OID + "), ";
+                    }
+                    break;
+                }                
+            }
+            Debug.Log(str);
+        }
+        //对更新牌的玩家重新摆放牌堆
+        EventDispatcher.TriggerEvent<List<int>>(EventDefine.ReplacePlayerCards, updatePlayerOid);
     }
 
 }

@@ -18,4 +18,6 @@ public class EventDefine
     public static string DiscardRet = "DiscardRet";
     public static string RobotProc = "SomePlayerPG";
     public static string EnsureProcPG = "EnsureProcPG";
+    public static string SelfEnsureProc = "SelfEnsureProc";
+    public static string ReplacePlayerCards = "ReplacePlayerCards";
 }
