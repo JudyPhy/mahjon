@@ -209,14 +209,6 @@ public class GameMsgHandler
         BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card, msg.type);
     }
 
-    public void RevMsgGS2CUpdateCardInfoByPG(int pid, byte[] msgBuf, int msgSize)
-    {
-        Debug.Log("==>> RevMsgGS2CUpdateCardInfoByPG");
-        Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CUpdateCardInfoByPG msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoByPG>(stream);
-        BattleManager.Instance.UpdateCardInfoByPG(msg);
-    }
-
     public void RevMsgGS2CRobotProc(int pid, byte[] msgBuf, int msgSize)
     {
         Debug.Log("==>> RevMsgGS2CRobotProc");

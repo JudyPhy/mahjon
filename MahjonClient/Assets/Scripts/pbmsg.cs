@@ -494,90 +494,6 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSProcPG")]
-  public partial class C2GSProcPG : global::ProtoBuf.IExtensible
-  {
-    public C2GSProcPG() {}
-    
-    private pb.ProcType _procType;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.ProcType procType
-    {
-      get { return _procType; }
-      set { _procType = value; }
-    }
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CProcPGRet")]
-  public partial class GS2CProcPGRet : global::ProtoBuf.IExtensible
-  {
-    public GS2CProcPGRet() {}
-    
-    private pb.GS2CProcPGRet.ErrorCode _errorCode;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"errorCode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.GS2CProcPGRet.ErrorCode errorCode
-    {
-      get { return _errorCode; }
-      set { _errorCode = value; }
-    }
-    [global::ProtoBuf.ProtoContract(Name=@"ErrorCode")]
-    public enum ErrorCode
-    {
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
-      SUCCESS = 1,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"FAIL", Value=2)]
-      FAIL = 2
-    }
-  
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateCardInfoByPG")]
-  public partial class GS2CUpdateCardInfoByPG : global::ProtoBuf.IExtensible
-  {
-    public GS2CUpdateCardInfoByPG() {}
-    
-    private int _procPlayer;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int procPlayer
-    {
-      get { return _procPlayer; }
-      set { _procPlayer = value; }
-    }
-    private pb.ProcType _procType;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.ProcType procType
-    {
-      get { return _procType; }
-      set { _procType = value; }
-    }
-    private int _beProcPlayer = default(int);
-    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"beProcPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    [global::System.ComponentModel.DefaultValue(default(int))]
-    public int beProcPlayer
-    {
-      get { return _beProcPlayer; }
-      set { _beProcPlayer = value; }
-    }
-    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
-    [global::ProtoBuf.ProtoMember(4, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    public global::System.Collections.Generic.List<pb.CardInfo> cardList
-    {
-      get { return _cardList; }
-    }
-  
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSCurTurnOver")]
   public partial class C2GSCurTurnOver : global::ProtoBuf.IExtensible
   {
@@ -807,7 +723,10 @@ namespace pb
       beGang = 4,
             
       [global::ProtoBuf.ProtoEnum(Name=@"discard", Value=5)]
-      discard = 5
+      discard = 5,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"hu", Value=6)]
+      hu = 6
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"CardType")]

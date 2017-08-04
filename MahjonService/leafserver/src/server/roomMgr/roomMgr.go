@@ -24,10 +24,12 @@ const (
 	ProcessStatus_TURN_START_OVER ProcessStatus = 5
 	ProcessStatus_TURN_OVER       ProcessStatus = 6
 	ProcessStatus_TURN_OVER_PENG  ProcessStatus = 7
-	ProcessStatus_WAITING_HU      ProcessStatus = 8
-	ProcessStatus_WAITING_GANG    ProcessStatus = 9
-	ProcessStatus_WAITING_PENG    ProcessStatus = 10
-	ProcessStatus_GAME_OVER       ProcessStatus = 11
+	ProcessStatus_TURN_OVER_HU    ProcessStatus = 8
+	ProcessStatus_WAITING_HU      ProcessStatus = 9
+	ProcessStatus_PROC_HU         ProcessStatus = 10 //real player
+	ProcessStatus_WAITING_GANG    ProcessStatus = 11
+	ProcessStatus_WAITING_PENG    ProcessStatus = 12
+	ProcessStatus_GAME_OVER       ProcessStatus = 13
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
@@ -99,6 +101,19 @@ func reqNewRoom(a gate.Agent) *RoomInfo {
 	roomInfo.Init(newRoomId)
 	RoomManager.lock.Unlock()
 	return roomInfo
+}
+
+func robotSelfGangOver(roomId string) {
+	log.Debug("robotSelfGangOver")
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		side := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
+		roomInfo.sendNormalTurnToNext(side)
+	} else {
+		log.Debug("room[%v] not exist.")
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -228,19 +243,6 @@ func PlayerTurnOver(a gate.Agent) {
 		}
 	} else {
 		log.Error("player not login.")
-	}
-}
-
-func robotSelfGangOver(roomId string) {
-	log.Debug("robotSelfGangOver")
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		side := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
-		roomInfo.sendNormalTurnToNext(side)
-	} else {
-		log.Debug("room[%v] not exist.")
 	}
 }
 

@@ -1522,7 +1522,7 @@ public class Panel_battle : WindowsBasePanel
     #endregion
 
     #region process robot proc
-    private void RobotProcPG(int procPlayer, int beProcPlayer,pb.ProcType type)
+    private void RobotProcPG(int procPlayer, int beProcPlayer, pb.ProcType type)
     {
         switch (type)
         {
@@ -1531,6 +1531,9 @@ public class Panel_battle : WindowsBasePanel
                 break;
             case pb.ProcType.Peng:
                 PlayRobotPengAni(procPlayer, beProcPlayer);
+                break;
+            case pb.ProcType.HuOther:
+                PlayRobotHuAni(procPlayer, beProcPlayer);
                 break;
             default:
                 break;
@@ -1612,6 +1615,39 @@ public class Panel_battle : WindowsBasePanel
             script.transform.localPosition = vecs[0] + index * vecs[2] + line * vecs[3];
         }
     }
+
+    private void PlayRobotHuAni(int procPlayer, int beProcPlayer)
+    {
+        Debug.Log("PlayRobotHuAni, procPlayer=" + procPlayer + ", beProcPlayer=" + beProcPlayer);
+        //胡的一方播放动画，更新手牌排序，显示胡牌
+        pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(procPlayer);
+        Vector3[] targetPos = { new Vector3(0, 0, 0), new Vector3(100, 0, 0), new Vector3(0, 200, 0), new Vector3(-100, 0, 0) };
+        int sideIndex = getSideIndexFromSelf(side);
+        _procGrid.gameObject.SetActive(true);
+        hideAllProcItem();
+        Item_procBtn script = getProcBtnItem(0);
+        script.gameObject.SetActive(true);
+        script.UpdateUI(ProcBtnType.Peng, 0);
+        script.EnableClick(false);
+        script.transform.localPosition = targetPos[sideIndex];
+        script.transform.localScale = Vector3.zero;
+        iTween.ScaleTo(script.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutExpo));
+        Invoke("hideProbBtnGrid", 1f);
+        sortAndPlaceOtherCard(sideIndex, false);
+        //被胡的一方更新手牌和弃牌堆
+        int beProcSideIndex = getSideIndexFromSelf(BattleManager.Instance.CurPlaySide);
+        if (beProcPlayer == Player.Instance.PlayerInfo.OID)
+        {
+            sortAndPlaceSelfCard(null, false);
+        }
+        else
+        {
+            sortAndPlaceOtherCard(beProcSideIndex, false);
+        }
+        sortAllDiscrdBySideIndex(beProcSideIndex);
+        //动画播放完毕，给服务器反馈
+        GameMsgHandler.Instance.SendMsgC2GSRobotProcOver(procPlayer, pb.ProcType.HuOther);
+    }
     #endregion
 
     #region player proc
@@ -1623,6 +1659,10 @@ public class Panel_battle : WindowsBasePanel
                 Debug.Log("self can peng card" + procCardId);
                 showProcPeng(procCardId);
                 break;
+            case pb.ProcType.HuOther:
+                Debug.Log("self hu other" + procCardId);
+                showProcHu(procCardId);
+                break;
         }
     }
 
@@ -1630,6 +1670,20 @@ public class Panel_battle : WindowsBasePanel
     {
         _procGrid.gameObject.SetActive(true);
         ProcBtnType[] types = { ProcBtnType.Peng, ProcBtnType.Pass };
+        for (int i = 0; i < 2; i++)
+        {
+            Item_procBtn script = getProcBtnItem(i);
+            script.gameObject.SetActive(true);
+            script.UpdateUI(types[i], procCardId);
+            script.EnableClick(true);
+        }
+        _procGrid.repositionNow = true;
+    }
+
+    private void showProcHu(int procCardId)
+    {
+        _procGrid.gameObject.SetActive(true);
+        ProcBtnType[] types = { ProcBtnType.Hu, ProcBtnType.Pass };
         for (int i = 0; i < 2; i++)
         {
             Item_procBtn script = getProcBtnItem(i);

@@ -22,13 +22,11 @@ func init() {
 	Processor.Register(&pb.GS2CSelectLackRet{})               //10
 	Processor.Register(&pb.C2GSDiscard{})                     //11
 	Processor.Register(&pb.GS2CDiscardRet{})                  //12
-	Processor.Register(&pb.GS2CUpdateCardInfoByPG{})          //13
-	Processor.Register(&pb.C2GSCurTurnOver{})                 //14
-	Processor.Register(&pb.GS2CTurnToNext{})                  //15
-	Processor.Register(&pb.C2GSProcPG{})                      //16
-	Processor.Register(&pb.GS2CRobotProc{})                   //17
-	Processor.Register(&pb.C2GSRobotProcOver{})               //18
-	Processor.Register(&pb.GS2CPlayerEnsureProc{})            //19
-	Processor.Register(&pb.C2GSPlayerEnsureProcRet{})         //20
-	Processor.Register(&pb.GS2CUpdateCardAfterPlayerProc{})   //21
+	Processor.Register(&pb.C2GSCurTurnOver{})                 //13
+	Processor.Register(&pb.GS2CTurnToNext{})                  //14
+	Processor.Register(&pb.GS2CRobotProc{})                   //15
+	Processor.Register(&pb.C2GSRobotProcOver{})               //16
+	Processor.Register(&pb.GS2CPlayerEnsureProc{})            //17
+	Processor.Register(&pb.C2GSPlayerEnsureProcRet{})         //18
+	Processor.Register(&pb.GS2CUpdateCardAfterPlayerProc{})   //19
 }

@@ -2,6 +2,7 @@ package roomMgr
 
 import (
 	"bytes"
+	"server/pb"
 	"sort"
 	"strconv"
 
@@ -43,6 +44,7 @@ const (
 	CardStatus_DEAL        CardStatus = 6
 	CardStatus_PRE_DISCARD CardStatus = 7
 	CardStatus_DISCARD     CardStatus = 8
+	CardStatus_HU          CardStatus = 9
 )
 
 func (x CardStatus) Enum() *CardStatus {
@@ -59,6 +61,22 @@ type Card struct {
 }
 
 var mjType MJType
+
+func cardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
+	switch status {
+	case CardStatus_INHAND:
+		return pb.CardStatus_inHand
+	case CardStatus_GANG:
+		return pb.CardStatus_beGang
+	case CardStatus_PENG:
+		return pb.CardStatus_bePeng
+	case CardStatus_DISCARD:
+		return pb.CardStatus_discard
+	case CardStatus_HU:
+		return pb.CardStatus_hu
+	}
+	return pb.CardStatus_noDeal
+}
 
 func loadAllCards() []*Card {
 	log.Debug("loadAllCards")

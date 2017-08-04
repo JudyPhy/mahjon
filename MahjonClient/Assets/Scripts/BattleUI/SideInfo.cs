@@ -15,6 +15,7 @@ public enum PaiStatus
     PreDiscard,
     Discard,
     DrawnCard,
+    Hu,
 }
 
 public class Pai
@@ -167,6 +168,8 @@ public class SideInfo
                 return PaiStatus.Gang;
             case pb.CardStatus.discard:
                 return PaiStatus.Discard;
+            case pb.CardStatus.hu:
+                return PaiStatus.Hu;
             default:
                 return PaiStatus.Idle;
         }

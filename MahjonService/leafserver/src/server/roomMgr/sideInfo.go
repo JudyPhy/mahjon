@@ -66,21 +66,6 @@ func (sideInfo *SideInfo) selectLack() {
 	sideInfo.process = ProcessStatus_LACK_OVER
 }
 
-func cardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
-	switch status {
-	case CardStatus_INHAND:
-		return pb.CardStatus_inHand
-	case CardStatus_GANG:
-		return pb.CardStatus_beGang
-	case CardStatus_PENG:
-		return pb.CardStatus_bePeng
-	case CardStatus_DISCARD:
-		return pb.CardStatus_discard
-	}
-	return pb.CardStatus_noDeal
-}
-
-//机器人处理自杠
 func (sideInfo *SideInfo) procSelfGang(gangCardId int) {
 	log.Debug("机器人%v处理自杠Id[%v]", sideInfo.playerInfo.oid, gangCardId)
 	var newCardList []*pb.CardInfo
@@ -173,6 +158,13 @@ func (sideInfo *SideInfo) deleteDiscard(card *Card) {
 			break
 		}
 	}
+}
+
+func (sideInfo *SideInfo) addDiscardAsHu(card *Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的胡牌中", card.oid, card.id, sideInfo.playerInfo.oid)
+	card.status = CardStatus_HU
+	card.fromOther = true
+	sideInfo.cardList = append(sideInfo.cardList, card)
 }
 
 func (sideInfo *SideInfo) drawNewCard(newCard *Card) {
