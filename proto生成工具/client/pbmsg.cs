@@ -788,7 +788,10 @@ namespace pb
       Normal = 1,
             
       [global::ProtoBuf.ProtoEnum(Name=@"JustCanDiscard", Value=2)]
-      JustCanDiscard = 2
+      JustCanDiscard = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"NotDrawCard", Value=3)]
+      NotDrawCard = 3
     }
   
 }

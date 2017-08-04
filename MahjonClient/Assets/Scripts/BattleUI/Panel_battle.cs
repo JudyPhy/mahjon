@@ -866,11 +866,11 @@ public class Panel_battle : WindowsBasePanel
     }
 
     //开始第一轮
-    private void SelectLackOver()
+    private void SelectLackOver() //Invoke
     {
         _discardItemIndex = new int[4] { 0, 0, 0, 0 };
         _curOther3DItemIndex_playing = new int[4] { 0, 0, 0, 0 };
-        BattleManager.Instance.TurnToNextPlayer(BattleManager.Instance.DealerID, null, pb.TurnSwitchType.Normal);
+        //BattleManager.Instance.TurnToNextPlayer(BattleManager.Instance.DealerID, null, pb.TurnSwitchType.Normal);
     }
     #endregion
 
@@ -911,39 +911,39 @@ public class Panel_battle : WindowsBasePanel
             sortAndPlaceOtherCard(sideIndex, true);
         }
 
-        //判断胡、碰、杠情况
         if (BattleManager.Instance.CurPlaySide == _sortedSideListFromSelf[0])
         {
-            if (type == pb.TurnSwitchType.Normal)
-            {
-                Debug.Log("当前我方可正常操作");
-                _battleProcess = BattleProcess.CheckingHu;
+            //if (type == pb.TurnSwitchType.Normal)
+            //{
+            //    Debug.Log("当前我方可正常操作");
+            //    _battleProcess = BattleProcess.CheckingHu;
 
-                List<int> inhandList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
-                List<int> pList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Peng);
-                List<int> gList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Gang);
-                if (BattleManager.Instance.CanHu(inhandList, pList, gList))
-                {
-                    Debug.Log("胡牌！！！");
-                    _battleProcess = BattleProcess.EnsureHuStart;
-                }
-                else
-                {
-                    _battleProcess = BattleProcess.CheckingGang;
-                    if (BattleManager.Instance.CanGang(inhandList))
-                    {
-                        Debug.Log("能杠，显示杠牌按钮");
-                        _battleProcess = BattleProcess.EnsureGangStart;
-                    }
-                    else
-                    {
-                        Debug.Log("不能自杠，则进入出牌阶段");
-                        _battleProcess = BattleProcess.SelectingDiscard;
-                        BattleManager.Instance.CurProcess = BattleProcess.SelectingDiscard;
-                    }
-                }
-            }
-            else
+            //    List<int> inhandList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.InHand);
+            //    List<int> pList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Peng);
+            //    List<int> gList = BattleManager.Instance.GetCardIdListBySideAndStatus(_sortedSideListFromSelf[0], PaiStatus.Gang);
+            //    if (BattleManager.Instance.CanHu(inhandList, pList, gList))
+            //    {
+            //        Debug.Log("胡牌！！！");
+            //        _battleProcess = BattleProcess.EnsureHuStart;
+            //    }
+            //    else
+            //    {
+            //        _battleProcess = BattleProcess.CheckingGang;
+            //        if (BattleManager.Instance.CanGang(inhandList))
+            //        {
+            //            Debug.Log("能杠，显示杠牌按钮");
+            //            _battleProcess = BattleProcess.EnsureGangStart;
+            //        }
+            //        else
+            //        {
+            //            Debug.Log("不能自杠，则进入出牌阶段");
+            //            _battleProcess = BattleProcess.SelectingDiscard;
+            //            BattleManager.Instance.CurProcess = BattleProcess.SelectingDiscard;
+            //        }
+            //    }
+            //}
+            //else 
+            if (type == pb.TurnSwitchType.JustCanDiscard)
             {
                 Debug.Log("当前我方碰牌后操作");
                 _battleProcess = BattleProcess.SelectingDiscard;

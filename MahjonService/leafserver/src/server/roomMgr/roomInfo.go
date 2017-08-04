@@ -548,9 +548,7 @@ func (roomInfo *RoomInfo) outRoom(playerOid int32) {
 }
 
 func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType *pb.CardType) {
-	roomInfo.cardMap.lock.Lock()
 	sideInfo, ok := roomInfo.cardMap.cMap[playerOid]
-	roomInfo.cardMap.lock.Unlock()
 	if ok {
 		sideInfo.lackType = lackType
 		sideInfo.process = ProcessStatus_LACK_OVER
@@ -560,7 +558,6 @@ func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType *pb.CardType) {
 }
 
 func (roomInfo *RoomInfo) selectLackOver() bool {
-	roomInfo.cardMap.lock.Lock()
 	for i, value := range roomInfo.cardMap.cMap {
 		if i == 0 {
 		}
@@ -569,55 +566,37 @@ func (roomInfo *RoomInfo) selectLackOver() bool {
 			return false
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
 	return true
 }
 
-//定缺完毕，发送各家定缺的牌到客户端
 func (roomInfo *RoomInfo) sendLackCard() {
 	var result []*pb.LackCard
-	roomInfo.cardMap.lock.Lock()
-	for i, value := range roomInfo.cardMap.cMap {
-		if i == 0 {
-		}
+	for _, value := range roomInfo.cardMap.cMap {
 		lack := &pb.LackCard{}
 		lack.PlayerId = proto.Int32(value.playerInfo.oid)
 		lack.Type = value.lackType
 		result = append(result, lack)
 	}
-	for i, value := range roomInfo.cardMap.cMap {
-		if i == 0 {
-		}
+	log.Debug("lack over, turn switch")
+	curTurnPlayerOid = roomInfo.dealerId
+	for _, value := range roomInfo.cardMap.cMap {
 		if !value.isRobot && value.agent != nil {
 			msgHandler.SendGS2CSelectLackRet(result, value.agent)
-		} else if value.isRobot && roomInfo.dealerId == value.playerInfo.oid {
-			//机器人若是庄家，进入其操作环节
-			value.robotTurnSwitch()
+			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_NotDrawCard.Enum(), value.agent)
 		}
 	}
-	roomInfo.cardMap.lock.Unlock()
-}
-
-//通知玩家有人杠牌或碰牌
-func sendProcAni(roonmId string, playerOid int32, status *pb.CardStatus) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roonmId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.cardMap.lock.Lock()
-		for playerId, sideInfo := range roomInfo.cardMap.cMap {
-			if playerId == 0 {
+	for _, value := range roomInfo.cardMap.cMap {
+		if roomInfo.dealerId == value.playerInfo.oid {
+			if value.isRobot {
+				value.robotTurnSwitch()
+			} else {
+				value.playerTurnSwitch()
 			}
-			if !sideInfo.isRobot && sideInfo.agent != nil {
-			}
+			break
 		}
-		roomInfo.cardMap.lock.Unlock()
-	} else {
-		log.Debug("SendGS2CProcAni, room[%v] not exist.", roonmId)
 	}
 }
 
-//机器人自杠时通知客户端
 func sendUpdateCardInfoBySelfGang(roonmId string, procPlayerOid int32, list []*pb.CardInfo) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roonmId]
@@ -633,6 +612,7 @@ func sendUpdateCardInfoBySelfGang(roonmId string, procPlayerOid int32, list []*p
 	}
 }
 
+//---------------------------------------- discard ------------------------------------------
 func (roomInfo *RoomInfo) recvDiscard(playerId int32, Oid int32) {
 	sideInfo, ok := roomInfo.cardMap.cMap[playerId]
 	if ok {
@@ -893,6 +873,16 @@ func (roomInfo *RoomInfo) sendRealPlayerProc(procPlayer int32, beProcPlayer int3
 		if !sideInfo.isRobot && sideInfo.agent != nil {
 			msgHandler.SendGS2CPlayerEnsureProc(procPlayer, procType.Enum(), beProcPlayer, procCardId, sideInfo.agent)
 		}
+	}
+}
+
+func (roomInfo *RoomInfo) procSelfGang() {
+	log.Debug("procSelfGang")
+	sideInfo, ok := roomInfo.cardMap.cMap[curTurnPlayerOid]
+	if ok {
+
+	} else {
+
 	}
 }
 

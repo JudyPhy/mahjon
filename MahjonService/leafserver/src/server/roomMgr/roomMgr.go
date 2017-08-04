@@ -117,6 +117,29 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
+func broadcastDiscard(roomId string, discard *Card) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.broadcastDiscard(discard)
+		roomInfo.checkTurnOver()
+	} else {
+		log.Error("no room[%v]", roomId)
+	}
+}
+
+func curTurnPlayerSelfGang(roomId string) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.procSelfGang()
+	} else {
+		log.Error("no room[%v]", roomId)
+	}
+}
+
 //------------------------------------------------------------------------------
 //								   public func
 //------------------------------------------------------------------------------
@@ -278,17 +301,5 @@ func PlayerEnsureProc(procType pb.ProcType, a gate.Agent) {
 		}
 	} else {
 		log.Error("player not login.")
-	}
-}
-
-func broadcastDiscard(roomId string, discard *Card) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.broadcastDiscard(discard)
-		roomInfo.checkTurnOver()
-	} else {
-		log.Error("no room[%v]", roomId)
 	}
 }

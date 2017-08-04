@@ -288,15 +288,18 @@ type TurnSwitchType int32
 const (
 	TurnSwitchType_Normal         TurnSwitchType = 1
 	TurnSwitchType_JustCanDiscard TurnSwitchType = 2
+	TurnSwitchType_NotDrawCard    TurnSwitchType = 3
 )
 
 var TurnSwitchType_name = map[int32]string{
 	1: "Normal",
 	2: "JustCanDiscard",
+	3: "NotDrawCard",
 }
 var TurnSwitchType_value = map[string]int32{
 	"Normal":         1,
 	"JustCanDiscard": 2,
+	"NotDrawCard":    3,
 }
 
 func (x TurnSwitchType) Enum() *TurnSwitchType {

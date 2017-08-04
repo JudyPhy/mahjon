@@ -54,9 +54,10 @@ enum ProcType
 }
 
 enum TurnSwitchType
-{
+{	
 	Normal = 1;
 	JustCanDiscard = 2;
+	NotDrawCard = 3;
 }
 
 message LackCard
@@ -228,6 +229,7 @@ message GS2CUpdateCardAfterPlayerProc
 {
 	repeated CardInfo cardList = 1;
 }
+
 
 
 
