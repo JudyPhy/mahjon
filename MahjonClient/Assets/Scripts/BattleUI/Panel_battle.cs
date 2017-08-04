@@ -1535,6 +1535,9 @@ public class Panel_battle : WindowsBasePanel
             case pb.ProcType.HuOther:
                 PlayRobotHuAni(procPlayer, beProcPlayer);
                 break;
+            case pb.ProcType.GangOther:
+                PlayRobotGangAni(procPlayer, beProcPlayer);
+                break;
             default:
                 break;
         }
@@ -1557,9 +1560,30 @@ public class Panel_battle : WindowsBasePanel
         sortAndPlaceOtherCard(sideIndex, true);
     }
 
-    private void hideProbBtnGrid()
+    private void hideProbBtnGrid()  //Invoke
     {
         _procGrid.gameObject.SetActive(false);
+    }
+
+    private void sortAllDiscrdBySideIndex(int sideIndex)
+    {
+        Debug.Log("sortAllDiscrdBySideIndex, sideIndex=" + sideIndex);
+        hide3DDiscardObjBySide(_sortedSideListFromSelf[sideIndex]);
+        List<Pai> cardList = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[sideIndex], PaiStatus.Discard);
+        Vector3[] vecs = getDiscardVecBySideIndex(sideIndex);   //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
+        for (int i = 0; i < cardList.Count; i++)
+        {
+            Item_pai_3d script = get3DDiscardObj(sideIndex, i);
+            script.gameObject.SetActive(true);
+            script.SetSide(_sortedSideListFromSelf[sideIndex]);
+            script.SetInfo(cardList[i]);
+            script.UpdatePaiMian();
+            script.transform.localEulerAngles = vecs[1];
+            script.transform.localScale = sideIndex % 2 == 0 ? Vector3.one * 1.2f : Vector3.one;
+            int index = i % 6;
+            int line = i / 6;
+            script.transform.localPosition = vecs[0] + index * vecs[2] + line * vecs[3];
+        }
     }
 
     private void PlayRobotPengAni(int procPlayer, int beProcPlayer)
@@ -1567,7 +1591,7 @@ public class Panel_battle : WindowsBasePanel
         Debug.Log("PlayRobotPengAni, procPlayer=" + procPlayer + ", beProcPlayer=" + beProcPlayer);
         //碰的一方播放动画，更新手牌排序，显示要出的牌
         pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(procPlayer);
-        Vector3[] targetPos = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        Vector3[] targetPos = { new Vector3(0, 0, 0), new Vector3(100, 0, 0), new Vector3(0, 200, 0), new Vector3(-100, 0, 0) };
         int sideIndex = getSideIndexFromSelf(side);
         _procGrid.gameObject.SetActive(true);
         hideAllProcItem();
@@ -1595,25 +1619,37 @@ public class Panel_battle : WindowsBasePanel
         GameMsgHandler.Instance.SendMsgC2GSRobotProcOver(procPlayer, pb.ProcType.Peng);
     }
 
-    private void sortAllDiscrdBySideIndex(int sideIndex)
+    private void PlayRobotGangAni(int procPlayer, int beProcPlayer)
     {
-        Debug.Log("sortAllDiscrdBySideIndex, sideIndex=" + sideIndex);
-        hide3DDiscardObjBySide(_sortedSideListFromSelf[sideIndex]);
-        List<Pai> cardList = BattleManager.Instance.GetCardListBySideAndStatus(_sortedSideListFromSelf[sideIndex], PaiStatus.Discard);
-        Vector3[] vecs = getDiscardVecBySideIndex(sideIndex);   //startPos、rotate、offsetInline、offsetBetweenLine、offsetAni
-        for (int i = 0; i < cardList.Count; i++)
+        Debug.Log("PlayRobotGangAni, procPlayer=" + procPlayer + ", beProcPlayer=" + beProcPlayer);
+        //杠的一方播放动画，更新手牌排序，不显示要出的牌
+        pb.BattleSide side = BattleManager.Instance.GetSideByPlayerOID(procPlayer);
+        Vector3[] targetPos = { new Vector3(0, 0, 0), new Vector3(100, 0, 0), new Vector3(0, 200, 0), new Vector3(-100, 0, 0) };
+        int sideIndex = getSideIndexFromSelf(side);
+        _procGrid.gameObject.SetActive(true);
+        hideAllProcItem();
+        Item_procBtn script = getProcBtnItem(0);
+        script.gameObject.SetActive(true);
+        script.UpdateUI(ProcBtnType.Gang, 0);
+        script.EnableClick(false);
+        script.transform.localPosition = targetPos[sideIndex];
+        script.transform.localScale = Vector3.zero;
+        iTween.ScaleTo(script.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutExpo));
+        Invoke("hideProbBtnGrid", 1f);
+        sortAndPlaceOtherCard(sideIndex, true);
+        //被杠的一方更新手牌和弃牌堆
+        int beProcSideIndex = getSideIndexFromSelf(BattleManager.Instance.CurPlaySide);
+        if (beProcPlayer == Player.Instance.PlayerInfo.OID)
         {
-            Item_pai_3d script = get3DDiscardObj(sideIndex, i);
-            script.gameObject.SetActive(true);
-            script.SetSide(_sortedSideListFromSelf[sideIndex]);
-            script.SetInfo(cardList[i]);
-            script.UpdatePaiMian();
-            script.transform.localEulerAngles = vecs[1];
-            script.transform.localScale = sideIndex % 2 == 0 ? Vector3.one * 1.2f : Vector3.one;
-            int index = i % 6;
-            int line = i / 6;
-            script.transform.localPosition = vecs[0] + index * vecs[2] + line * vecs[3];
+            sortAndPlaceSelfCard(null, false);
         }
+        else
+        {
+            sortAndPlaceOtherCard(beProcSideIndex, false);
+        }
+        sortAllDiscrdBySideIndex(beProcSideIndex);
+        //动画播放完毕，给服务器反馈
+        GameMsgHandler.Instance.SendMsgC2GSRobotProcOver(procPlayer, pb.ProcType.GangOther);
     }
 
     private void PlayRobotHuAni(int procPlayer, int beProcPlayer)

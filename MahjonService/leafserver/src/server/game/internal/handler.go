@@ -76,10 +76,6 @@ func recvC2GSCurTurnOver(args []interface{}) {
 	roomMgr.PlayerTurnOver(a)
 }
 
-func recvC2GSProcPG(args []interface{}) {
-	log.Debug("recvC2GSProcPG <<--")
-}
-
 func recvC2GSRobotProcOver(args []interface{}) {
 	log.Debug("recvC2GSRobotProcOver <<--")
 	m := args[0].(*pb.C2GSRobotProcOver)

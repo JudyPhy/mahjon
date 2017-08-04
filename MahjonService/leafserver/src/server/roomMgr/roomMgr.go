@@ -24,12 +24,13 @@ const (
 	ProcessStatus_TURN_START_OVER ProcessStatus = 5
 	ProcessStatus_TURN_OVER       ProcessStatus = 6
 	ProcessStatus_TURN_OVER_PENG  ProcessStatus = 7
-	ProcessStatus_TURN_OVER_HU    ProcessStatus = 8
-	ProcessStatus_WAITING_HU      ProcessStatus = 9
-	ProcessStatus_PROC_HU         ProcessStatus = 10 //real player
-	ProcessStatus_WAITING_GANG    ProcessStatus = 11
-	ProcessStatus_WAITING_PENG    ProcessStatus = 12
-	ProcessStatus_GAME_OVER       ProcessStatus = 13
+	ProcessStatus_TURN_OVER_GANG  ProcessStatus = 8
+	ProcessStatus_TURN_OVER_HU    ProcessStatus = 9
+	ProcessStatus_WAITING_HU      ProcessStatus = 10
+	ProcessStatus_PROC_HU         ProcessStatus = 11 //real player
+	ProcessStatus_WAITING_GANG    ProcessStatus = 12
+	ProcessStatus_WAITING_PENG    ProcessStatus = 13
+	ProcessStatus_GAME_OVER       ProcessStatus = 14
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {

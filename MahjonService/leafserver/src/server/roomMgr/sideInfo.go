@@ -135,8 +135,8 @@ func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsPG(card *Card) {
-	log.Debug("将牌%v(%v)加入到玩家[%v]的碰杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
+func (sideInfo *SideInfo) addDiscardAsPeng(card *Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_PENG
 	card.fromOther = true
 	sideInfo.cardList = append(sideInfo.cardList, card)
@@ -144,6 +144,21 @@ func (sideInfo *SideInfo) addDiscardAsPG(card *Card) {
 		for _, value := range sideInfo.cardList {
 			if value.status == CardStatus_INHAND && value.id == card.id {
 				value.status = CardStatus_PENG
+				break
+			}
+		}
+	}
+}
+
+func (sideInfo *SideInfo) addDiscardAsGang(card *Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
+	card.status = CardStatus_GANG
+	card.fromOther = true
+	sideInfo.cardList = append(sideInfo.cardList, card)
+	for i := 0; i < 3; i++ {
+		for _, value := range sideInfo.cardList {
+			if value.status == CardStatus_INHAND && value.id == card.id {
+				value.status = CardStatus_GANG
 				break
 			}
 		}

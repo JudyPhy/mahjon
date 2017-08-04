@@ -736,44 +736,6 @@ public class BattleManager
         return null;
     }
 
-    //收到玩家(包括自己)碰或杠的消息
-    public void UpdateCardInfoByPG(pb.GS2CUpdateCardInfoByPG msg)
-    {
-        Debug.Log("UpdateCardInfoByPG");
-        Dictionary <int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
-        for (int i = 0; i < msg.cardList.Count; i++)
-        {
-            if (dict.ContainsKey(msg.cardList[i].playerId))
-            {
-                dict[msg.cardList[i].playerId].Add(msg.cardList[i]);
-            }
-            else
-            {
-                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
-                cardList.Add(msg.cardList[i]);
-                dict.Add(msg.cardList[i].playerId, cardList);
-            }
-        }
-        //更新牌信息
-        foreach (int playerOid in dict.Keys)
-        {
-            Debug.Log("current player[" + playerOid + "] has card count=" + dict[playerOid].Count);
-            for (int i = 0; i < _playerPaiInfoList.Count; i++)
-            {
-                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
-                {
-                    _playerPaiInfoList[i].ClearPai();
-                    for (int n = 0; n < dict[playerOid].Count; n++)
-                    {
-                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
-                    }
-                }
-            }
-        }
-        //处理操作动画
-        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
-    }
-
     public Pai GetCardInfoByCardOid(int cardOid)
     {
         for (int i = 0; i < _playerPaiInfoList.Count; i++)

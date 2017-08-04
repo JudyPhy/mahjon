@@ -686,7 +686,12 @@ func (roomInfo *RoomInfo) isHuTurnOver() bool {
 }
 
 func (roomInfo *RoomInfo) isGangTurnOver() bool {
-	return false
+	for _, v := range roomInfo.cardMap.cMap {
+		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_TURN_OVER_GANG {
+			return false
+		}
+	}
+	return true
 }
 
 func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
@@ -712,6 +717,15 @@ func (roomInfo *RoomInfo) getTurnOverType() TurnOverType {
 func (roomInfo *RoomInfo) getPengTurnOverSideInfo() *SideInfo {
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.process == ProcessStatus_TURN_OVER_PENG {
+			return sideInfo
+		}
+	}
+	return nil
+}
+
+func (roomInfo *RoomInfo) getGangTurnOverSideInfo() *SideInfo {
+	for _, sideInfo := range roomInfo.cardMap.cMap {
+		if sideInfo.process == ProcessStatus_TURN_OVER_GANG {
 			return sideInfo
 		}
 	}
@@ -751,7 +765,13 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 			log.Error("hu turn over, but no one's process is ProcessStatus_TURN_OVER_HU!")
 		}
 	} else if roomInfo.isGangTurnOver() {
-
+		log.Debug("only one can gang, and it proc gang over.")
+		sideInfo := roomInfo.getGangTurnOverSideInfo()
+		if sideInfo != nil {
+			roomInfo.sendNormalTurnToNext(sideInfo.side)
+		} else {
+			log.Error("gang turn over, but no one's process is ProcessStatus_TURN_OVER_GANG!")
+		}
 	} else if roomInfo.isPengTurnOver() {
 		log.Debug("only one can peng, and it proc peng over.")
 		sideInfo := roomInfo.getPengTurnOverSideInfo()
@@ -803,7 +823,11 @@ func (roomInfo *RoomInfo) procPG(preDiscard *Card) {
 	}
 	if proSideInfo.isRobot {
 		log.Debug("robot proc p、g")
-		proSideInfo.addDiscardAsPG(preDiscard)
+		if procType == pb.ProcType_Peng {
+			proSideInfo.addDiscardAsPeng(preDiscard)
+		} else if procType == pb.ProcType_GangOther {
+			proSideInfo.addDiscardAsGang(preDiscard)
+		}
 		beProcSideInfo.deleteDiscard(preDiscard)
 		roomInfo.sendRobotProc(proSideInfo.playerInfo.oid, beProcSideInfo.playerInfo.oid, procType)
 	} else {
@@ -1091,7 +1115,7 @@ func (roomInfo *RoomInfo) playerEnsurePeng(procPlayerOid int32) {
 	if preDiscard != nil {
 		for _, sideInfo := range roomInfo.cardMap.cMap {
 			if procPlayerOid == sideInfo.playerInfo.oid {
-				sideInfo.addDiscardAsPG(preDiscard)
+				sideInfo.addDiscardAsPeng(preDiscard)
 				sideInfo.process = ProcessStatus_TURN_OVER_PENG
 			} else if sideInfo.playerInfo.oid == curTurnPlayerOid {
 				sideInfo.deleteDiscard(preDiscard)

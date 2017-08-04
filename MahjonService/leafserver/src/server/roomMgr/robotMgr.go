@@ -150,8 +150,11 @@ func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 	if procType == pb.ProcType_Peng {
 		log.Debug("robot peng over, turn switch.")
 		sideInfo.process = ProcessStatus_TURN_OVER_PENG
-	} else if procType == pb.ProcType_Peng {
+	} else if procType == pb.ProcType_HuOther {
 		log.Debug("robot hu over, wait check turn over.")
 		sideInfo.process = ProcessStatus_TURN_OVER_HU
+	} else if procType == pb.ProcType_GangOther {
+		log.Debug("robot gang over, turn switch.")
+		sideInfo.process = ProcessStatus_TURN_OVER_GANG
 	}
 }
