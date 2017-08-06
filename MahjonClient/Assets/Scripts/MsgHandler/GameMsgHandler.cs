@@ -71,18 +71,12 @@ public class GameMsgHandler
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSDiscard, msg);
     }
 
-    public void SendMsgC2GSCurTurnOver()
-    {
-        Debug.Log("SendMsgC2GSCurTurnOver==>>");
-        pb.C2GSCurTurnOver msg = new pb.C2GSCurTurnOver();
-        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSCurTurnOver, msg);
-    }
-
-    public void SendMsgC2GSPlayerEnsureProcRet(pb.ProcType type)
+    public void SendMsgC2GSPlayerEnsureProcRet(pb.ProcType type, int procCardId = 0)
     {
         Debug.Log("SendMsgC2GSPlayerEnsureProcRet==>>");
         pb.C2GSPlayerEnsureProcRet msg = new pb.C2GSPlayerEnsureProcRet();
         msg.procType = type;
+        msg.procCardId = procCardId;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSPlayerEnsureProcRet, msg);
     }
 
@@ -196,8 +190,8 @@ public class GameMsgHandler
     {
         Debug.Log("==>> RevMsgGS2CDiscardRet");
         Stream stream = new MemoryStream(msgBuf);
-        pb.GS2CDiscardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardRet>(stream);
-        BattleManager.Instance.CurTurnDiscard = msg.cardOid;
+        pb.GS2CDiscardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardRet>(stream);        
+        BattleManager.Instance.UpdateCardInfoByDiscardRet(msg.cardOid);
         EventDispatcher.TriggerEvent<int>(EventDefine.DiscardRet, msg.cardOid);
     }
 
@@ -231,6 +225,14 @@ public class GameMsgHandler
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateCardAfterPlayerProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardAfterPlayerProc>(stream);
         BattleManager.Instance.UpdateCardInfoByPlayerProcOver(msg.cardList);
+    }
+
+    public void RevMsgGS2CGameOver(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CGameOver");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CGameOver msg = ProtoBuf.Serializer.Deserialize<pb.GS2CGameOver>(stream);
+        BattleManager.Instance.GameOver();
     }
     #endregion
 }

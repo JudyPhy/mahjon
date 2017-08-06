@@ -64,7 +64,7 @@ func SendGS2CDiscardRet(cardOid int32, a gate.Agent) {
 
 func SendGS2CTurnToNext(playerOid int32, newCard *pb.CardInfo, turnType *pb.TurnSwitchType, a gate.Agent) {
 	log.Debug("SendGS2CTurnToNext-->> playerOid=%v, type=%v", playerOid, turnType)
-	if newCard == nil {
+	if newCard != nil {
 		log.Debug("newCard=%v(%v)", newCard.GetCardOid(), newCard.GetCardId())
 	}
 	data := &pb.GS2CTurnToNext{}
@@ -98,5 +98,11 @@ func SendGS2CUpdateCardAfterPlayerProc(cardList []*pb.CardInfo, a gate.Agent) {
 	log.Debug("SendGS2CUpdateCardAfterPlayerProc-->>")
 	data := &pb.GS2CUpdateCardAfterPlayerProc{}
 	data.CardList = cardList
+	a.WriteMsg(data)
+}
+
+func SendGS2CGameOver(a gate.Agent) {
+	log.Debug("SendGS2CGameOver-->>")
+	data := &pb.GS2CGameOver{}
 	a.WriteMsg(data)
 }

@@ -109,7 +109,8 @@ func loadAllCards() []*Card {
 	return cardWall
 }
 
-func IsHu(inhand []int, peng []int, gang []int) bool {
+func IsHu(inhand []int, gang []int, peng []int) bool {
+	log.Debug("check hu")
 	sumCount := len(inhand) + len(peng) + len(gang)
 	if sumCount < 14 || sumCount > 18 {
 		log.Debug("sumCount[%v] is error.", sumCount)
@@ -149,6 +150,7 @@ func checkPeng(list []int) bool {
 		count, ok := dict[list[i]]
 		if ok {
 			count++
+			dict[list[i]] = count
 		} else {
 			dict[list[i]] = 1
 		}
@@ -207,6 +209,7 @@ func checkInHand(list []int) bool {
 
 	//检查七小对
 	if isSevenPair(sortList) {
+		log.Debug("isSevenPair")
 		return true
 	}
 
@@ -231,6 +234,7 @@ func checkInHand(list []int) bool {
 			i = i + count - 1
 			//检查剩余牌顺子、刻子情况
 			if huPaiPanDin(tempList) {
+				log.Debug("is normal hu")
 				return true
 			}
 		}
@@ -275,14 +279,14 @@ func removeJiang(id int, list []int) []int {
 }
 
 func huPaiPanDin(list []int) bool {
-	/*logStr := "huPaiPanDin, list: "
+	logStr := "huPaiPanDin, list: "
 	buf := bytes.NewBufferString(logStr)
 	for i := 0; i < len(list); i++ {
 		str := strconv.Itoa(list[i])
 		buf.Write([]byte(str))
 		buf.Write([]byte(", "))
 	}
-	log.Debug(buf.String())*/
+	log.Debug(buf.String())
 
 	if len(list) == 0 {
 		return true
@@ -375,13 +379,14 @@ func canGang(list []int, card *Card) int {
 		count, ok := dict[list[i]]
 		if ok {
 			count++
+			dict[list[i]] = count
 		} else {
 			dict[list[i]] = 1
 		}
 	}
 	if card == nil {
 		for id, count := range dict {
-			//log.Debug("can gang => id[%v], count[%v]", id, count)
+			log.Debug("can gang => id[%v], count[%v]", id, count)
 			if count == 4 {
 				return id
 			}

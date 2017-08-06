@@ -366,7 +366,7 @@ func (roomInfo *RoomInfo) allCardLog() {
 		//id
 		logStr = "player["
 		str1 := strconv.Itoa(int(value.playerInfo.oid))
-		str2 := "] card id: "
+		str2 := "] has card id: "
 		buf := bytes.NewBufferString(logStr)
 		buf.Write([]byte(str1))
 		buf.Write([]byte(str2))
@@ -375,6 +375,8 @@ func (roomInfo *RoomInfo) allCardLog() {
 			buf.Write([]byte(str))
 			buf.Write([]byte(", "))
 		}
+		str3 := strconv.Itoa(len(playerCardId))
+		buf.Write([]byte(str3))
 		log.Debug(buf.String())
 	}
 
@@ -547,6 +549,7 @@ func (roomInfo *RoomInfo) outRoom(playerOid int32) {
 	}
 }
 
+//---------------------------------------- lack card ------------------------------------------
 func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType *pb.CardType) {
 	sideInfo, ok := roomInfo.cardMap.cMap[playerOid]
 	if ok {
@@ -562,7 +565,6 @@ func (roomInfo *RoomInfo) selectLackOver() bool {
 		if i == 0 {
 		}
 		if value.process != ProcessStatus_LACK_OVER {
-			roomInfo.cardMap.lock.Unlock()
 			return false
 		}
 	}
@@ -578,21 +580,9 @@ func (roomInfo *RoomInfo) sendLackCard() {
 		result = append(result, lack)
 	}
 	log.Debug("lack over, turn switch")
-	curTurnPlayerOid = roomInfo.dealerId
 	for _, value := range roomInfo.cardMap.cMap {
 		if !value.isRobot && value.agent != nil {
 			msgHandler.SendGS2CSelectLackRet(result, value.agent)
-			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_NotDrawCard.Enum(), value.agent)
-		}
-	}
-	for _, value := range roomInfo.cardMap.cMap {
-		if roomInfo.dealerId == value.playerInfo.oid {
-			if value.isRobot {
-				value.robotTurnSwitch()
-			} else {
-				value.playerTurnSwitch()
-			}
-			break
 		}
 	}
 }
@@ -612,12 +602,52 @@ func sendUpdateCardInfoBySelfGang(roonmId string, procPlayerOid int32, list []*p
 	}
 }
 
+func (roomInfo *RoomInfo) dealerStart() {
+	log.Debug("Dealer start ==========>>>>>>>>>")
+	curTurnPlayerOid = roomInfo.dealerId
+	for _, value := range roomInfo.cardMap.cMap {
+		if !value.isRobot && value.agent != nil {
+			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_NotDrawCard.Enum(), value.agent)
+		}
+	}
+	for _, value := range roomInfo.cardMap.cMap {
+		if roomInfo.dealerId == value.playerInfo.oid {
+			if value.isRobot {
+				value.robotTurnSwitch()
+			} else {
+				value.playerTurnSwitch()
+			}
+			break
+		}
+	}
+}
+
+func sendCanDiscardProc(roomId string) {
+	log.Debug("sendCanDiscardProc")
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		for _, sideInfo := range roomInfo.cardMap.cMap {
+			if !sideInfo.isRobot && sideInfo.agent != nil {
+				msgHandler.SendGS2CPlayerEnsureProc(curTurnPlayerOid, pb.ProcType_Discard.Enum(), 0, 0, sideInfo.agent)
+			}
+		}
+	} else {
+		log.Debug("sendCanDiscardProc, room[%v] not exist.", roomId)
+	}
+}
+
 //---------------------------------------- discard ------------------------------------------
 func (roomInfo *RoomInfo) recvDiscard(playerId int32, Oid int32) {
+	log.Debug("recvDiscard, playerId%v, cardOid%v", playerId, Oid)
 	sideInfo, ok := roomInfo.cardMap.cMap[playerId]
 	if ok {
-		discard := sideInfo.unpdateDiscardInfo(Oid)
+		discard := sideInfo.playerUpdateDiscardInfo(Oid)
 		roomInfo.broadcastDiscard(discard)
+		timer := time.NewTimer(time.Second * 1)
+		<-timer.C
+		//延迟1秒
 		roomInfo.checkTurnOver()
 	} else {
 		log.Error("no player[%v]", playerId)
@@ -675,10 +705,13 @@ func (roomInfo *RoomInfo) isGangTurnOver() bool {
 }
 
 func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
-	for _, v := range roomInfo.cardMap.cMap {
-		log.Debug("player[%v] process=%v", v.playerInfo.oid, v.process)
-		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_WAITING_GANG &&
-			v.process != ProcessStatus_WAITING_HU && v.process != ProcessStatus_WAITING_PENG {
+	for _, sideInfo := range roomInfo.cardMap.cMap {
+		log.Debug("player[%v] process=%v", sideInfo.playerInfo.oid, sideInfo.process)
+		if sideInfo.process == ProcessStatus_TURN_OVER_HU || sideInfo.process == ProcessStatus_GAME_OVER {
+			continue
+		}
+		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_WAITING_GANG &&
+			sideInfo.process != ProcessStatus_WAITING_HU && sideInfo.process != ProcessStatus_WAITING_PENG {
 			return false
 		}
 	}
@@ -733,12 +766,17 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 			log.Error("normal over error! preDiscard is nil.")
 		}
 		for _, sideInfo := range roomInfo.cardMap.cMap {
-			sideInfo.process = ProcessStatus_TURN_START
+			if sideInfo.process != ProcessStatus_GAME_OVER && sideInfo.process != ProcessStatus_TURN_OVER_HU {
+				sideInfo.process = ProcessStatus_TURN_START
+			}
 		}
 		roomInfo.turnToNextPlayer()
 	} else if roomInfo.isHuTurnOver() {
 		log.Debug("someone hu, and it proc hu over.")
 		sideInfoList := roomInfo.getHuTurnOverSideInfo()
+		for _, sideInfo := range sideInfoList {
+			sideInfo.process = ProcessStatus_GAME_OVER
+		}
 		if len(sideInfoList) > 0 {
 			roomInfo.sendHuTurnToNext(sideInfoList)
 		} else {
@@ -821,7 +859,7 @@ func (roomInfo *RoomInfo) procHu(preDiscard *Card, playerHuOid []int32) {
 	for _, playerOid := range playerHuOid {
 		sideInfo, ok := roomInfo.cardMap.cMap[playerOid]
 		if ok {
-			if !sideInfo.isRobot {
+			if sideInfo.isRobot {
 				sideInfo.addDiscardAsHu(preDiscard)
 				hasRobotHu = true
 				roomInfo.sendRobotProc(sideInfo.playerInfo.oid, curTurnPlayerOid, pb.ProcType_HuOther)
@@ -877,12 +915,30 @@ func (roomInfo *RoomInfo) sendRealPlayerProc(procPlayer int32, beProcPlayer int3
 }
 
 func (roomInfo *RoomInfo) procSelfGang() {
-	log.Debug("procSelfGang")
+	log.Debug("procSelfGang(include real player and robot)")
 	sideInfo, ok := roomInfo.cardMap.cMap[curTurnPlayerOid]
 	if ok {
-
+		if sideInfo.isRobot {
+			sideInfo.robotSelfGang()
+		} else {
+			roomInfo.sendRealPlayerProc(curTurnPlayerOid, 0, pb.ProcType_SelfGang, 0)
+		}
 	} else {
+		log.Error("current turn player%v is not in room%v", curTurnPlayerOid, roomInfo.roomId)
+	}
+}
 
+func (roomInfo *RoomInfo) procSelfHu() {
+	log.Debug("procSelfHu(include real player and robot)")
+	sideInfo, ok := roomInfo.cardMap.cMap[curTurnPlayerOid]
+	if ok {
+		if sideInfo.isRobot {
+			sendRobotSelfHuProc(sideInfo.playerInfo.roomId)
+		} else {
+			roomInfo.sendRealPlayerProc(curTurnPlayerOid, 0, pb.ProcType_SelfHu, 0)
+		}
+	} else {
+		log.Error("current turn player%v is not in room%v", curTurnPlayerOid, roomInfo.roomId)
 	}
 }
 
@@ -898,7 +954,8 @@ func (roomInfo *RoomInfo) getSideByPlayerOid(playerOid int32) pb.BattleSide {
 
 func (roomInfo *RoomInfo) nextSideCanProc(nextSide pb.BattleSide) bool {
 	for _, sideInfo := range roomInfo.cardMap.cMap {
-		if sideInfo.side == nextSide && sideInfo.process != ProcessStatus_GAME_OVER {
+		log.Debug("player%v process=%v", sideInfo.playerInfo.oid, sideInfo.process)
+		if sideInfo.side == nextSide && sideInfo.process != ProcessStatus_GAME_OVER && sideInfo.process != ProcessStatus_TURN_OVER_HU {
 			return true
 		}
 	}
@@ -950,6 +1007,11 @@ func (roomInfo *RoomInfo) getPlayerOidBySide(side pb.BattleSide) int32 {
 
 func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	log.Debug("sendNormalTurnToNext[%v]", nextSide)
+	if len(roomInfo.cardWall) <= 0 {
+		log.Debug("牌已经摸完，游戏结束.")
+		roomInfo.sendGameOver()
+		return
+	}
 	newCard := &pb.CardInfo{}
 	for _, sideInfo := range roomInfo.cardMap.cMap {
 		if sideInfo.side == nextSide {
@@ -979,8 +1041,16 @@ func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	roomInfo.allCardLog()
 
 	for _, sideInfo := range roomInfo.cardMap.cMap {
-		if sideInfo.isRobot && sideInfo.playerInfo.oid == curTurnPlayerOid {
-			sideInfo.robotTurnSwitch()
+		if sideInfo.playerInfo.oid == curTurnPlayerOid {
+			if sideInfo.isRobot {
+				log.Debug("cur turn is robot.")
+				sideInfo.robotTurnSwitch()
+				break
+			} else {
+				log.Debug("cur turn is player.")
+				sideInfo.playerTurnSwitch()
+				break
+			}
 		}
 	}
 }
@@ -1064,16 +1134,6 @@ func (roomInfo *RoomInfo) getCurTurnSideInfo() *SideInfo {
 	return nil
 }
 
-func (roomInfo *RoomInfo) sideInfoTurnOver(playerOid int32) {
-	for _, sideInfo := range roomInfo.cardMap.cMap {
-		if sideInfo.playerInfo.oid == playerOid {
-			sideInfo.process = ProcessStatus_TURN_OVER
-			break
-		}
-	}
-	roomInfo.checkTurnOver()
-}
-
 func (roomInfo *RoomInfo) robotProcOver(robotOid int32, procType pb.ProcType) {
 	log.Debug("robotProcOver, robotOid=%v, procType=%v", robotOid, procType)
 	for _, sideInfo := range roomInfo.cardMap.cMap {
@@ -1090,58 +1150,6 @@ func (roomInfo *RoomInfo) robotProcOver(robotOid int32, procType pb.ProcType) {
 	roomInfo.checkTurnOver()
 }
 
-func (roomInfo *RoomInfo) playerEnsureProc(procPlayerOid int32, procType pb.ProcType) {
-	log.Debug("player%v select proc=%v", procPlayerOid, procType)
-	if procType == pb.ProcType_Peng {
-		roomInfo.playerEnsurePeng(procPlayerOid)
-	} else if procType == pb.ProcType_HuOther {
-		roomInfo.playerEnsureHu(procPlayerOid)
-	}
-}
-
-func (roomInfo *RoomInfo) playerEnsurePeng(procPlayerOid int32) {
-	log.Debug("playerEnsurePeng")
-	preDiscard := roomInfo.getPreDiscard()
-	if preDiscard != nil {
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if procPlayerOid == sideInfo.playerInfo.oid {
-				sideInfo.addDiscardAsPeng(preDiscard)
-				sideInfo.process = ProcessStatus_TURN_OVER_PENG
-			} else if sideInfo.playerInfo.oid == curTurnPlayerOid {
-				sideInfo.deleteDiscard(preDiscard)
-			}
-		}
-
-		roomInfo.allCardLog()
-
-		//send update cards to client
-		var cardList []*pb.CardInfo
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if sideInfo.playerInfo.oid == curTurnPlayerOid || procPlayerOid == sideInfo.playerInfo.oid {
-				for _, value := range sideInfo.cardList {
-					card := &pb.CardInfo{}
-					card.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
-					card.CardOid = proto.Int32(value.oid)
-					card.CardId = proto.Int32(value.id)
-					card.Status = cardStatusToPbCardStatus(value.status).Enum()
-					card.FromOther = proto.Bool(value.fromOther)
-					cardList = append(cardList, card)
-				}
-			}
-		}
-		log.Debug("need update card count=%v", len(cardList))
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if !sideInfo.isRobot && sideInfo.agent != nil {
-				msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
-			}
-		}
-		//real player peng over, check turn over
-		roomInfo.checkTurnOver()
-	} else {
-		log.Error("current pre discard is nil.")
-	}
-}
-
 func (roomInfo *RoomInfo) getHuStatusCard() *Card {
 	log.Debug("getHuStatusCard")
 	for _, sideInfo := range roomInfo.cardMap.cMap {
@@ -1156,55 +1164,20 @@ func (roomInfo *RoomInfo) getHuStatusCard() *Card {
 	return nil
 }
 
-func (roomInfo *RoomInfo) playerEnsureHu(procPlayerOid int32) {
-	log.Debug("playerEnsureHu")
-	preDiscard := roomInfo.getPreDiscard()
-	if preDiscard == nil {
-		log.Debug("has robot hu, pre discard has been proc, get it from robot card list.")
-		preDiscard = roomInfo.getHuStatusCard()
+func (roomInfo *RoomInfo) setOtherProcessBySelfProc(exceptPlayerOid int32, process ProcessStatus) {
+	log.Debug("setOtherProcessBySelfProc")
+	for _, sideInfo := range roomInfo.cardMap.cMap {
+		if sideInfo.playerInfo.oid != exceptPlayerOid {
+			sideInfo.process = process
+		}
 	}
-	if preDiscard != nil {
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if procPlayerOid == sideInfo.playerInfo.oid {
-				sideInfo.addDiscardAsHu(preDiscard)
-				sideInfo.process = ProcessStatus_TURN_OVER_HU
-			} else if sideInfo.playerInfo.oid == curTurnPlayerOid {
-				sideInfo.deleteDiscard(preDiscard)
-			}
-		}
+}
 
-		roomInfo.allCardLog()
-
-		//send update cards to client
-		var cardList []*pb.CardInfo
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if sideInfo.playerInfo.oid == curTurnPlayerOid || procPlayerOid == sideInfo.playerInfo.oid {
-				for _, value := range sideInfo.cardList {
-					card := &pb.CardInfo{}
-					card.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
-					card.CardOid = proto.Int32(value.oid)
-					card.CardId = proto.Int32(value.id)
-					card.Status = cardStatusToPbCardStatus(value.status).Enum()
-					card.FromOther = proto.Bool(value.fromOther)
-					cardList = append(cardList, card)
-				}
-			}
+func (roomInfo *RoomInfo) sendGameOver() {
+	log.Debug("sendGameOver")
+	for _, sideInfo := range roomInfo.cardMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CGameOver(sideInfo.agent)
 		}
-		log.Debug("need update card count=%v", len(cardList))
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if !sideInfo.isRobot && sideInfo.agent != nil {
-				msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
-			}
-		}
-		//real player hu over, if has other player is processing, wait, otherwise check turn over.
-		for _, sideInfo := range roomInfo.cardMap.cMap {
-			if sideInfo.process == ProcessStatus_PROC_HU {
-				log.Debug("has player is processing hu, can't check turn over.")
-				return
-			}
-		}
-		roomInfo.checkTurnOver()
-	} else {
-		log.Error("when hu, pre discard is nil.")
 	}
 }

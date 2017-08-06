@@ -70,7 +70,7 @@ public class Item_procBtn : MonoBehaviour {
             case ProcBtnType.Gang:
                 if (BattleManager.Instance.CurPlaySide == BattleManager.Instance.GetSideByPlayerOID(Player.Instance.PlayerInfo.OID))
                 {
-                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.SelfGang);
+                    GameMsgHandler.Instance.SendMsgC2GSPlayerEnsureProcRet(pb.ProcType.SelfGang, BattleManager.Instance.CurSelfGangCardId);
                 }
                 else
                 {

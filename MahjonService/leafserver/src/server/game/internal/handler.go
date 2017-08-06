@@ -15,7 +15,6 @@ func init() {
 	handler(&pb.C2GSExchangeCard{}, recvC2GSExchangeCard)
 	handler(&pb.C2GSSelectLack{}, recvC2GSSelectLack)
 	handler(&pb.C2GSDiscard{}, recvC2GSDiscard)
-	handler(&pb.C2GSCurTurnOver{}, recvC2GSCurTurnOver)
 	handler(&pb.C2GSRobotProcOver{}, recvC2GSRobotProcOver)
 	handler(&pb.C2GSPlayerEnsureProcRet{}, recvC2GSPlayerEnsureProcRet)
 }
@@ -70,12 +69,6 @@ func recvC2GSDiscard(args []interface{}) {
 	roomMgr.UpdateDiscard(m.GetCardOid(), a)
 }
 
-func recvC2GSCurTurnOver(args []interface{}) {
-	log.Debug("recvC2GSCurTurnOver <<--")
-	a := args[1].(gate.Agent)
-	roomMgr.PlayerTurnOver(a)
-}
-
 func recvC2GSRobotProcOver(args []interface{}) {
 	log.Debug("recvC2GSRobotProcOver <<--")
 	m := args[0].(*pb.C2GSRobotProcOver)
@@ -87,5 +80,5 @@ func recvC2GSPlayerEnsureProcRet(args []interface{}) {
 	log.Debug("recvC2GSPlayerEnsureProcRet <<--")
 	m := args[0].(*pb.C2GSPlayerEnsureProcRet)
 	a := args[1].(gate.Agent)
-	roomMgr.PlayerEnsureProc(m.GetProcType(), a)
+	roomMgr.PlayerEnsureProc(m.GetProcType(), m.GetProcCardId(), a)
 }

@@ -82,6 +82,7 @@ public class NetworkManager : MonoBehaviour
         RegisterMessageHandler((int)MsgDef.GS2CRobotProc, GameMsgHandler.Instance.RevMsgGS2CRobotProc);
         RegisterMessageHandler((int)MsgDef.GS2CPlayerEnsureProc, GameMsgHandler.Instance.RevMsgGS2CPlayerEnsureProc);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateCardAfterPlayerProc, GameMsgHandler.Instance.RevMsgGS2CUpdateCardAfterPlayerProc);
+        RegisterMessageHandler((int)MsgDef.GS2CGameOver, GameMsgHandler.Instance.RevMsgGS2CGameOver);
     }
 
     private void RegisterMessageHandler(int pid, PacketHandle hander)

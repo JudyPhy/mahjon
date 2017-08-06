@@ -20,4 +20,5 @@ public class EventDefine
     public static string EnsureProcPG = "EnsureProcPG";
     public static string SelfEnsureProc = "SelfEnsureProc";
     public static string ReplacePlayerCards = "ReplacePlayerCards";
+    public static string GameOver = "GameOver";
 }

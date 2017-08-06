@@ -54,8 +54,8 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 2c4df4e517940c6469f15733fa5b4d7a, type: 2}
   mSprites:
   - name: arrow
-    x: 0
-    y: 13
+    x: 467
+    y: 684
     width: 85
     height: 49
     borderLeft: 0
@@ -66,9 +66,35 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
+  - name: bg_result
+    x: 0
+    y: 595
+    width: 157
+    height: 278
+    borderLeft: 60
+    borderRight: 60
+    borderTop: 130
+    borderBottom: 130
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: bg_result2
+    x: 0
+    y: 11
+    width: 48
+    height: 12
+    borderLeft: 10
+    borderRight: 10
+    borderTop: 1
+    borderBottom: 1
+    paddingLeft: 2
+    paddingRight: 2
+    paddingTop: 2
+    paddingBottom: 2
   - name: Button_GangAction
-    x: 367
-    y: 109
+    x: 542
+    y: 739
     width: 161
     height: 134
     borderLeft: 0
@@ -80,8 +106,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: Button_GuoAction
-    x: 367
-    y: 11
+    x: 158
+    y: 197
     width: 98
     height: 97
     borderLeft: 0
@@ -93,8 +119,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: Button_HuAction
-    x: 696
-    y: 382
+    x: 704
+    y: 743
     width: 147
     height: 130
     borderLeft: 0
@@ -106,8 +132,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: Button_PengAction
-    x: 539
-    y: 376
+    x: 0
+    y: 308
     width: 156
     height: 136
     borderLeft: 0
@@ -119,8 +145,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: card1
-    x: 466
-    y: 17
+    x: 257
+    y: 203
     width: 60
     height: 91
     borderLeft: 0
@@ -132,8 +158,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: card1_back
-    x: 614
-    y: 146
+    x: 335
+    y: 643
     width: 60
     height: 90
     borderLeft: 0
@@ -145,8 +171,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 1
   - name: curSide
-    x: 177
-    y: 178
+    x: 301
+    y: 384
     width: 32
     height: 39
     borderLeft: 0
@@ -157,22 +183,9 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: eff_chi
-    x: 367
-    y: 244
-    width: 163
-    height: 135
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
   - name: eff_gang
-    x: 0
-    y: 373
+    x: 158
+    y: 734
     width: 211
     height: 139
     borderLeft: 0
@@ -184,8 +197,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 1
   - name: eff_hu
-    x: 212
-    y: 363
+    x: 0
+    y: 445
     width: 154
     height: 149
     borderLeft: 0
@@ -197,8 +210,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 1
   - name: eff_peng
-    x: 367
-    y: 380
+    x: 370
+    y: 741
     width: 171
     height: 132
     borderLeft: 0
@@ -209,9 +222,22 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 1
+  - name: F0B3864B
+    x: 659
+    y: 879
+    width: 244
+    height: 145
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: inhand_bg_back1
-    x: 610
-    y: 22
+    x: 553
+    y: 659
     width: 49
     height: 74
     borderLeft: 0
@@ -223,8 +249,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: inhand_bg_back2
-    x: 159
-    y: 2
+    x: 979
+    y: 964
     width: 41
     height: 60
     borderLeft: 0
@@ -236,8 +262,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: inhand_bg_back3
-    x: 676
-    y: 20
+    x: 979
+    y: 904
     width: 41
     height: 59
     borderLeft: 0
@@ -249,8 +275,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: inhand_bg1
-    x: 676
-    y: 263
+    x: 158
+    y: 84
     width: 76
     height: 112
     borderLeft: 0
@@ -262,8 +288,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: inhand_bg2
-    x: 676
-    y: 151
+    x: 235
+    y: 85
     width: 76
     height: 111
     borderLeft: 0
@@ -275,8 +301,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: inhand_turnto
-    x: 539
-    y: 97
+    x: 904
+    y: 885
     width: 74
     height: 139
     borderLeft: 0
@@ -288,8 +314,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: left
-    x: 177
-    y: 312
+    x: 989
+    y: 813
     width: 26
     height: 60
     borderLeft: 0
@@ -301,8 +327,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: PG_bg_s
-    x: 676
-    y: 80
+    x: 603
+    y: 663
     width: 48
     height: 70
     borderLeft: 0
@@ -314,8 +340,8 @@ MonoBehaviour:
     paddingTop: 2
     paddingBottom: 0
   - name: quetiao1
-    x: 0
-    y: 218
+    x: 158
+    y: 579
     width: 176
     height: 154
     borderLeft: 0
@@ -327,8 +353,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 2
   - name: quetiao2
-    x: 0
-    y: 63
+    x: 158
+    y: 424
     width: 176
     height: 154
     borderLeft: 0
@@ -340,8 +366,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 1
   - name: quetong1
-    x: 844
-    y: 384
+    x: 158
+    y: 295
     width: 142
     height: 128
     borderLeft: 0
@@ -353,8 +379,8 @@ MonoBehaviour:
     paddingTop: 26
     paddingBottom: 2
   - name: quetong2
-    x: 212
-    y: 218
+    x: 0
+    y: 163
     width: 142
     height: 144
     borderLeft: 0
@@ -366,8 +392,8 @@ MonoBehaviour:
     paddingTop: 10
     paddingBottom: 2
   - name: quewan1
-    x: 539
-    y: 237
+    x: 852
+    y: 735
     width: 136
     height: 138
     borderLeft: 0
@@ -379,8 +405,8 @@ MonoBehaviour:
     paddingTop: 15
     paddingBottom: 3
   - name: quewan2
-    x: 212
-    y: 79
+    x: 0
+    y: 24
     width: 146
     height: 138
     borderLeft: 0
@@ -392,8 +418,8 @@ MonoBehaviour:
     paddingTop: 15
     paddingBottom: 3
   - name: right
-    x: 177
-    y: 251
+    x: 989
+    y: 752
     width: 24
     height: 60
     borderLeft: 0
@@ -405,8 +431,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: room_color1
-    x: 212
-    y: 9
+    x: 158
+    y: 14
     width: 70
     height: 69
     borderLeft: 0
@@ -418,8 +444,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: room_color2
-    x: 283
-    y: 9
+    x: 235
+    y: 15
     width: 70
     height: 69
     borderLeft: 0
@@ -431,8 +457,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: room_color3
-    x: 539
-    y: 27
+    x: 396
+    y: 664
     width: 70
     height: 69
     borderLeft: 0
@@ -444,8 +470,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: Status_Hu
-    x: 862
-    y: 337
+    x: 699
+    y: 648
     width: 38
     height: 38
     borderLeft: 0
@@ -457,8 +483,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: Status_ZiMo
-    x: 86
-    y: 24
+    x: 467
+    y: 645
     width: 72
     height: 38
     borderLeft: 0
@@ -469,9 +495,22 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
+  - name: tbg_title
+    x: 0
+    y: 874
+    width: 658
+    height: 150
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: tileImage_17
-    x: 539
-    y: 2
+    x: 744
+    y: 680
     width: 60
     height: 24
     borderLeft: 0
@@ -483,8 +522,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: tileImage_249
-    x: 753
-    y: 323
+    x: 652
+    y: 681
     width: 46
     height: 52
     borderLeft: 0
@@ -496,8 +535,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: tileImage_43
-    x: 800
-    y: 347
+    x: 744
+    y: 705
     width: 61
     height: 28
     borderLeft: 0
@@ -509,8 +548,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: zhuang
-    x: 614
-    y: 99
+    x: 699
+    y: 687
     width: 44
     height: 46
     borderLeft: 0

@@ -26,13 +26,13 @@ It has these top-level messages:
 	GS2CSelectLackRet
 	C2GSDiscard
 	GS2CDiscardRet
-	C2GSCurTurnOver
 	GS2CTurnToNext
 	GS2CRobotProc
 	C2GSRobotProcOver
 	GS2CPlayerEnsureProc
 	C2GSPlayerEnsureProcRet
 	GS2CUpdateCardAfterPlayerProc
+	GS2CGameOver
 */
 package pb
 
@@ -249,6 +249,7 @@ const (
 	ProcType_Peng      ProcType = 3
 	ProcType_SelfHu    ProcType = 4
 	ProcType_HuOther   ProcType = 5
+	ProcType_Discard   ProcType = 6
 )
 
 var ProcType_name = map[int32]string{
@@ -257,6 +258,7 @@ var ProcType_name = map[int32]string{
 	3: "Peng",
 	4: "SelfHu",
 	5: "HuOther",
+	6: "Discard",
 }
 var ProcType_value = map[string]int32{
 	"SelfGang":  1,
@@ -264,6 +266,7 @@ var ProcType_value = map[string]int32{
 	"Peng":      3,
 	"SelfHu":    4,
 	"HuOther":   5,
+	"Discard":   6,
 }
 
 func (x ProcType) Enum() *ProcType {
@@ -891,14 +894,6 @@ func (m *GS2CDiscardRet) GetCardOid() int32 {
 	return 0
 }
 
-type C2GSCurTurnOver struct {
-	XXX_unrecognized []byte `json:"-"`
-}
-
-func (m *C2GSCurTurnOver) Reset()         { *m = C2GSCurTurnOver{} }
-func (m *C2GSCurTurnOver) String() string { return proto.CompactTextString(m) }
-func (*C2GSCurTurnOver) ProtoMessage()    {}
-
 type GS2CTurnToNext struct {
 	PlayerOid        *int32          `protobuf:"varint,1,req,name=playerOid" json:"playerOid,omitempty"`
 	Card             *CardInfo       `protobuf:"bytes,2,opt,name=card" json:"card,omitempty"`
@@ -999,7 +994,7 @@ type GS2CPlayerEnsureProc struct {
 	ProcPlayer       *int32    `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
 	ProcType         *ProcType `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
 	BeProcPlayer     *int32    `protobuf:"varint,3,opt,name=beProcPlayer" json:"beProcPlayer,omitempty"`
-	ProcCardId       *int32    `protobuf:"varint,4,req,name=procCardId" json:"procCardId,omitempty"`
+	ProcCardId       *int32    `protobuf:"varint,4,opt,name=procCardId" json:"procCardId,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
@@ -1037,6 +1032,7 @@ func (m *GS2CPlayerEnsureProc) GetProcCardId() int32 {
 
 type C2GSPlayerEnsureProcRet struct {
 	ProcType         *ProcType `protobuf:"varint,1,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
+	ProcCardId       *int32    `protobuf:"varint,2,opt,name=procCardId" json:"procCardId,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
@@ -1049,6 +1045,13 @@ func (m *C2GSPlayerEnsureProcRet) GetProcType() ProcType {
 		return *m.ProcType
 	}
 	return ProcType_SelfGang
+}
+
+func (m *C2GSPlayerEnsureProcRet) GetProcCardId() int32 {
+	if m != nil && m.ProcCardId != nil {
+		return *m.ProcCardId
+	}
+	return 0
 }
 
 type GS2CUpdateCardAfterPlayerProc struct {
@@ -1066,6 +1069,14 @@ func (m *GS2CUpdateCardAfterPlayerProc) GetCardList() []*CardInfo {
 	}
 	return nil
 }
+
+type GS2CGameOver struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *GS2CGameOver) Reset()         { *m = GS2CGameOver{} }
+func (m *GS2CGameOver) String() string { return proto.CompactTextString(m) }
+func (*GS2CGameOver) ProtoMessage()    {}
 
 func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)

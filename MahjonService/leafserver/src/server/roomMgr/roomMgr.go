@@ -117,15 +117,18 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
-func broadcastDiscard(roomId string, discard *Card) {
+func broadcastRobotDiscard(roomId string, discard *Card) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
 	RoomManager.lock.Unlock()
 	if ok {
 		roomInfo.broadcastDiscard(discard)
+		//after discard, wait 1 seconds for client ani
+		timer := time.NewTimer(time.Second * 1)
+		<-timer.C
 		roomInfo.checkTurnOver()
 	} else {
-		log.Error("no room[%v]", roomId)
+		log.Error("broadcastDiscard, no room[%v]", roomId)
 	}
 }
 
@@ -136,7 +139,52 @@ func curTurnPlayerSelfGang(roomId string) {
 	if ok {
 		roomInfo.procSelfGang()
 	} else {
-		log.Error("no room[%v]", roomId)
+		log.Error("curTurnPlayerSelfGang, no room[%v]", roomId)
+	}
+}
+
+func curTurnPlayerSelfHu(roomId string) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.procSelfHu()
+	} else {
+		log.Error("curTurnPlayerSelfGang, no room[%v]", roomId)
+	}
+}
+
+func sendRobotSelfGangProc(roomId string) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendRobotProc(curTurnPlayerOid, 0, pb.ProcType_SelfGang)
+	} else {
+		log.Error("sendRobotSelfGang, no room[%v]", roomId)
+	}
+}
+
+func sendRobotSelfHuProc(roomId string) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendRobotProc(curTurnPlayerOid, 0, pb.ProcType_SelfHu)
+	} else {
+		log.Error("sendRobotSelfHuProc, no room[%v]", roomId)
+	}
+}
+
+func setOtherProcess(roomId string, exceptPlayerOid int32, process ProcessStatus) {
+	log.Debug("setOtherProcess, roomId=%v, exceptPlayerOid=%v, process=%v", roomId, exceptPlayerOid, process)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.setOtherProcessBySelfProc(exceptPlayerOid, process)
+	} else {
+		log.Error("sendRobotSelfGang, no room[%v]", roomId)
 	}
 }
 
@@ -227,6 +275,7 @@ func UpdateLackCard(lackType *pb.CardType, a gate.Agent) {
 			roomInfo.updateLack(player.oid, lackType)
 			if roomInfo.selectLackOver() {
 				roomInfo.sendLackCard()
+				roomInfo.dealerStart()
 			}
 		} else {
 			log.Error("no room[%v]", player.roomId)
@@ -253,23 +302,6 @@ func UpdateDiscard(cardOid int32, a gate.Agent) {
 	}
 }
 
-func PlayerTurnOver(a gate.Agent) {
-	log.Debug("PlayerTurnOver")
-	player := getPlayerBtAgent(a)
-	if player != nil {
-		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
-		RoomManager.lock.Unlock()
-		if ok {
-			roomInfo.sideInfoTurnOver(player.oid)
-		} else {
-			log.Error("no room[%v]", player.roomId)
-		}
-	} else {
-		log.Error("player not login.")
-	}
-}
-
 func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 	log.Debug("RobotProcOver, robotOid=%v, procType=%v", robotOid, procType)
 	player := getPlayerBtAgent(a)
@@ -287,7 +319,7 @@ func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 	}
 }
 
-func PlayerEnsureProc(procType pb.ProcType, a gate.Agent) {
+func PlayerEnsureProc(procType pb.ProcType, procCardId int32, a gate.Agent) {
 	log.Debug("PlayerEnsureProc, procType=%v", procType)
 	player := getPlayerBtAgent(a)
 	if player != nil {
@@ -295,7 +327,7 @@ func PlayerEnsureProc(procType pb.ProcType, a gate.Agent) {
 		roomInfo, ok := RoomManager.roomMap[player.roomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.playerEnsureProc(player.oid, procType)
+			roomInfo.playerEnsureProc(player.oid, procType, procCardId)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

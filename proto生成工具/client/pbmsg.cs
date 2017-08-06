@@ -494,16 +494,6 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSCurTurnOver")]
-  public partial class C2GSCurTurnOver : global::ProtoBuf.IExtensible
-  {
-    public C2GSCurTurnOver() {}
-    
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CTurnToNext")]
   public partial class GS2CTurnToNext : global::ProtoBuf.IExtensible
   {
@@ -626,8 +616,9 @@ namespace pb
       get { return _beProcPlayer; }
       set { _beProcPlayer = value; }
     }
-    private int _procCardId;
-    [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    private int _procCardId = default(int);
+    [global::ProtoBuf.ProtoMember(4, IsRequired = false, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::System.ComponentModel.DefaultValue(default(int))]
     public int procCardId
     {
       get { return _procCardId; }
@@ -650,6 +641,14 @@ namespace pb
       get { return _procType; }
       set { _procType = value; }
     }
+    private int _procCardId = default(int);
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    [global::System.ComponentModel.DefaultValue(default(int))]
+    public int procCardId
+    {
+      get { return _procCardId; }
+      set { _procCardId = value; }
+    }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
@@ -667,6 +666,16 @@ namespace pb
       get { return _cardList; }
     }
   
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CGameOver")]
+  public partial class GS2CGameOver : global::ProtoBuf.IExtensible
+  {
+    public GS2CGameOver() {}
+    
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
@@ -777,7 +786,10 @@ namespace pb
       SelfHu = 4,
             
       [global::ProtoBuf.ProtoEnum(Name=@"HuOther", Value=5)]
-      HuOther = 5
+      HuOther = 5,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Discard", Value=6)]
+      Discard = 6
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"TurnSwitchType")]

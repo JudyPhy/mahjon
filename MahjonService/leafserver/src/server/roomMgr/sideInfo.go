@@ -5,7 +5,6 @@ import (
 	"server/pb"
 	"strconv"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
@@ -66,84 +65,14 @@ func (sideInfo *SideInfo) selectLack() {
 	sideInfo.process = ProcessStatus_LACK_OVER
 }
 
-//接口必须在摸牌后执行
-func (sideInfo *SideInfo) playerTurnSwitch() {
-	log.Debug("turn switch to player%v", sideInfo.playerInfo.oid)
-	inhandList := getInHandCardIdList(sideInfo.cardList)
-	gList := getGangCardIdList(sideInfo.cardList)
-	pList := getPengCardIdList(sideInfo.cardList)
-	if IsHu(inhandList, gList, pList) {
-		log.Debug("Hu, game over!")
-		sideInfo.procSelfHu()
-	} else {
-		log.Debug("can't self hu, check self gang.")
-		inhandIdList := getInHandCardIdList(sideInfo.cardList)
-		gangCardId := canGang(inhandIdList, nil)
-		if gangCardId != 0 {
-			sideInfo.procSelfGang(gangCardId)
-		} else {
-			log.Debug("can't self gang, proc discard")
-			discard := getRobotDiscard(sideInfo.cardList)
-			log.Debug("robot 出牌[%v](%v)", discard.oid, discard.id)
-			isFind := false
-			for _, card := range sideInfo.cardList {
-				if card.oid == discard.oid {
-					card.status = CardStatus_PRE_DISCARD
-					sideInfo.process = ProcessStatus_TURN_OVER
-					broadcastDiscard(sideInfo.playerInfo.roomId, discard)
-					isFind = true
-					break
-				}
-			}
-			if !isFind {
-				log.Error("robot discard is not in it's cardList.")
-			}
-		}
-	}
+func (sideInfo *SideInfo) procSelfHuPlayAndRobot() {
+	log.Debug("player%v self hu", sideInfo.playerInfo.oid)
+	curTurnPlayerSelfHu(sideInfo.playerInfo.roomId)
 }
 
-func (sideInfo *SideInfo) procSelfGang() {
-	log.Debug("player%v self hu")
+func (sideInfo *SideInfo) procSelfGangPlayerAndRobot() {
+	log.Debug("player%v self gang", sideInfo.playerInfo.oid)
 	curTurnPlayerSelfGang(sideInfo.playerInfo.roomId)
-}
-
-func (sideInfo *SideInfo) procSelfGang(gangCardId int) {
-	log.Debug("player%v proc self gang, cardId%v", sideInfo.playerInfo.oid, gangCardId)
-	var newCardList []*pb.CardInfo
-	for _, curCard := range sideInfo.cardList {
-		if curCard.id == int32(gangCardId) {
-			curCard.status = CardStatus_GANG
-		}
-		card := &pb.CardInfo{}
-		card.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
-		card.CardOid = proto.Int32(curCard.oid)
-		card.CardId = proto.Int32(curCard.id)
-		card.Status = cardStatusToPbCardStatus(curCard.status).Enum()
-		newCardList = append(newCardList, card)
-	}
-	sendUpdateCardInfoBySelfGang(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, newCardList)
-
-	robotSelfGangOver(sideInfo.playerInfo.roomId)
-}
-
-func (sideInfo *SideInfo) unpdateDiscardInfo(cardOid int32) *Card {
-	isFind := false
-	var card *Card
-	for _, value := range sideInfo.cardList {
-		if value.oid == cardOid {
-			value.status = CardStatus_PRE_DISCARD
-			sideInfo.process = ProcessStatus_TURN_OVER
-			isFind = true
-			card = value
-			break
-		}
-	}
-	if isFind {
-		log.Debug("玩家[%v]出牌[%v(%v)]成功", sideInfo.playerInfo.oid, card.oid, card.id)
-	} else {
-		log.Debug("玩家出牌[%v]不在自己手牌中", cardOid)
-	}
-	return card
 }
 
 func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
@@ -152,12 +81,16 @@ func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
 		log.Debug("player self turn, don't need process.")
 		return
 	}
+	if sideInfo.process == ProcessStatus_GAME_OVER {
+		log.Debug("player self has game over.")
+		return
+	}
 	handCard := getInHandCardIdList(sideInfo.cardList)
 	handCard = append(handCard, int(discard.id))
 	pList := getPengCardIdList(sideInfo.cardList)
 	gList := getGangCardIdList(sideInfo.cardList)
 
-	if IsHu(handCard, pList, gList) {
+	if IsHu(handCard, gList, pList) {
 		log.Debug("player can Hu!")
 		sideInfo.process = ProcessStatus_WAITING_HU
 	} else {
@@ -236,4 +169,13 @@ func (sideInfo *SideInfo) checkPengOk(discard *Card) bool {
 		}
 	}
 	return count >= 2
+}
+
+func (sideInfo *SideInfo) updateCardInfoBySelfGang(gCardId int32) {
+	log.Debug("updateCardInfoBySelfGang")
+	for _, card := range sideInfo.cardList {
+		if card.status == CardStatus_INHAND && card.id == gCardId {
+			card.status = CardStatus_GANG
+		}
+	}
 }

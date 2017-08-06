@@ -58,6 +58,10 @@ public enum BattleProcess
     EnsurePG,
 
     SelfTurnOver,
+
+    SelfGanging,
+
+    GameOver,
 }
 
 public class BattleManager
@@ -115,6 +119,14 @@ public class BattleManager
         set { _curTurnDiscard = value; }
         get { return _curTurnDiscard; }
     }
+
+    private int _curSelfGangCardId;
+    public int CurSelfGangCardId
+    {
+        set { _curSelfGangCardId = value; }
+        get { return _curSelfGangCardId; }
+    }
+
 
     private SideInfo getSideInfoBySide(pb.BattleSide side)
     {
@@ -490,7 +502,7 @@ public class BattleManager
     #region playing
     public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard, pb.TurnSwitchType type)
     {
-        Debug.Log("turn to next:" + playerOid);
+        Debug.Log("turn to next:" + playerOid + ", type=" + type.ToString());
         if (drawnCard != null)
         {
             Debug.Log("draw new card：" + drawnCard.CardOid);
@@ -751,48 +763,116 @@ public class BattleManager
         }
         return null;
     }
-
-    //收到出牌反馈
+    
     public void UpdateCardInfoByDiscardRet(int discardOid)
     {
-        Pai discardInfo = GetCardInfoByCardOid(discardOid);
-        discardInfo.Status = PaiStatus.Discard;
+        _curTurnDiscard = discardOid;
+        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        {
+            bool isFind = false;
+            List<Pai> cardList = _playerPaiInfoList[i].GetPaiList();
+            for (int n = 0; n < cardList.Count; n++)
+            {
+                if (cardList[n].OID == discardOid)
+                {
+                    Pai temp = cardList[n];
+                    cardList.RemoveAt(n);
+                    cardList.Add(temp); //将最新出的牌排列在最后
+                    isFind = true;
+                    break;
+                }
+            }
+            if (isFind)
+            {
+                break;
+            }
+        }
+    }
+
+    private Dictionary<int, List<pb.CardInfo>> getDictByCardList(List<pb.CardInfo> list) {
+        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>(); //playerOid : cardList
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (dict.ContainsKey(list[i].playerId))
+            {
+                dict[list[i].playerId].Add(list[i]);
+            }
+            else
+            {
+                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
+                cardList.Add(list[i]);
+                dict.Add(list[i].playerId, cardList);
+            }
+        }
+        return dict;
+    }
+
+    private void updatePaiByCardList(List<pb.CardInfo> newCardInfoList)
+    {
+        Dictionary<int, List<pb.CardInfo>> dict = getDictByCardList(newCardInfoList);
+        foreach (int playerOid in dict.Keys)
+        {
+            List<pb.CardInfo> newCardList = dict[playerOid];
+            Debug.Log("current player[" + playerOid + "] has card count=" + newCardList.Count);
+            for (int i = 0; i < _playerPaiInfoList.Count; i++)
+            {
+                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+                {
+                    //原始牌堆没有new中的牌，则添加，有则更新信息
+                    List<Pai> origCardList = _playerPaiInfoList[i].GetPaiList();
+                    for (int n = 0; n < newCardList.Count; n++)
+                    {
+                        bool isFind = false;
+                        for (int m = 0; m < origCardList.Count; m++)
+                        {
+                            if (origCardList[m].OID == newCardList[n].CardOid)
+                            {
+                                _playerPaiInfoList[i].UpdatePai(origCardList[m], newCardList[n]);
+                                isFind = true;
+                                break;
+                            }
+                        }
+                        if (!isFind)
+                        {
+                            _playerPaiInfoList[i].AddPai(newCardList[n]);
+                        }
+                    }
+
+                    _playerPaiInfoList[i].ClearPai();
+                    for (int n = 0; n < dict[playerOid].Count; n++)
+                    {
+                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
+                    }
+                    //原始牌堆中若有比new多的牌，则删除
+                    for (int n = 0; n < origCardList.Count; n++)
+                    {
+                        bool isFind = false;
+                        for (int m = 0; m < newCardList.Count; m++)
+                        {
+                            if (newCardList[m].CardOid == origCardList[n].OID)
+                            {
+                                isFind = true;
+                                break;
+                            }
+                        }
+                        if (!isFind)
+                        {
+                            origCardList.RemoveAt(n);
+                            n--;
+                        }
+                    }
+                    Debug.Log("After update player" + playerOid + "'s card, card count=" + origCardList.Count);
+                    break;
+                }
+            }
+        }
     }
 
     public void ProcessRobotProc(pb.GS2CRobotProc msg)
     {
         Debug.Log("ProcessRobotProc, procRobot=" + msg.procPlayer + ", beProcPlayer=" + msg.beProcPlayer + ", type=" + msg.procType.ToString());
         //更新牌信息
-        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
-        for (int i = 0; i < msg.cardList.Count; i++)
-        {
-            if (dict.ContainsKey(msg.cardList[i].playerId))
-            {
-                dict[msg.cardList[i].playerId].Add(msg.cardList[i]);
-            }
-            else
-            {
-                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
-                cardList.Add(msg.cardList[i]);
-                dict.Add(msg.cardList[i].playerId, cardList);
-            }
-        }        
-        foreach (int playerOid in dict.Keys)
-        {
-            Debug.Log("current player[" + playerOid + "] has card count=" + dict[playerOid].Count);
-            for (int i = 0; i < _playerPaiInfoList.Count; i++)
-            {
-                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
-                {
-                    _playerPaiInfoList[i].ClearPai();
-                    for (int n = 0; n < dict[playerOid].Count; n++)
-                    {
-                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
-                    }
-                    break;
-                }
-            }
-        }
+        updatePaiByCardList(msg.cardList);
         //处理操作动画
         EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
     }
@@ -809,49 +889,62 @@ public class BattleManager
     public void UpdateCardInfoByPlayerProcOver(List<pb.CardInfo> list)
     {
         //更新牌信息
-        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>();
+        updatePaiByCardList(list);
+        List<int> updatePlayerOid = new List<int>();
         for (int i = 0; i < list.Count; i++)
         {
-            if (dict.ContainsKey(list[i].playerId))
+            bool isFind = false;
+            for (int j = 0; j < updatePlayerOid.Count; j++)
             {
-                dict[list[i].playerId].Add(list[i]);
-            }
-            else
-            {
-                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
-                cardList.Add(list[i]);
-                dict.Add(list[i].playerId, cardList);
-            }
-        }
-        List<int> updatePlayerOid = new List<int>();
-        foreach (int playerOid in dict.Keys)
-        {
-            updatePlayerOid.Add(playerOid);
-            string str = "update player[" + playerOid + "]'s card: ";
-            for (int i = 0; i < _playerPaiInfoList.Count; i++)
-            {
-                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+                if (updatePlayerOid[j] == list[i].playerId)
                 {
-                    _playerPaiInfoList[i].ClearPai();
-                    for (int n = 0; n < dict[playerOid].Count; n++)
-                    {
-                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
-                    }
-
-                    //log
-                    List<Pai> logCardList = _playerPaiInfoList[i].GetPaiList();
-                    logCardList.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
-                    for (int m = 0; m < logCardList.Count; m++)
-                    {
-                        str += logCardList[m].Id + "(" + logCardList[m].OID + "), ";
-                    }
+                    isFind = true;
                     break;
-                }                
+                }
             }
-            Debug.Log(str);
+            if (!isFind)
+            {
+                updatePlayerOid.Add(list[i].playerId);
+            }
         }
         //对更新牌的玩家重新摆放牌堆
         EventDispatcher.TriggerEvent<List<int>>(EventDefine.ReplacePlayerCards, updatePlayerOid);
+    }
+
+    public int GetSelfGangCardId()
+    {
+        Dictionary<int, int> dict = new Dictionary<int, int>();
+        List<int> inhandList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.InHand);
+        List<int> pList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.Peng);
+        for (int j = 0; j < 2; j++)
+        {
+            List<int> list = j == 0 ? inhandList : pList;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (dict.ContainsKey(list[i]))
+                {
+                    dict[list[i]]++;
+                }
+                else
+                {
+                    dict.Add(list[i], 1);
+                }
+            }
+        }
+        foreach (int id in dict.Keys)
+        {
+            if (dict[id] == 4)
+            {
+                return id;
+            }
+        }
+        return 0;
+    }
+
+    public void GameOver()
+    {
+        _curProcess = BattleProcess.GameOver;
+        EventDispatcher.TriggerEvent(EventDefine.GameOver);
     }
 
 }

@@ -51,6 +51,7 @@ enum ProcType
 	Peng = 3;
 	SelfHu = 4;
 	HuOther = 5;
+	Discard = 6;	//仅真实玩家需要
 }
 
 enum TurnSwitchType
@@ -187,10 +188,6 @@ message GS2CDiscardRet
 	required int32 cardOid = 1;
 }
 
-message C2GSCurTurnOver
-{
-}
-
 message GS2CTurnToNext
 {
 	required int32 playerOid = 1;
@@ -217,17 +214,23 @@ message GS2CPlayerEnsureProc
 	required int32 procPlayer = 1;
 	required ProcType procType = 2;
 	optional int32 beProcPlayer = 3;
-	required int32 procCardId = 4;
+	optional int32 procCardId = 4;
 }
 
 message C2GSPlayerEnsureProcRet
 {
 	required ProcType procType = 1;
+	optional int32 procCardId = 2;
 }
 
 message GS2CUpdateCardAfterPlayerProc
 {
 	repeated CardInfo cardList = 1;
+}
+
+message GS2CGameOver
+{
+	
 }
 
 

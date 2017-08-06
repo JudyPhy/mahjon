@@ -77,15 +77,40 @@ func getSeparateCardTypeMap(list []*Card) map[int][]int32 {
 	return resultMap
 }
 
-//获取要出的牌
-func getRobotDiscard(list []*Card) *Card {
+func getLackIndexByLackType(lackType *pb.CardType) int {
+	if lackType == pb.CardType_Wan.Enum() {
+		return 1
+	} else if lackType == pb.CardType_Tiao.Enum() {
+		return 2
+	} else if lackType == pb.CardType_Tong.Enum() {
+		return 3
+	}
+	return 0
+}
+
+func (sideInfo *SideInfo) getRobotDiscard() *Card {
 	var ableDiscardList []*Card
-	for _, curCard := range list {
+	for _, curCard := range sideInfo.cardList {
 		if curCard.status == CardStatus_INHAND {
 			ableDiscardList = append(ableDiscardList, curCard)
 		}
 	}
 	log.Debug("robot inhand card count=%v", len(ableDiscardList))
+	//first find lack card
+	lackCardList := make([]*Card, 0)
+	for _, curCard := range ableDiscardList {
+		if curCard.id > 0 && curCard.id < 10 && sideInfo.lackType == pb.CardType_Wan.Enum() {
+			lackCardList = append(lackCardList, curCard)
+		} else if curCard.id > 10 && curCard.id < 20 && sideInfo.lackType == pb.CardType_Tiao.Enum() {
+			lackCardList = append(lackCardList, curCard)
+		} else if curCard.id > 20 && curCard.id < 30 && sideInfo.lackType == pb.CardType_Tong.Enum() {
+			lackCardList = append(lackCardList, curCard)
+		}
+	}
+	if len(lackCardList) > 0 {
+		return lackCardList[0]
+	}
+
 	rand.Seed(time.Now().Unix())
 	rnd := rand.Intn(len(ableDiscardList))
 	return ableDiscardList[rnd]
@@ -101,31 +126,66 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 	gList := getGangCardIdList(sideInfo.cardList)
 	pList := getPengCardIdList(sideInfo.cardList)
 	if IsHu(inhandList, gList, pList) {
-		log.Debug("Game over!")
+		log.Debug("Hu robot self, game over!")
+		sideInfo.procSelfHuPlayAndRobot()
 	} else {
-		log.Debug("Is can self gang")
-		inhandIdList := getInHandCardIdList(sideInfo.cardList)
-		gangCardId := canGang(inhandIdList, nil)
+		log.Debug("can't self hu, check self gang.")
+		inhandAndPList := append(inhandList[:], pList[:]...)
+		gangCardId := canGang(inhandAndPList, nil)
 		if gangCardId != 0 {
-			sideInfo.procSelfGang(gangCardId)
-			return
-		}
-		log.Debug("can't self gang, proc discard")
-		discard := getRobotDiscard(sideInfo.cardList)
-		log.Debug("robot 出牌[%v](%v)", discard.oid, discard.id)
-		isFind := false
-		for _, card := range sideInfo.cardList {
-			if card.oid == discard.oid {
-				card.status = CardStatus_PRE_DISCARD
-				sideInfo.process = ProcessStatus_TURN_OVER
-				broadcastDiscard(sideInfo.playerInfo.roomId, discard)
-				isFind = true
-				break
+			sideInfo.procSelfGangPlayerAndRobot()
+		} else {
+			log.Debug("can't self gang, proc discard")
+			discard := sideInfo.getRobotDiscard()
+			log.Debug("robot 出牌[%v](%v)", discard.oid, discard.id)
+			isFind := false
+			for n, card := range sideInfo.cardList {
+				if card.oid == discard.oid {
+					card.status = CardStatus_PRE_DISCARD
+					sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
+					sideInfo.cardList = append(sideInfo.cardList, card)
+					sideInfo.process = ProcessStatus_TURN_OVER
+					broadcastRobotDiscard(sideInfo.playerInfo.roomId, discard)
+					isFind = true
+					break
+				}
+			}
+			if !isFind {
+				log.Error("robot discard is not in it's cardList.")
 			}
 		}
-		if !isFind {
-			log.Error("robot discard is not in it's cardList.")
+	}
+}
+
+func (sideInfo *SideInfo) robotSelfGang() {
+	log.Debug("robotSelfGang")
+	dict := make(map[int32]int)
+	for _, card := range sideInfo.cardList {
+		if card.status == CardStatus_INHAND || card.status == CardStatus_PENG {
+			_, ok := dict[card.id]
+			if ok {
+				dict[card.id]++
+			} else {
+				dict[card.id] = 1
+			}
 		}
+	}
+	gCardId := int32(0)
+	for id, count := range dict {
+		if count == 4 {
+			gCardId = id
+			break
+		}
+	}
+	if gCardId == 0 {
+		log.Error("player%v has no self gang card!", sideInfo.playerInfo.oid)
+	} else {
+		for _, card := range sideInfo.cardList {
+			if card.status == CardStatus_INHAND && card.id == gCardId {
+				card.status = CardStatus_GANG
+			}
+		}
+		sendRobotSelfGangProc(sideInfo.playerInfo.roomId)
 	}
 }
 
@@ -134,13 +194,15 @@ func (sideInfo *SideInfo) robotTurnSwitchAfterPeng() {
 	timer := time.NewTimer(time.Second * 1)
 	<-timer.C
 	//1秒后执行
-	discard := getRobotDiscard(sideInfo.cardList)
+	discard := sideInfo.getRobotDiscard()
 	log.Debug("discard[%v](%v)", discard.oid, discard.id)
-	for _, card := range sideInfo.cardList {
+	for n, card := range sideInfo.cardList {
 		if card.oid == discard.oid {
 			card.status = CardStatus_PRE_DISCARD
+			sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
+			sideInfo.cardList = append(sideInfo.cardList, card)
 			sideInfo.process = ProcessStatus_TURN_OVER
-			broadcastDiscard(sideInfo.playerInfo.roomId, discard)
+			broadcastRobotDiscard(sideInfo.playerInfo.roomId, discard)
 			break
 		}
 	}
@@ -149,12 +211,23 @@ func (sideInfo *SideInfo) robotTurnSwitchAfterPeng() {
 func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 	if procType == pb.ProcType_Peng {
 		log.Debug("robot peng over, turn switch.")
+		//peng
 		sideInfo.process = ProcessStatus_TURN_OVER_PENG
 	} else if procType == pb.ProcType_HuOther {
 		log.Debug("robot hu over, wait check turn over.")
+		//hu other
 		sideInfo.process = ProcessStatus_TURN_OVER_HU
+	} else if procType == pb.ProcType_SelfHu {
+		//self hu
+		sideInfo.process = ProcessStatus_TURN_OVER_HU
+		setOtherProcess(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, ProcessStatus_TURN_OVER)
 	} else if procType == pb.ProcType_GangOther {
 		log.Debug("robot gang over, turn switch.")
+		//gang other
 		sideInfo.process = ProcessStatus_TURN_OVER_GANG
+	} else if procType == pb.ProcType_SelfGang {
+		//self gang
+		sideInfo.process = ProcessStatus_TURN_OVER_GANG
+		setOtherProcess(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, ProcessStatus_TURN_OVER)
 	}
 }

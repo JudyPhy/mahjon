@@ -53,14 +53,18 @@ public class Item_pai : MonoBehaviour
             {
                 case PaiStatus.InHand:
                 case PaiStatus.Exchange:
-                    _pai.spriteName = "b" + _info.Id.ToString();
+                    _pai.spriteName = "b" + _info.Id.ToString();                    
                     _pai.gameObject.SetActive(true);
+                    _pai.MakePixelPerfect();
+                    _pai.transform.localPosition = new Vector3(0, -11, 0);
                     _bg.spriteName = "inhand_bg2";
                     break;
                 case PaiStatus.Peng:
                     _pai.spriteName = "b" + _info.Id.ToString();
                     _pai.gameObject.SetActive(true);
-                    _bg.spriteName = "inhand_bg2";
+                    _pai.MakePixelPerfect();
+                    _pai.transform.localPosition = new Vector3(0, 11, 0);
+                    _bg.spriteName = "inhand_bg1";
                     break;
                 default:
                     break;
@@ -87,9 +91,9 @@ public class Item_pai : MonoBehaviour
 
     private void OnSelectExchangeCard()
     {
-        Debug.Log("select card as exchange card, oid=" + _info.OID);
+        Debug.Log("select card as exchange card, oid=" + _info.OID);        
         if (_info.Status == PaiStatus.Exchange)
-        {
+        {            
             _info.Status = PaiStatus.InHand;
             iTween.MoveTo(gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f));
             EventDispatcher.TriggerEvent<bool>(EventDefine.UpdateBtnExchangeCard, false);
@@ -144,7 +148,7 @@ public class Item_pai : MonoBehaviour
     }
 
     private void OnClickPai(GameObject go)
-    {
+    {        
         Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
             + ", curProcess=" + BattleManager.Instance.CurProcess);
         if (BattleManager.Instance.CurProcess == BattleProcess.SelectingExchangeCard)
@@ -154,6 +158,10 @@ public class Item_pai : MonoBehaviour
         }
         else if (BattleManager.Instance.CurProcess == BattleProcess.SelectingDiscard)
         {
+            if (_info.Status != PaiStatus.InHand)
+            {
+                return;
+            }
             // 出牌阶段
             OnSelectDiscard();
         }
