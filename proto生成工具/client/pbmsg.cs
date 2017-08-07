@@ -366,11 +366,11 @@ namespace pb
   {
     public C2GSExchangeCard() {}
     
-    private readonly global::System.Collections.Generic.List<pb.CardInfo> _cardList = new global::System.Collections.Generic.List<pb.CardInfo>();
-    [global::ProtoBuf.ProtoMember(1, Name=@"cardList", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    public global::System.Collections.Generic.List<pb.CardInfo> cardList
+    private readonly global::System.Collections.Generic.List<int> _cardOidList = new global::System.Collections.Generic.List<int>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"cardOidList", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public global::System.Collections.Generic.List<int> cardOidList
     {
-      get { return _cardList; }
+      get { return _cardOidList; }
     }
   
     private global::ProtoBuf.IExtension extensionObject;

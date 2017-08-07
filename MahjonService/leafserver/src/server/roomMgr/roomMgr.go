@@ -282,26 +282,26 @@ func QuickEnterRoomRet(a gate.Agent) {
 
 func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
 	log.Debug("UpdateExchangeCard")
-	exchangeCount := len(m.CardList)
+	exchangeCount := len(m.CardOidList)
 	if exchangeCount != 3 {
 		log.Error("exchange card count[%v] is error", exchangeCount)
 		msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL_CARD_COUNT_ERROR.Enum(), a)
 		return
 	}
-	player := getPlayerBtAgent(a)
+	player := player.GetPlayerBtAgent(a)
 	if player != nil {
-		log.Debug("exchange player nickName=%v, roomId=%v", player.nickName, player.roomId)
+		log.Debug("player%v exchange card", player.oid)
 		RoomManager.lock.Lock()
 		roomInfo, ok := RoomManager.roomMap[player.roomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			result := roomInfo.updateExchangeCards(m.CardList, player.oid)
+			result := roomInfo.updateExchangeCards(m.CardOidList, player.oid)
 			if !result {
 				msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL.Enum(), a)
 			} else {
 				log.Debug("The exchanging card has update in list.")
 				msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_SUCCESS.Enum(), a)
-				if roomInfo.checkExchangeCardOver() {
+				if roomInfo.isExchangeOver() {
 					roomInfo.processExchangeCard()
 				}
 			}

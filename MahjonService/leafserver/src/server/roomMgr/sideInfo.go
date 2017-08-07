@@ -18,6 +18,7 @@ type SideInfo struct {
 	playerOid int32
 	roomId    string
 	cardList  []*card.Card
+	process   ProcessStatus
 }
 
 func (sideInfo *SideInfo) resetCardsData() {

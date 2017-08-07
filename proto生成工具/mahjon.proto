@@ -151,7 +151,7 @@ message GS2CBattleStart
 
 message C2GSExchangeCard
 {	
-	repeated CardInfo cardList = 1;
+	repeated int32 cardOidList = 1;
 }
 
 message GS2CExchangeCardRet

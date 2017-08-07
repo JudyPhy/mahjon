@@ -781,17 +781,17 @@ func (m *GS2CBattleStart) GetCardList() []*CardInfo {
 }
 
 type C2GSExchangeCard struct {
-	CardList         []*CardInfo `protobuf:"bytes,1,rep,name=cardList" json:"cardList,omitempty"`
-	XXX_unrecognized []byte      `json:"-"`
+	CardOidList      []int32 `protobuf:"varint,1,rep,name=cardOidList" json:"cardOidList,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
 }
 
 func (m *C2GSExchangeCard) Reset()         { *m = C2GSExchangeCard{} }
 func (m *C2GSExchangeCard) String() string { return proto.CompactTextString(m) }
 func (*C2GSExchangeCard) ProtoMessage()    {}
 
-func (m *C2GSExchangeCard) GetCardList() []*CardInfo {
+func (m *C2GSExchangeCard) GetCardOidList() []int32 {
 	if m != nil {
-		return m.CardList
+		return m.CardOidList
 	}
 	return nil
 }

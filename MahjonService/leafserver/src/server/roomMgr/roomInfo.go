@@ -246,50 +246,154 @@ func (roomInfo *RoomInfo) reqDealer() int32 {
 	return dealerId
 }
 
-func (roomInfo *RoomInfo) updateExchangeCards(cardList []*pb.CardInfo, playerOid int32) bool {
-	roomInfo.sideInfoMap.lock.Lock()
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
-		}
-		if value.playerInfo.oid == playerOid {
-			for i, clientCard := range cardList {
-				if i == 0 {
-				}
-				isFind := false
-				for j, serviceCard := range value.cardList {
-					if j == 0 {
-					}
-					if clientCard.GetCardOid() == serviceCard.oid {
-						serviceCard.status = CardStatus_EXCHANGE
-						isFind = true
-						break
-					}
-				}
-				if !isFind {
-					log.Error("playerOid[%v]'s exchanged card is not in cardList.", playerOid)
-					return false
+//------------------------------------------ exchange cards ------------------------------------------
+func (roomInfo *RoomInfo) updateExchangeCards(cardOidList []int32, playerOid int32) bool {
+	sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
+	if ok {
+		for _, clientCard := range cardOidList {
+			isFind := false
+			for _, serviceCard := range sideInfo.cardList {
+				if clientCard == serviceCard.oid {
+					serviceCard.status = CardStatus_EXCHANGE
+					isFind = true
+					break
 				}
 			}
-			value.process = ProcessStatus_EXCHANGE_OVER
-			break
+			if !isFind {
+				log.Error("playerOid[%v]'s exchanged card is not in cardList.", playerOid)
+				return false
+			}
 		}
+		sideInfo.process = ProcessStatus_EXCHANGE_OVER
+	} else {
+		return false
 	}
-	roomInfo.sideInfoMap.lock.Unlock()
-	return true
 }
 
-func (roomInfo *RoomInfo) checkExchangeCardOver() bool {
-	log.Debug("checkExchangeCardOver")
-	roomInfo.sideInfoMap.lock.Lock()
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
-		}
-		if value.process != ProcessStatus_EXCHANGE_OVER {
+func (roomInfo *RoomInfo) isExchangeOver() bool {
+	log.Debug("isExchangeOver")
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process != ProcessStatus_EXCHANGE_OVER {
 			return false
 		}
 	}
-	roomInfo.sideInfoMap.lock.Unlock()
 	return true
+}
+
+func (roomInfo *RoomInfo) processExchangeCard() {
+	log.Debug("processExchangeCard")
+	exchangeAllMap := make(map[int32][]*card.Card) //playerOid : cardList
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		list := make([]*card.Card, 0)
+		for n,card:=rang sideInfo.cardList {
+			if card.status == CardStatus_EXCHANGE {
+				card.status = CardStatus_INHAND 
+				list = append(list, card)
+				sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
+			}
+		}
+		log.Debug("player[%v] has %v exchange cards, left card list count=%v", sideInfo.playerInfo.oid, len(list), len(sideInfo.cardList))
+		exchangeAllMap[sideInfo.playerInfo.oid] = list
+	}
+
+	exchangeType := getExchangeType()
+	log.Debug("exchangeType=%v", exchangeType)
+	playerIdListSortBySide := roomInfo.getPlayerIdListSortBySide()  
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		index := 0
+		for j := 0; j < len(playerIdListSortBySide); j++ {
+			if playerIdListSortBySide[j] == sideInfo.playerOid {
+				index = j
+				break
+			}
+		}
+		switch exchangeType {
+		case pb.ExchangeType_ClockWise:
+			log.Debug("ClockWise:")
+			index++
+			if index > 3 {
+				index = 0
+			}
+		case pb.ExchangeType_AntiClock:
+			log.Debug("AntiClock:")
+			index--
+			if index < 0 {
+				index = 3
+			}
+		case pb.ExchangeType_Opposite:
+			log.Debug("Opposite:")
+			for n := 0; n < 2; n++ {
+				index++
+				if index > 3 {
+					index = 0
+				}
+			}
+		}
+		fromPlayerId := playerIdListSortBySide[index]
+		log.Debug("player[%v] exchange with player[%v]", sideInfo.playerOid, fromPlayerId)
+		sideInfo.cardList = append(sideInfo.cardList[:], exchangeAllMap[fromPlayerId][:]...)
+		log.Debug("after exchange, card count=%v", len(sideInfo.cardList))
+	}
+
+	roomInfo.sendCardInfoAfterExchange(exchangeType)
+
+	//log
+	roomInfo.allCardLog()
+}
+
+func getExchangeType() pb.ExchangeType {
+	rand.Seed(time.Now().Unix())
+	rnd := rand.Intn(3)
+	if rnd == 0 {
+		return pb.ExchangeType_ClockWise
+	} else if rnd == 1 {
+		return pb.ExchangeType_AntiClock
+	} else {
+		return pb.ExchangeType_Opposite
+	}
+}
+
+//east -> south -> west -> north
+func (roomInfo *RoomInfo) getPlayerIdListSortBySide() []int32 {
+	var result []int32
+	sideList := []pb.BattleSide{pb.BattleSide_east, pb.BattleSide_south, pb.BattleSide_west, pb.BattleSide_north}
+	for _, side := range sideList {
+		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+			if sideInfo.side == side {
+				result = append(result, sideInfo.playerOid)
+				break
+			}
+		}
+	}
+	return result
+}
+
+func (roomInfo *RoomInfo) sendCardInfoAfterExchange(exchangeType pb.ExchangeType) {
+	log.Debug("sendCardInfoAfterExchange")
+	var allExchangedCardList []*pb.CardInfo
+	for n, value := range roomInfo.sideInfoMap.cMap {
+		if n == 0 {
+		}
+		for i, origCard := range value.cardList {
+			if i == 0 {
+			}
+			card := &pb.CardInfo{}
+			card.PlayerId = proto.Int32(value.playerInfo.oid)
+			card.CardOid = proto.Int32(origCard.oid)
+			card.CardId = proto.Int32(origCard.id)
+			card.Status = pb.CardStatus_inHand.Enum()
+			allExchangedCardList = append(allExchangedCardList, card)
+		}
+	}
+	for n, value := range roomInfo.sideInfoMap.cMap {
+		if n == 0 {
+		}
+		if !value.isRobot && value.agent != nil {
+			msgHandler.SendGS2CUpdateCardInfoAfterExchange(exchangeType.Enum(), allExchangedCardList, value.agent)
+		} else if value.isRobot {
+			value.selectLack()
+		}
+	}
 }
 
 func (roomInfo *RoomInfo) allCardLog() {
@@ -369,136 +473,6 @@ func (roomInfo *RoomInfo) allCardLog() {
 		buf.Write([]byte(", "))
 	}
 	log.Debug(buf.String())
-}
-
-//获取随机交换类型
-func getExchangeType() pb.ExchangeType {
-	rand.Seed(time.Now().Unix())
-	rnd := rand.Intn(3)
-	if rnd == 0 {
-		return pb.ExchangeType_ClockWise
-	} else if rnd == 1 {
-		return pb.ExchangeType_AntiClock
-	} else {
-		return pb.ExchangeType_Opposite
-	}
-}
-
-//按照东南西北排序玩家OID
-func (roomInfo *RoomInfo) getPlayerIdListSortBySide() []int32 {
-	var result []int32
-	sideList := []pb.BattleSide{pb.BattleSide_east, pb.BattleSide_south, pb.BattleSide_west, pb.BattleSide_north}
-	for i, side := range sideList {
-		if i == 0 {
-		}
-		for j, value := range roomInfo.sideInfoMap.cMap {
-			if j == 0 {
-			}
-			if value.side == side {
-				result = append(result, value.playerInfo.oid)
-				break
-			}
-		}
-	}
-	return result
-}
-
-//牌交换完毕发送新的手牌信息到客户端
-func (roomInfo *RoomInfo) sendCardInfoAfterExchange(exchangeType pb.ExchangeType) {
-	//send exchanged card to client
-	var allExchangedCardList []*pb.CardInfo
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
-		}
-		for i, origCard := range value.cardList {
-			if i == 0 {
-			}
-			card := &pb.CardInfo{}
-			card.PlayerId = proto.Int32(value.playerInfo.oid)
-			card.CardOid = proto.Int32(origCard.oid)
-			card.CardId = proto.Int32(origCard.id)
-			card.Status = pb.CardStatus_inHand.Enum()
-			allExchangedCardList = append(allExchangedCardList, card)
-		}
-	}
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
-		}
-		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CUpdateCardInfoAfterExchange(exchangeType.Enum(), allExchangedCardList, value.agent)
-		} else if value.isRobot {
-			value.selectLack()
-		}
-	}
-}
-
-//交换牌
-//取出交换牌存于map中，根据交换类型将map中的交换牌重新添加到对应的玩家手牌中
-func (roomInfo *RoomInfo) processExchangeCard() {
-	log.Debug("processExchangeCard")
-	exchangeAllMap := make(map[int32][]*Card)
-	for i, value := range roomInfo.sideInfoMap.cMap {
-		if i == 0 {
-		}
-		var list []*Card
-		for j := 0; j < len(value.cardList); j++ {
-			if value.cardList[j].status == CardStatus_EXCHANGE {
-				value.cardList[j].status = CardStatus_INHAND //取出交换牌，更新为手牌状态
-				list = append(list, value.cardList[j])
-				value.cardList = append(value.cardList[:j], value.cardList[j+1:]...)
-				j--
-			}
-		}
-		log.Debug("player[%v] has %v exchange cards, left card list count=%v", value.playerInfo.oid, len(list), len(value.cardList))
-		exchangeAllMap[value.playerInfo.oid] = list
-	}
-
-	exchangeType := getExchangeType()
-	log.Debug("exchangeType=%v", exchangeType)
-	playerIdListSortBySide := roomInfo.getPlayerIdListSortBySide()
-	for i, value := range roomInfo.sideInfoMap.cMap {
-		if i == 0 {
-		}
-		index := 0
-		for j := 0; j < len(playerIdListSortBySide); j++ {
-			if playerIdListSortBySide[j] == value.playerInfo.oid {
-				index = j
-				break
-			}
-		}
-		switch exchangeType {
-		case pb.ExchangeType_ClockWise:
-			log.Debug("ClockWise:")
-			index++
-			if index > 3 {
-				index = 0
-			}
-		case pb.ExchangeType_AntiClock:
-			log.Debug("AntiClock:")
-			index--
-			if index < 0 {
-				index = 3
-			}
-		case pb.ExchangeType_Opposite:
-			log.Debug("Opposite:")
-			for n := 0; n < 2; n++ {
-				index++
-				if index > 3 {
-					index = 0
-				}
-			}
-		}
-		fromPlayerId := playerIdListSortBySide[index]
-		log.Debug("player[%v] exchange with player[%v]", value.playerInfo.oid, fromPlayerId)
-		value.cardList = append(value.cardList[:], exchangeAllMap[fromPlayerId][:]...)
-		log.Debug("after exchange, card count=%v", len(value.cardList))
-	}
-
-	roomInfo.sendCardInfoAfterExchange(exchangeType)
-
-	//log
-	roomInfo.allCardLog()
-
 }
 
 func (roomInfo *RoomInfo) outRoom(playerOid int32) {
