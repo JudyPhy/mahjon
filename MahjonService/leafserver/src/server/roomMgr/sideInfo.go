@@ -2,24 +2,27 @@ package roomMgr
 
 import (
 	"bytes"
+	"server/card"
 	"server/pb"
+	"server/player"
+	"server/robot"
 	"strconv"
 
-	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
 
 type SideInfo struct {
-	//player
-	isRobot    bool
-	agent      gate.Agent
-	side       pb.BattleSide
-	isOwner    bool
-	playerInfo *PlayerInfo
-	//card
-	lackType *pb.CardType
-	cardList []*Card
-	process  ProcessStatus
+	isRobot   bool
+	isOwner   bool
+	side      pb.BattleSide
+	playerOid int32
+	roomId    string
+	cardList  []*card.Card
+}
+
+func (sideInfo *SideInfo) resetCardsData() {
+	log.Debug("resetCardsData: player%v", sideInfo.playerOid)
+	sideInfo.cardList = make([]*card.Card, 0)
 }
 
 func (sideInfo *SideInfo) selectLack() {
@@ -75,7 +78,7 @@ func (sideInfo *SideInfo) procSelfGangPlayerAndRobot() {
 	curTurnPlayerSelfGang(sideInfo.playerInfo.roomId)
 }
 
-func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
+func (sideInfo *SideInfo) playerProcDiscard(discard *card.Card) {
 	log.Debug("player:%v process discard:%v(%v)", sideInfo.playerInfo.oid, discard.oid, discard.id)
 	if curTurnPlayerOid == sideInfo.playerInfo.oid {
 		log.Debug("player self turn, don't need process.")
@@ -109,7 +112,7 @@ func (sideInfo *SideInfo) playerProcDiscard(discard *Card) {
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsPeng(card *Card) {
+func (sideInfo *SideInfo) addDiscardAsPeng(card *card.Card) {
 	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_PENG
 	card.fromOther = true
@@ -124,7 +127,7 @@ func (sideInfo *SideInfo) addDiscardAsPeng(card *Card) {
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsGang(card *Card) {
+func (sideInfo *SideInfo) addDiscardAsGang(card *card.Card) {
 	log.Debug("将牌%v(%v)加入到玩家[%v]的杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_GANG
 	card.fromOther = true
@@ -139,7 +142,7 @@ func (sideInfo *SideInfo) addDiscardAsGang(card *Card) {
 	}
 }
 
-func (sideInfo *SideInfo) deleteDiscard(card *Card) {
+func (sideInfo *SideInfo) deleteDiscard(card *card.Card) {
 	log.Debug("将牌%v(%v)从玩家[%v]的牌堆中去除", card.oid, card.id, sideInfo.playerInfo.oid)
 	for i, value := range sideInfo.cardList {
 		if value.oid == card.oid {
@@ -149,14 +152,14 @@ func (sideInfo *SideInfo) deleteDiscard(card *Card) {
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsHu(card *Card) {
+func (sideInfo *SideInfo) addDiscardAsHu(card *card.Card) {
 	log.Debug("将牌%v(%v)加入到玩家[%v]的胡牌中", card.oid, card.id, sideInfo.playerInfo.oid)
 	card.status = CardStatus_HU
 	card.fromOther = true
 	sideInfo.cardList = append(sideInfo.cardList, card)
 }
 
-func (sideInfo *SideInfo) drawNewCard(newCard *Card) {
+func (sideInfo *SideInfo) drawNewCard(newCard *card.Card) {
 	log.Debug("切换操作方，摸牌%v(%v)", newCard.oid, newCard.id)
 	sideInfo.cardList = append(sideInfo.cardList, newCard)
 }

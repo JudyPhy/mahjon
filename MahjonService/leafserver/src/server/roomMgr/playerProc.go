@@ -1,6 +1,7 @@
 package roomMgr
 
 import (
+	"server/card"
 	"server/msgHandler"
 	"server/pb"
 
@@ -30,7 +31,7 @@ func (sideInfo *SideInfo) playerTurnSwitch() {
 	}
 }
 
-func (sideInfo *SideInfo) playerUpdateDiscardInfo(cardOid int32) *Card {
+func (sideInfo *SideInfo) playerUpdateDiscardInfo(cardOid int32) *card.Card {
 	isFind := false
 	var card *Card
 	for _, value := range sideInfo.cardList {
@@ -74,7 +75,7 @@ func (roomInfo *RoomInfo) playerEnsurePeng(procPlayerOid int32) {
 	log.Debug("playerEnsurePeng")
 	preDiscard := roomInfo.getPreDiscard()
 	if preDiscard != nil {
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if procPlayerOid == sideInfo.playerInfo.oid {
 				sideInfo.addDiscardAsPeng(preDiscard)
 				sideInfo.process = ProcessStatus_TURN_OVER_PENG
@@ -87,7 +88,7 @@ func (roomInfo *RoomInfo) playerEnsurePeng(procPlayerOid int32) {
 
 		//send update cards to client
 		var cardList []*pb.CardInfo
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if sideInfo.playerInfo.oid == curTurnPlayerOid || procPlayerOid == sideInfo.playerInfo.oid {
 				for _, value := range sideInfo.cardList {
 					card := &pb.CardInfo{}
@@ -101,7 +102,7 @@ func (roomInfo *RoomInfo) playerEnsurePeng(procPlayerOid int32) {
 			}
 		}
 		log.Debug("need update card count=%v", len(cardList))
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if !sideInfo.isRobot && sideInfo.agent != nil {
 				msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
 			}
@@ -121,7 +122,7 @@ func (roomInfo *RoomInfo) playerEnsureHuOther(procPlayerOid int32) {
 		preDiscard = roomInfo.getHuStatusCard()
 	}
 	if preDiscard != nil {
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if procPlayerOid == sideInfo.playerInfo.oid {
 				sideInfo.addDiscardAsHu(preDiscard)
 				sideInfo.process = ProcessStatus_TURN_OVER_HU
@@ -134,7 +135,7 @@ func (roomInfo *RoomInfo) playerEnsureHuOther(procPlayerOid int32) {
 
 		//send update cards to client
 		var cardList []*pb.CardInfo
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if sideInfo.playerInfo.oid == curTurnPlayerOid || procPlayerOid == sideInfo.playerInfo.oid {
 				for _, value := range sideInfo.cardList {
 					card := &pb.CardInfo{}
@@ -148,13 +149,13 @@ func (roomInfo *RoomInfo) playerEnsureHuOther(procPlayerOid int32) {
 			}
 		}
 		log.Debug("need update card count=%v", len(cardList))
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if !sideInfo.isRobot && sideInfo.agent != nil {
 				msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
 			}
 		}
 		//real player hu over, if has other player is processing, wait, otherwise check turn over.
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if sideInfo.process == ProcessStatus_PROC_HU {
 				log.Debug("has player is processing hu, can't check turn over.")
 				return
@@ -168,7 +169,7 @@ func (roomInfo *RoomInfo) playerEnsureHuOther(procPlayerOid int32) {
 
 func (roomInfo *RoomInfo) playerEnsureSelfHu(procPlayerOid int32) {
 	log.Debug("playerEnsureSelfHu")
-	for _, sideInfo := range roomInfo.cardMap.cMap {
+	for _, sideInfo := range roomInfo.sideMap.cMap {
 		if procPlayerOid == sideInfo.playerInfo.oid {
 			sideInfo.process = ProcessStatus_TURN_OVER_HU
 		} else {
@@ -182,7 +183,7 @@ func (roomInfo *RoomInfo) playerEnsureGang(procPlayerOid int32) {
 	log.Debug("playerEnsureGang")
 	preDiscard := roomInfo.getPreDiscard()
 	if preDiscard != nil {
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if procPlayerOid == sideInfo.playerInfo.oid {
 				sideInfo.addDiscardAsGang(preDiscard)
 				sideInfo.process = ProcessStatus_TURN_OVER_HU
@@ -195,7 +196,7 @@ func (roomInfo *RoomInfo) playerEnsureGang(procPlayerOid int32) {
 
 		//send update cards to client
 		var cardList []*pb.CardInfo
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if sideInfo.playerInfo.oid == curTurnPlayerOid || procPlayerOid == sideInfo.playerInfo.oid {
 				for _, value := range sideInfo.cardList {
 					card := &pb.CardInfo{}
@@ -209,7 +210,7 @@ func (roomInfo *RoomInfo) playerEnsureGang(procPlayerOid int32) {
 			}
 		}
 		log.Debug("need update card count=%v", len(cardList))
-		for _, sideInfo := range roomInfo.cardMap.cMap {
+		for _, sideInfo := range roomInfo.sideMap.cMap {
 			if !sideInfo.isRobot && sideInfo.agent != nil {
 				msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
 			}
@@ -223,7 +224,7 @@ func (roomInfo *RoomInfo) playerEnsureGang(procPlayerOid int32) {
 
 func (roomInfo *RoomInfo) playerEnsureSelfGang(procPlayerOid int32, procCardId int32) {
 	log.Debug("playerEnsureSelfGang")
-	for _, sideInfo := range roomInfo.cardMap.cMap {
+	for _, sideInfo := range roomInfo.sideMap.cMap {
 		if procPlayerOid == sideInfo.playerInfo.oid {
 			sideInfo.updateCardInfoBySelfGang(procCardId)
 			sideInfo.process = ProcessStatus_TURN_OVER_GANG
@@ -233,7 +234,7 @@ func (roomInfo *RoomInfo) playerEnsureSelfGang(procPlayerOid int32, procCardId i
 	}
 	//send update cards to client
 	var cardList []*pb.CardInfo
-	for _, sideInfo := range roomInfo.cardMap.cMap {
+	for _, sideInfo := range roomInfo.sideMap.cMap {
 		if sideInfo.playerInfo.oid == procPlayerOid {
 			for _, value := range sideInfo.cardList {
 				card := &pb.CardInfo{}
@@ -247,7 +248,7 @@ func (roomInfo *RoomInfo) playerEnsureSelfGang(procPlayerOid int32, procCardId i
 			break
 		}
 	}
-	for _, sideInfo := range roomInfo.cardMap.cMap {
+	for _, sideInfo := range roomInfo.sideMap.cMap {
 		if !sideInfo.isRobot && sideInfo.agent != nil {
 			msgHandler.SendGS2CUpdateCardAfterPlayerProc(cardList, sideInfo.agent)
 		}

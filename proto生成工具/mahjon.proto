@@ -123,11 +123,13 @@ message GS2CEnterGameRet
 	enum ErrorCode{
 		SUCCESS = 1; 
 		FAIL = 2;
-		PLAYER_COUNT_LIMITE = 3; // 人满
+		PLAYER_COUNT_LIMITE = 3; 
+		ROOM_NOT_EXIST = 4;
+		NO_EMPTY_ROOM = 5;
 	}
     required ErrorCode errorCode = 1;	
 	required GameMode mode = 2;
-	required string roomId = 3;
+	optional string roomId = 3;
 }
 
 message GS2CUpdateRoomInfo

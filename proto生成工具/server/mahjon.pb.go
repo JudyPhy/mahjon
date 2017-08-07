@@ -367,17 +367,23 @@ const (
 	GS2CEnterGameRet_SUCCESS             GS2CEnterGameRet_ErrorCode = 1
 	GS2CEnterGameRet_FAIL                GS2CEnterGameRet_ErrorCode = 2
 	GS2CEnterGameRet_PLAYER_COUNT_LIMITE GS2CEnterGameRet_ErrorCode = 3
+	GS2CEnterGameRet_ROOM_NOT_EXIST      GS2CEnterGameRet_ErrorCode = 4
+	GS2CEnterGameRet_NO_EMPTY_ROOM       GS2CEnterGameRet_ErrorCode = 5
 )
 
 var GS2CEnterGameRet_ErrorCode_name = map[int32]string{
 	1: "SUCCESS",
 	2: "FAIL",
 	3: "PLAYER_COUNT_LIMITE",
+	4: "ROOM_NOT_EXIST",
+	5: "NO_EMPTY_ROOM",
 }
 var GS2CEnterGameRet_ErrorCode_value = map[string]int32{
 	"SUCCESS":             1,
 	"FAIL":                2,
 	"PLAYER_COUNT_LIMITE": 3,
+	"ROOM_NOT_EXIST":      4,
+	"NO_EMPTY_ROOM":       5,
 }
 
 func (x GS2CEnterGameRet_ErrorCode) Enum() *GS2CEnterGameRet_ErrorCode {
@@ -697,7 +703,7 @@ func (m *C2GSEnterGame) GetRoomId() string {
 type GS2CEnterGameRet struct {
 	ErrorCode        *GS2CEnterGameRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CEnterGameRet_ErrorCode" json:"errorCode,omitempty"`
 	Mode             *GameMode                   `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
-	RoomId           *string                     `protobuf:"bytes,3,req,name=roomId" json:"roomId,omitempty"`
+	RoomId           *string                     `protobuf:"bytes,3,opt,name=roomId" json:"roomId,omitempty"`
 	XXX_unrecognized []byte                      `json:"-"`
 }
 

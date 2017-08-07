@@ -33,19 +33,11 @@ func recvC2GSEnterGame(args []interface{}) {
 		roomMgr.CreateRoomRet(a)
 	case pb.GameMode_JoinRoom:
 		log.Debug("join room, roomId=%v", m.GetRoomId())
-		jointRoomRet(m.GetRoomId(), a)
+		roomMgr.JoinRoomRet(m.GetRoomId(), a)
 	case pb.GameMode_QuickEnter:
 		log.Debug("quick game")
+		roomMgr.QuickEnterRoomRet(a)
 	}
-}
-
-func jointRoomRet(roomId string, a gate.Agent) {
-	/*result := roomMgr.JoinRoom(roomId, a)
-	ret := &pb.GS2CEnterGameRet{}
-	ret.Mode = pb.GameMode_JoinRoom.Enum()
-	ret.RoomId = proto.String(roomId)
-	ret.ErrorCode = result
-	a.WriteMsg(ret)*/
 }
 
 func recvC2GSExchangeCard(args []interface{}) {

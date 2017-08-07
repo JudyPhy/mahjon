@@ -3,6 +3,7 @@ package internal
 import (
 	"reflect"
 	"server/pb"
+	"server/player"
 	"server/roomMgr"
 
 	"github.com/golang/protobuf/proto"
@@ -25,32 +26,28 @@ func init() {
 }
 
 func recvC2GSLogin(args []interface{}) {
-	log.Debug("recvC2GSLogin=>")
 	m := args[0].(*pb.C2GSLogin)
-	log.Debug("Account=%v", m.GetAccount())
+	log.Debug("recvC2GSLogin <<-- account=%v", m.GetAccount())
 	a := args[1].(gate.Agent)
 
 	// get data from db
-	var playerOid int32 = 10000
-	player := &pb.PlayerInfo{
-		Oid:      proto.Int32(playerOid),
-		NickName: proto.String(m.GetAccount()),
-		HeadIcon: proto.String(""),
-		Gold:     proto.Int32(99),
-		Diamond:  proto.Int32(100)}
-
-	chanPlayer := roomMgr.NewPlayer(player)
-	roomMgr.AddChanPlayerInfo(a, chanPlayer)
+	player := &player.Player{}
+	player.oid = 10000
+	player.nickName = m.GetAccount()
+	player.headIcon = "nil"
+	player.gold = 0
+	player.diamond = 0
+	ret := realPlayer.AddChanPlayerInfo(a, player)
 
 	//ret to client
-	ret := &pb.GS2CLoginRet{}
-	if roomMgr.HasLogined(a) {
+	msg := &pb.GS2CLoginRet{}
+	if ret {
 		log.Error("the agent login success.")
-		ret.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
-		ret.PlayerInfo = player
+		msg.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
+		msg.PlayerInfo = player.ToPbPlayerInfo()
 	} else {
 		log.Error("the agent login fail.")
-		ret.ErrorCode = pb.GS2CLoginRet_FAIL.Enum()
+		msg.ErrorCode = pb.GS2CLoginRet_FAIL.Enum()
 	}
-	a.WriteMsg(ret)
+	a.WriteMsg(msg)
 }

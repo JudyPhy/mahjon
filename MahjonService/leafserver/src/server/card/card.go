@@ -1,10 +1,12 @@
-package roomMgr
+package card
 
 import (
 	"bytes"
+	"math/rand"
 	"server/pb"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/name5566/leaf/log"
 )
@@ -38,9 +40,9 @@ type CardStatus int32
 const (
 	CardStatus_NODEAL      CardStatus = 1
 	CardStatus_INHAND      CardStatus = 2
-	CardStatus_PENG        CardStatus = 3
+	CardStatus_EXCHANGE    CardStatus = 3
 	CardStatus_GANG        CardStatus = 4
-	CardStatus_EXCHANGE    CardStatus = 5
+	CardStatus_PENG        CardStatus = 5
 	CardStatus_DEAL        CardStatus = 6
 	CardStatus_PRE_DISCARD CardStatus = 7
 	CardStatus_DISCARD     CardStatus = 8
@@ -85,12 +87,12 @@ func loadAllCards() []*Card {
 	if mjType == MJType_XUEZHAN {
 		mjCardCount = MJCardCount_XUEZHAN
 	}
-	maxCount := int32(mjCardCount)
+	maxCount := int(mjCardCount)
 	log.Debug("max card count=%v", maxCount)
 
-	var cardWall []*Card
-	id := int32(0)
-	for i := int32(0); i < maxCount; i++ {
+	var origCardWall []*Card
+	id := int(0)
+	for i := int(0); i < maxCount; i++ {
 		card := &Card{}
 		card.oid = int32(i)
 		if i%4 == 0 {
@@ -99,11 +101,22 @@ func loadAllCards() []*Card {
 				id++
 			}
 		}
-		card.id = id
+		card.id = int32(id)
 		card.status = CardStatus_NODEAL
 		card.fromOther = false
-		cardWall = append(cardWall, card)
+		origCardWall = append(origCardWall, card)
 		//log.Debug("card oid=%v, id=%v", card.oid, card.id)
+	}
+
+	cardWall := make([]*Card, 108)
+	for i := 0; i < maxCount; i++ {
+		rand.Seed(time.Now().Unix())
+		rndCard := rand.Intn(len(origCardWall))
+		card := origCardWall[rndCard]
+		rand.Seed(time.Now().Unix())
+		rndPos := rand.Intn(len(origCardWall))
+		cardWall[rndPos] = card
+		origCardWall = append(origCardWall[:i], origCardWall[i+1:]...)
 	}
 	log.Debug("load all card over, count=%v", len(cardWall))
 	return cardWall
@@ -409,16 +422,4 @@ func canPeng(list []int, discard *Card) bool {
 	}
 	//log.Debug("canPeng: count=%v, cardId=%v", count, discard.id)
 	return count == 3
-}
-
-//获取CardStatus_PRE_DISCARD状态的牌
-func (roomInfo *RoomInfo) getPreDiscard() *Card {
-	for _, sideInfo := range roomInfo.cardMap.cMap {
-		for _, card := range sideInfo.cardList {
-			if card.status == CardStatus_PRE_DISCARD {
-				return card
-			}
-		}
-	}
-	return nil
 }

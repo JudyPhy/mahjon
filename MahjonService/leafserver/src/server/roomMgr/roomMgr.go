@@ -75,16 +75,6 @@ func getRandomRoomId(length int) string {
 	return strings.Join(rs, "") //使用""拼接rs切片
 }
 
-func playerInfoToPbPlayerInfo(info *PlayerInfo) *pb.PlayerInfo {
-	player := &pb.PlayerInfo{}
-	player.Oid = proto.Int32(info.oid)
-	player.NickName = proto.String(info.nickName)
-	player.HeadIcon = proto.String(info.headIcon)
-	player.Gold = proto.Int32(info.gold)
-	player.Diamond = proto.Int32(info.diamond)
-	return player
-}
-
 func reqNewRoom(a gate.Agent) *RoomInfo {
 	log.Debug("ReqNewRoom")
 	newRoomId := getRandomRoomId(6)
@@ -117,7 +107,7 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
-func broadcastRobotDiscard(roomId string, discard *Card) {
+func broadcastRobotDiscard(roomId string, discard *card.Card) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
 	RoomManager.lock.Unlock()
@@ -198,7 +188,7 @@ func Init() {
 
 	log.Debug("init room map.")
 	RoomManager = &mgrRoom{}
-	RoomManager.roomMap = make(map[string]*RoomInfo)
+	RoomManager.roomMap = make(map[string]*RolomInfo)
 }
 
 func CreateRoomRet(a gate.Agent) {
@@ -215,19 +205,79 @@ func CreateRoomRet(a gate.Agent) {
 
 	//test: add other 3 robot to room
 	roomInfo.waitingRoomOk()
+
+	//register out room event
+	dispatcher := eventDispatch.GetSingletonDispatcher()
+	var outRoomFunc eventDispatch.EventCallback = OutRoom
+	dispatcher.AddEventListener("outRoom", &outRoomFunc)
 }
 
-func OutRoom(roomId string, a gate.Agent) {
-	log.Debug("out room=%v", roomId)
-	player := getPlayerBtAgent(a)
+func OutRoom(event *eventDispatch.Event) {
+	roomId := event.params["roomId"]
+	playerOid := event.params["playerOid"]
+	log.Debug("OutRoom: player%v out room=%v", playerOid, roomId)
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
 	RoomManager.lock.Unlock()
 	if ok {
-		roomInfo.outRoom(player.oid)
+		roomInfo.outRoom(playerOid)
+		if roomInfo.isEmptyRoom() {
+			RoomManager.lock.Lock()
+			delete(RoomManager.roomMap, roomId)
+			RoomManager.lock.Unlock()
+			//remove outRoom event
+			dispatcher := eventDispatch.GetSingletonDispatcher()
+			dispatcher.RemoveEventListener("outRoom", &outRoomFunc)
+		}
 	} else {
 		log.Error("room %v not exist.", roomId)
 	}
+}
+
+func JoinRoomRet(roomId string, a gate.Agent) {
+	log.Debug("JoinRoomRet: room=%v", roomId)
+	ret := &pb.GS2CEnterGameRet{}
+	ret.Mode = pb.GameMode_JoinRoom.Enum()
+	ret.RoomId = proto.String(roomId)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		if len(roomInfo.sideInfoMap.cMap) >= 4 {
+			ret.ErrorCode = GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
+		} else {
+			roomInfo.addPlayerToRoom(a, false)
+			ret.ErrorCode = GS2CEnterGameRet_SUCCESS.Enum()
+		}
+	} else {
+		ret.ErrorCode = GS2CEnterGameRet_ROOM_NOT_EXIST.Enum()
+	}
+	a.WriteMsg(ret)
+
+	roomInfo.startBattle()
+}
+
+func QuickEnterRoomRet(a gate.Agent) {
+	log.Debug("JoinRoomRet: room=%v", roomId)
+	ret := &pb.GS2CEnterGameRet{}
+	ret.Mode = pb.GameMode_QuickEnter.Enum()
+	findRoom := false
+	for _, room := range RoomManager.roomMap {
+		if len(roomInfo.sideInfoMap.cMap) < 4 {
+			ret.RoomId = proto.String(room.roomId)
+			room.addPlayerToRoom(a, false)
+			findRoom = true
+			break
+		}
+	}
+	if findRoom {
+		ret.ErrorCode = GS2CEnterGameRet_SUCCESS.Enum()
+	} else {
+		ret.ErrorCode = GS2CEnterGameRet_NO_EMPTY_ROOM.Enum()
+	}
+	a.WriteMsg(ret)
+
+	roomInfo.startBattle()
 }
 
 func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {

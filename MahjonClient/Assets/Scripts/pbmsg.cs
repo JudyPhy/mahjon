@@ -266,8 +266,9 @@ namespace pb
       get { return _mode; }
       set { _mode = value; }
     }
-    private string _roomId;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    private string _roomId = "";
+    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue("")]
     public string roomId
     {
       get { return _roomId; }
@@ -284,7 +285,13 @@ namespace pb
       FAIL = 2,
             
       [global::ProtoBuf.ProtoEnum(Name=@"PLAYER_COUNT_LIMITE", Value=3)]
-      PLAYER_COUNT_LIMITE = 3
+      PLAYER_COUNT_LIMITE = 3,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"ROOM_NOT_EXIST", Value=4)]
+      ROOM_NOT_EXIST = 4,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"NO_EMPTY_ROOM", Value=5)]
+      NO_EMPTY_ROOM = 5
     }
   
     private global::ProtoBuf.IExtension extensionObject;

@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"server/roomMgr"
+	"server/player"
 
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
@@ -21,5 +21,5 @@ func rpcCloseAgent(args []interface{}) {
 	a := args[0].(gate.Agent)
 	_ = a
 	log.Debug("rpcCloseAgent")
-	roomMgr.DeleteChan(a)
+	realPlayer.DeleteChan(a)
 }
