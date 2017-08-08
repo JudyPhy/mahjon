@@ -183,7 +183,7 @@ func (roomInfo *RoomInfo) startBattle() {
 	roomInfo.dealerId = 10000 //roomInfo.reqDealer()
 	curTurnPlayerOid = roomInfo.dealerId
 	var allPlayerCards []*pb.CardInfo
-	roomInfo.cardWall = card.loadAllCards()
+	roomInfo.cardWall = card.LoadAllCards()
 
 	//deal card to everyone
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
@@ -247,37 +247,36 @@ func (roomInfo *RoomInfo) reqDealer() int32 {
 }
 
 //------------------------------------------ exchange cards ------------------------------------------
-func (roomInfo *RoomInfo) updateExchangeCards(cardOidList []int32, playerOid int32) bool {
+func (roomInfo *RoomInfo) updateExchangeCards(cardOidList []int32, playerOid int32) {
 	sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
 	if ok {
-		for _, clientCard := range cardOidList {
-			isFind := false
-			for _, serviceCard := range sideInfo.cardList {
-				if clientCard == serviceCard.oid {
-					serviceCard.status = CardStatus_EXCHANGE
-					isFind = true
-					break
-				}
-			}
-			if !isFind {
-				log.Error("playerOid[%v]'s exchanged card is not in cardList.", playerOid)
-				return false
-			}
-		}
-		sideInfo.process = ProcessStatus_EXCHANGE_OVER
+		sideInfo.updateExchangeCards(cardOidList)
 	} else {
-		return false
+		log.Error("player%v not in room%v", playerOid, roomInfo.roomId)
+	}
+	if roomInfo.isRealPlayerExchangeOver() {
+		roomInfo.robotProExchange()
+		roomInfo.processExchangeCard()
 	}
 }
 
-func (roomInfo *RoomInfo) isExchangeOver() bool {
-	log.Debug("isExchangeOver")
+func (roomInfo *RoomInfo) isRealPlayerExchangeOver() bool {
+	log.Debug("isRealPlayerExchangeOver")
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.process != ProcessStatus_EXCHANGE_OVER {
+		if !sideInfo.isRobot && sideInfo.process != ProcessStatus_EXCHANGE_OVER {
 			return false
 		}
 	}
 	return true
+}
+
+func (roomInfo *RoomInfo) robotProExchange() {
+	log.Debug("robotProExchange")
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.isRobot {
+			sideInfo.robotSelectExchangeCard()
+		}
+	}
 }
 
 func (roomInfo *RoomInfo) processExchangeCard() {
@@ -285,9 +284,9 @@ func (roomInfo *RoomInfo) processExchangeCard() {
 	exchangeAllMap := make(map[int32][]*card.Card) //playerOid : cardList
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 		list := make([]*card.Card, 0)
-		for n,card:=rang sideInfo.cardList {
+		for n, card := range sideInfo.cardList {
 			if card.status == CardStatus_EXCHANGE {
-				card.status = CardStatus_INHAND 
+				card.status = CardStatus_INHAND
 				list = append(list, card)
 				sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
 			}
@@ -298,7 +297,7 @@ func (roomInfo *RoomInfo) processExchangeCard() {
 
 	exchangeType := getExchangeType()
 	log.Debug("exchangeType=%v", exchangeType)
-	playerIdListSortBySide := roomInfo.getPlayerIdListSortBySide()  
+	playerIdListSortBySide := roomInfo.getPlayerIdListSortBySide()
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 		index := 0
 		for j := 0; j < len(playerIdListSortBySide); j++ {
@@ -330,9 +329,7 @@ func (roomInfo *RoomInfo) processExchangeCard() {
 			}
 		}
 		fromPlayerId := playerIdListSortBySide[index]
-		log.Debug("player[%v] exchange with player[%v]", sideInfo.playerOid, fromPlayerId)
 		sideInfo.cardList = append(sideInfo.cardList[:], exchangeAllMap[fromPlayerId][:]...)
-		log.Debug("after exchange, card count=%v", len(sideInfo.cardList))
 	}
 
 	roomInfo.sendCardInfoAfterExchange(exchangeType)
@@ -371,27 +368,122 @@ func (roomInfo *RoomInfo) getPlayerIdListSortBySide() []int32 {
 func (roomInfo *RoomInfo) sendCardInfoAfterExchange(exchangeType pb.ExchangeType) {
 	log.Debug("sendCardInfoAfterExchange")
 	var allExchangedCardList []*pb.CardInfo
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
-		}
-		for i, origCard := range value.cardList {
-			if i == 0 {
-			}
-			card := &pb.CardInfo{}
-			card.PlayerId = proto.Int32(value.playerInfo.oid)
-			card.CardOid = proto.Int32(origCard.oid)
-			card.CardId = proto.Int32(origCard.id)
-			card.Status = pb.CardStatus_inHand.Enum()
-			allExchangedCardList = append(allExchangedCardList, card)
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		for _, origCard := range sideInfo.cardList {
+			allExchangedCardList = append(allExchangedCardList, origCard.TopbCard(sideInfo.playerOid))
 		}
 	}
-	for n, value := range roomInfo.sideInfoMap.cMap {
-		if n == 0 {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CUpdateCardInfoAfterExchange(exchangeType.Enum(), allExchangedCardList, sideInfo.agent)
 		}
-		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CUpdateCardInfoAfterExchange(exchangeType.Enum(), allExchangedCardList, value.agent)
-		} else if value.isRobot {
-			value.selectLack()
+		/*else if sideInfo.isRobot {
+			sideInfo.selectLack()
+		}*/
+	}
+}
+
+//---------------------------------------- lack card ------------------------------------------
+func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType pb.CardType) {
+	sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
+	if ok {
+		sideInfo.lackType = lackType.String()
+		sideInfo.process = ProcessStatus_LACK_OVER
+	} else {
+		log.Error("playerOid[%v] not in room%v.", playerOid, roomInfo.roomId)
+	}
+	if roomInfo.realPlayerSelectLackOver() {
+		roomInfo.robotProcLack()
+		roomInfo.sendLackCard()
+	}
+}
+
+func (roomInfo *RoomInfo) realPlayerSelectLackOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.process != ProcessStatus_LACK_OVER {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) robotProcLack() {
+	log.Debug("robotProcLack")
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.isRobot {
+			sideInfo.robotSelectLackCard()
+		}
+	}
+}
+
+func (roomInfo *RoomInfo) sendLackCard() {
+	log.Debug("sendLackCard")
+	result := make([]*pb.LackCard, 0)
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		lack := &pb.LackCard{}
+		lack.PlayerId = proto.Int32(sideInfo.playerOid)
+		lack.Type = sideInfo.lackType.Enum()
+		result = append(result, lack)
+	}
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CSelectLackRet(result, sideInfo.agent)
+		}
+	}
+	log.Debug("select lack over, game start------------->>>>>>>>>>>>>>")
+	roomInfo.dealerStart()
+}
+
+//------------------------------------------------- game start -------------------------------------------------
+func (roomInfo *RoomInfo) dealerStart() {
+	log.Debug("dealerStart")
+	curTurnPlayerOid = roomInfo.dealerId
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_NotDrawCard.Enum(), sideInfo.agent)
+		}
+	}
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if roomInfo.dealerId == sideInfo.playerInfo.oid {
+			if sideInfo.isRobot {
+				sideInfo.robotTurnSwitch()
+			} else {
+				sideInfo.playerTurnSwitch()
+			}
+			break
+		}
+	}
+}
+
+func (roomInfo *RoomInfo) sendRobotProc(procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
+	log.Debug("sendRobotProc, procPlayer=%v, procType=%v, beProcPlayer=%v", procPlayer, beProcPlayer, procType)
+	var cardList []*pb.CardInfo
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.playerOid == procPlayer || sideInfo.playerOid == beProcPlayer {
+			for _, card := range sideInfo.cardList {
+				pbCard := card.TopbCard(sideInfo.playerOid)
+				if pbCard.Status == pb.CardStatus_inHand || pbCard.Status == pb.CardStatus_deal {
+					pbCard.CardId = proto.Int32(0)
+				}
+				cardList = append(cardList, pbCard)
+			}
+		}
+	}
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CRobotProc(procPlayer, procType.Enum(), beProcPlayer, cardList, sideInfo.agent)
+		}
+	}
+}
+
+func (roomInfo *RoomInfo) broadcastAndProcDiscard(card *card.Card) {
+	log.Debug("broad discard to everyone，discard=%v(%v)", card.oid, card.id)
+	if card != nil {
+		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+			if !sideInfo.isRobot && sideInfo.agent != nil {
+				msgHandler.SendGS2CDiscardRet(card.oid, sideInfo.agent)
+			}
+			sideInfo.playerProcDiscard(card)
 		}
 	}
 }
@@ -509,44 +601,6 @@ func (roomInfo *RoomInfo) isEmptyRoom() bool {
 	return false
 }
 
-//---------------------------------------- lack card ------------------------------------------
-func (roomInfo *RoomInfo) updateLack(playerOid int32, lackType *pb.CardType) {
-	sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
-	if ok {
-		sideInfo.lackType = lackType
-		sideInfo.process = ProcessStatus_LACK_OVER
-	} else {
-		log.Error("playerOid[%v] not in map.")
-	}
-}
-
-func (roomInfo *RoomInfo) selectLackOver() bool {
-	for i, value := range roomInfo.sideInfoMap.cMap {
-		if i == 0 {
-		}
-		if value.process != ProcessStatus_LACK_OVER {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) sendLackCard() {
-	var result []*pb.LackCard
-	for _, value := range roomInfo.sideInfoMap.cMap {
-		lack := &pb.LackCard{}
-		lack.PlayerId = proto.Int32(value.playerInfo.oid)
-		lack.Type = value.lackType
-		result = append(result, lack)
-	}
-	log.Debug("lack over, turn switch")
-	for _, value := range roomInfo.sideInfoMap.cMap {
-		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CSelectLackRet(result, value.agent)
-		}
-	}
-}
-
 func sendUpdateCardInfoBySelfGang(roonmId string, procPlayerOid int32, list []*pb.CardInfo) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roonmId]
@@ -559,26 +613,6 @@ func sendUpdateCardInfoBySelfGang(roonmId string, procPlayerOid int32, list []*p
 		}
 	} else {
 		log.Debug("sendUpdateCardInfo, room[%v] not exist.", roonmId)
-	}
-}
-
-func (roomInfo *RoomInfo) dealerStart() {
-	log.Debug("Dealer start ==========>>>>>>>>>")
-	curTurnPlayerOid = roomInfo.dealerId
-	for _, value := range roomInfo.sideInfoMap.cMap {
-		if !value.isRobot && value.agent != nil {
-			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, nil, pb.TurnSwitchType_NotDrawCard.Enum(), value.agent)
-		}
-	}
-	for _, value := range roomInfo.sideInfoMap.cMap {
-		if roomInfo.dealerId == value.playerInfo.oid {
-			if value.isRobot {
-				value.robotTurnSwitch()
-			} else {
-				value.playerTurnSwitch()
-			}
-			break
-		}
 	}
 }
 
@@ -604,7 +638,7 @@ func (roomInfo *RoomInfo) recvDiscard(playerId int32, Oid int32) {
 	sideInfo, ok := roomInfo.sideInfoMap.cMap[playerId]
 	if ok {
 		discard := sideInfo.playerUpdateDiscardInfo(Oid)
-		roomInfo.broadcastDiscard(discard)
+		roomInfo.broadcastAndProcDiscard(discard)
 		timer := time.NewTimer(time.Second * 1)
 		<-timer.C
 		//延迟1秒
@@ -614,107 +648,7 @@ func (roomInfo *RoomInfo) recvDiscard(playerId int32, Oid int32) {
 	}
 }
 
-func (roomInfo *RoomInfo) broadcastDiscard(card *card.Card) {
-	log.Debug("broad discard info to everyone，discard=%v(%v)", card.oid, card.id)
-	if card != nil {
-		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-			log.Debug("sideInfo=%v", sideInfo.playerInfo.oid)
-			if !sideInfo.isRobot && sideInfo.agent != nil {
-				msgHandler.SendGS2CDiscardRet(card.oid, sideInfo.agent)
-			}
-			sideInfo.playerProcDiscard(card)
-		}
-	}
-}
-
 //---------------------------------------- turn over ----------------------------------------
-func (roomInfo *RoomInfo) isNormalTurnOver() bool {
-	for _, v := range roomInfo.sideInfoMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) isPengTurnOver() bool {
-	for _, v := range roomInfo.sideInfoMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_TURN_OVER_PENG {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) isHuTurnOver() bool {
-	for _, v := range roomInfo.sideInfoMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_TURN_OVER_HU {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) isGangTurnOver() bool {
-	for _, v := range roomInfo.sideInfoMap.cMap {
-		if v.process != ProcessStatus_TURN_OVER && v.process != ProcessStatus_TURN_OVER_GANG {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		log.Debug("player[%v] process=%v", sideInfo.playerInfo.oid, sideInfo.process)
-		if sideInfo.process == ProcessStatus_TURN_OVER_HU || sideInfo.process == ProcessStatus_GAME_OVER {
-			continue
-		}
-		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_WAITING_GANG &&
-			sideInfo.process != ProcessStatus_WAITING_HU && sideInfo.process != ProcessStatus_WAITING_PENG {
-			return false
-		}
-	}
-	return true
-}
-
-func (roomInfo *RoomInfo) getTurnOverType() TurnOverType {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.process == ProcessStatus_TURN_OVER_PENG {
-			return TurnOverType_PENG
-		}
-	}
-	return TurnOverType_NORMAL
-}
-
-func (roomInfo *RoomInfo) getPengTurnOverSideInfo() *SideInfo {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.process == ProcessStatus_TURN_OVER_PENG {
-			return sideInfo
-		}
-	}
-	return nil
-}
-
-func (roomInfo *RoomInfo) getGangTurnOverSideInfo() *SideInfo {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.process == ProcessStatus_TURN_OVER_GANG {
-			return sideInfo
-		}
-	}
-	return nil
-}
-
-func (roomInfo *RoomInfo) getHuTurnOverSideInfo() []*SideInfo {
-	list := make([]*SideInfo, 0)
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.process == ProcessStatus_TURN_OVER_HU {
-			list = append(list, sideInfo)
-		}
-	}
-	return list
-}
-
 func (roomInfo *RoomInfo) checkTurnOver() {
 	log.Debug("checkTurnOver")
 	preDiscard := roomInfo.getPreDiscard()
@@ -726,11 +660,13 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 			log.Error("normal over error! preDiscard is nil.")
 		}
 		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-			if sideInfo.process != ProcessStatus_GAME_OVER && sideInfo.process != ProcessStatus_TURN_OVER_HU {
+			if sideInfo.process != ProcessStatus_GAME_OVER {
 				sideInfo.process = ProcessStatus_TURN_START
+				sideInfo.refreshCard()
 			}
 		}
-		roomInfo.turnToNextPlayer()
+		nextSide := roomInfo.getNextSide(curPlayerOid)
+		roomInfo.sendNormalTurnToNext(nextSide)
 	} else if roomInfo.isHuTurnOver() {
 		log.Debug("someone hu, and it proc hu over.")
 		sideInfoList := roomInfo.getHuTurnOverSideInfo()
@@ -766,18 +702,191 @@ func (roomInfo *RoomInfo) checkTurnOver() {
 			var playerHuOid []int32
 			for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 				if sideInfo.process == ProcessStatus_WAITING_HU {
-					playerHuOid = append(playerHuOid, sideInfo.playerInfo.oid)
+					playerHuOid = append(playerHuOid, sideInfo.playerOid)
 				}
 			}
 			if len(playerHuOid) > 0 {
 				log.Debug("player proc hu.")
-				roomInfo.procHu(preDiscard, playerHuOid)
+				roomInfo.procHuOther(preDiscard, playerHuOid)
 				roomInfo.allCardLog()
 			} else {
 				log.Debug("player proc p、g.")
 				roomInfo.procPG(preDiscard)
 				roomInfo.allCardLog()
 			}
+		}
+	}
+}
+
+func (roomInfo *RoomInfo) getPreDiscard() *card.Card {
+	for _, sideInfo := range roomInfo.sideMap.cMap {
+		for _, card := range sideInfo.cardList {
+			if card.status == CardStatus_PRE_DISCARD {
+				return card
+			}
+		}
+	}
+	return nil
+}
+
+func (roomInfo *RoomInfo) isNormalTurnOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process != ProcessStatus_TURN_OVER {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) isHuTurnOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_TURN_OVER_HU {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) isGangTurnOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_TURN_OVER_GANG {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) isPengTurnOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_TURN_OVER_PENG {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) isEveryoneProcDiscardOver() bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		log.Debug("player[%v] process=%v", sideInfo.playerInfo.oid, sideInfo.process)
+		if sideInfo.process == ProcessStatus_TURN_OVER_HU || sideInfo.process == ProcessStatus_GAME_OVER {
+			continue
+		}
+		if sideInfo.process != ProcessStatus_TURN_OVER && sideInfo.process != ProcessStatus_WAITING_GANG &&
+			sideInfo.process != ProcessStatus_WAITING_HU && sideInfo.process != ProcessStatus_WAITING_PENG {
+			return false
+		}
+	}
+	return true
+}
+
+func (roomInfo *RoomInfo) getHuTurnOverSideInfo() []*SideInfo {
+	list := make([]*SideInfo, 0)
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process == ProcessStatus_TURN_OVER_HU {
+			list = append(list, sideInfo)
+		}
+	}
+	return list
+}
+
+func (roomInfo *RoomInfo) getGangTurnOverSideInfo() *SideInfo {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process == ProcessStatus_TURN_OVER_GANG {
+			return sideInfo
+		}
+	}
+	return nil
+}
+
+func (roomInfo *RoomInfo) getPengTurnOverSideInfo() *SideInfo {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.process == ProcessStatus_TURN_OVER_PENG {
+			return sideInfo
+		}
+	}
+	return nil
+}
+
+//---------->>>>>>>> get next turn side
+func (roomInfo *RoomInfo) getNextSide(fromPlayerOid int32) pb.BattleSide {
+	log.Debug("turnToNextPlayer")
+	curSide := roomInfo.getSideByPlayerOid(fromPlayerOid)
+	if curSide != pb.BattleSide_none {
+		for {
+			nextSide := pb.BattleSide_none
+			if curSide == pb.BattleSide_east {
+				nextSide = pb.BattleSide_south
+			} else if curSide == pb.BattleSide_south {
+				nextSide = pb.BattleSide_west
+			} else if curSide == pb.BattleSide_west {
+				nextSide = pb.BattleSide_north
+			} else if curSide == pb.BattleSide_north {
+				nextSide = pb.BattleSide_east
+			}
+			if nextSide == curSide {
+				return pb.BattleSide_none
+			}
+			if roomInfo.nextSideCanProc(nextSide) {
+				return nextSide
+			}
+		}
+	} else {
+		log.Error("current side is none.")
+	}
+	return pb.BattleSide_none
+}
+
+func (roomInfo *RoomInfo) getSideByPlayerOid(playerOid int32) pb.BattleSide {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if sideInfo.playerOid == playerOid {
+			return sideInfo.side
+		}
+	}
+	return pb.BattleSide_none
+}
+
+func (roomInfo *RoomInfo) nextSideCanProc(nextSide pb.BattleSide) bool {
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		log.Debug("player%v process=%v", sideInfo.playerOid, sideInfo.process)
+		if sideInfo.side == nextSide && sideInfo.process != ProcessStatus_GAME_OVER {
+			return true
+		}
+	}
+	return false
+}
+
+//---------->>>>>>>> proc h、g、p other
+func (roomInfo *RoomInfo) procHuOther(preDiscard *card.Card, playerHuOid []int32) {
+	hasRobotHu := false
+	for _, playerOid := range playerHuOid {
+		sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
+		if ok {
+			if sideInfo.isRobot {
+				sideInfo.addDiscardAsHu(preDiscard)
+				hasRobotHu = true
+				roomInfo.sendRobotProc(sideInfo.playerInfo.oid, curTurnPlayerOid, pb.ProcType_HuOther)
+			} else {
+				sideInfo.process = ProcessStatus_PROC_HU
+				roomInfo.sendRealPlayerProc(sideInfo.playerInfo.oid, curTurnPlayerOid, pb.ProcType_HuOther, preDiscard.id)
+			}
+		} else {
+			log.Error("player%v not in room%v", playerOid, roomInfo.roomId)
+		}
+	}
+	if hasRobotHu {
+		log.Debug("has robot hu, delete discard from current sideinfo.")
+		curTurnSideInfo := roomInfo.sideInfoMap.cMap[curTurnPlayerOid]
+		curTurnSideInfo.deleteDiscard(preDiscard)
+	} else {
+		log.Debug("only real player hu, waiting proc ret.")
+	}
+}
+
+func (roomInfo *RoomInfo) sendRealPlayerProc(procPlayer int32, beProcPlayer int32, procType pb.ProcType, procCardId int32) {
+	log.Debug("sendRealPlayerProc, procPlayer=%v, beProcPlayer=%v， procType=%v, procCardId=%v", procPlayer, beProcPlayer, procType, procCardId)
+	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+		if !sideInfo.isRobot && sideInfo.agent != nil {
+			msgHandler.SendGS2CPlayerEnsureProc(procPlayer, procType.Enum(), beProcPlayer, procCardId, sideInfo.agent)
 		}
 	}
 }
@@ -814,72 +923,14 @@ func (roomInfo *RoomInfo) procPG(preDiscard *card.Card) {
 	}
 }
 
-func (roomInfo *RoomInfo) procHu(preDiscard *card.Card, playerHuOid []int32) {
-	hasRobotHu := false
-	for _, playerOid := range playerHuOid {
-		sideInfo, ok := roomInfo.sideInfoMap.cMap[playerOid]
-		if ok {
-			if sideInfo.isRobot {
-				sideInfo.addDiscardAsHu(preDiscard)
-				hasRobotHu = true
-				roomInfo.sendRobotProc(sideInfo.playerInfo.oid, curTurnPlayerOid, pb.ProcType_HuOther)
-			} else {
-				sideInfo.process = ProcessStatus_PROC_HU
-				roomInfo.sendRealPlayerProc(sideInfo.playerInfo.oid, curTurnPlayerOid, pb.ProcType_HuOther, preDiscard.id)
-			}
-		} else {
-			log.Error("player%v not in room%v", playerOid, roomInfo.roomId)
-		}
-	}
-	if hasRobotHu {
-		log.Debug("has robot hu, delete discard from current sideinfo.")
-		curTurnSideInfo := roomInfo.sideInfoMap.cMap[curTurnPlayerOid]
-		curTurnSideInfo.deleteDiscard(preDiscard)
-	} else {
-		log.Debug("only real player hu, waiting proc ret.")
-	}
-}
-
-//---------------------------------------- robot proc ----------------------------------------
-func (roomInfo *RoomInfo) sendRobotProc(procPlayer int32, beProcPlayer int32, procType pb.ProcType) {
-	log.Debug("sendRobotProc, procPlayer=%v, beProcPlayer=%v， procType=%v", procPlayer, beProcPlayer, procType)
-	var cardList []*pb.CardInfo
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.playerInfo.oid == procPlayer || sideInfo.playerInfo.oid == beProcPlayer {
-			for _, card := range sideInfo.cardList {
-				pbCard := &pb.CardInfo{}
-				pbCard.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
-				pbCard.CardOid = proto.Int32(card.oid)
-				pbCard.CardId = proto.Int32(card.id)
-				pbCard.Status = cardStatusToPbCardStatus(card.status).Enum()
-				pbCard.FromOther = proto.Bool(card.fromOther)
-				cardList = append(cardList, pbCard)
-			}
-		}
-	}
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if !sideInfo.isRobot && sideInfo.agent != nil {
-			msgHandler.SendGS2CRobotProc(procPlayer, procType.Enum(), beProcPlayer, cardList, sideInfo.agent)
-		}
-	}
-}
-
 //---------------------------------------- real player proc ----------------------------------------
-func (roomInfo *RoomInfo) sendRealPlayerProc(procPlayer int32, beProcPlayer int32, procType pb.ProcType, procCardId int32) {
-	log.Debug("sendRealPlayerProc, procPlayer=%v, beProcPlayer=%v， procType=%v, procCardId=%v", procPlayer, beProcPlayer, procType, procCardId)
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if !sideInfo.isRobot && sideInfo.agent != nil {
-			msgHandler.SendGS2CPlayerEnsureProc(procPlayer, procType.Enum(), beProcPlayer, procCardId, sideInfo.agent)
-		}
-	}
-}
 
 func (roomInfo *RoomInfo) procSelfGang() {
 	log.Debug("procSelfGang(include real player and robot)")
 	sideInfo, ok := roomInfo.sideInfoMap.cMap[curTurnPlayerOid]
 	if ok {
 		if sideInfo.isRobot {
-			sideInfo.robotSelfGang()
+			sideInfo.robotProcSelfGang()
 		} else {
 			roomInfo.sendRealPlayerProc(curTurnPlayerOid, 0, pb.ProcType_SelfGang, 0)
 		}
@@ -903,68 +954,6 @@ func (roomInfo *RoomInfo) procSelfHu() {
 }
 
 //---------------------------------------- turn to next ----------------------------------------
-func (roomInfo *RoomInfo) getSideByPlayerOid(playerOid int32) pb.BattleSide {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.playerInfo.oid == playerOid {
-			return sideInfo.side
-		}
-	}
-	return pb.BattleSide_none
-}
-
-func (roomInfo *RoomInfo) nextSideCanProc(nextSide pb.BattleSide) bool {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		log.Debug("player%v process=%v", sideInfo.playerInfo.oid, sideInfo.process)
-		if sideInfo.side == nextSide && sideInfo.process != ProcessStatus_GAME_OVER && sideInfo.process != ProcessStatus_TURN_OVER_HU {
-			return true
-		}
-	}
-	return false
-}
-
-func (roomInfo *RoomInfo) turnToNextPlayer() {
-	log.Debug("turnToNextPlayer")
-	curSide := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
-	if curSide != pb.BattleSide_none {
-		count := 0
-		for {
-			nextSide := pb.BattleSide_none
-			if curSide == pb.BattleSide_east {
-				nextSide = pb.BattleSide_south
-			} else if curSide == pb.BattleSide_south {
-				nextSide = pb.BattleSide_west
-			} else if curSide == pb.BattleSide_west {
-				nextSide = pb.BattleSide_north
-			} else if curSide == pb.BattleSide_north {
-				nextSide = pb.BattleSide_east
-			}
-			if roomInfo.nextSideCanProc(nextSide) {
-				roomInfo.sendNormalTurnToNext(nextSide)
-				break
-			}
-			count++
-			if count >= 4 {
-				break
-			}
-		}
-		if count >= 4 {
-			log.Debug("游戏结束")
-		}
-	} else {
-		log.Error("当前操作方错误")
-	}
-}
-
-func (roomInfo *RoomInfo) getPlayerOidBySide(side pb.BattleSide) int32 {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.side == side {
-			roomInfo.sideInfoMap.lock.Unlock()
-			return sideInfo.playerInfo.oid
-		}
-	}
-	return 0
-}
-
 func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	log.Debug("sendNormalTurnToNext[%v]", nextSide)
 	if len(roomInfo.cardWall) <= 0 {
@@ -975,23 +964,16 @@ func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	newCard := &pb.CardInfo{}
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 		if sideInfo.side == nextSide {
-			curTurnPlayerOid = sideInfo.playerInfo.oid
-			rand.Seed(time.Now().Unix())
-			rnd := rand.Intn(len(roomInfo.cardWall))
-			roomInfo.cardWall[rnd].status = CardStatus_INHAND
-
-			newCard.CardOid = proto.Int32(roomInfo.cardWall[rnd].oid)
-			newCard.CardId = proto.Int32(roomInfo.cardWall[rnd].id)
-			newCard.PlayerId = proto.Int32(sideInfo.playerInfo.oid)
-			newCard.FromOther = proto.Bool(false)
-			newCard.Status = pb.CardStatus_inHand.Enum()
-
-			sideInfo.drawNewCard(roomInfo.cardWall[rnd])
-			roomInfo.cardWall = append(roomInfo.cardWall[:rnd], roomInfo.cardWall[rnd+1:]...)
+			curTurnPlayerOid = sideInfo.playerOid
+			drawCard := roomInfo.cardWall[0]
+			roomInfo.cardWall = roomInfo.cardWall[1:]
+			drawCard.status = card.CardStatus_DEAL
+			drawCard.TopbCard(sideInfo.playerOid)
+			sideInfo.drawNewCard(drawCard)
 			break
 		}
 	}
-	//send real player first, because robot will sleep 2 seconds
+	//send real player first, because robot will sleep 1 seconds
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 		if !sideInfo.isRobot && sideInfo.agent != nil {
 			msgHandler.SendGS2CTurnToNext(curTurnPlayerOid, newCard, pb.TurnSwitchType_Normal.Enum(), sideInfo.agent)
@@ -1003,14 +985,42 @@ func (roomInfo *RoomInfo) sendNormalTurnToNext(nextSide pb.BattleSide) {
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
 		if sideInfo.playerInfo.oid == curTurnPlayerOid {
 			if sideInfo.isRobot {
-				log.Debug("cur turn is robot.")
 				sideInfo.robotTurnSwitch()
 				break
 			} else {
-				log.Debug("cur turn is player.")
 				sideInfo.playerTurnSwitch()
 				break
 			}
+		}
+	}
+}
+
+func (roomInfo *RoomInfo) sendHuTurnToNext(curHuSideInfoList []*SideInfo) {
+	log.Debug("sendHuTurnToNext, hu count=[%v]", len(curHuSideInfoList))
+	huPlayerCount := len(curHuSideInfoList)
+	if huPlayerCount == 1 {
+		if curHuSideInfoList[0].side != pb.BattleSide_none {
+			nextSide := roomInfo.getNextSide(curHuSideInfoList[0].side)
+			roomInfo.sendNormalTurnToNext(nextSide)
+		} else {
+			log.Error("current turn side is none!")
+		}
+	} else if huPlayerCount == 2 {
+		isFindNext := false
+		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+			if sideInfo.playerInfo.oid != curTurnPlayerOid &&
+				sideInfo.playerInfo.oid != curHuSideInfoList[0].playerInfo.oid && sideInfo.playerInfo.oid != curHuSideInfoList[1].playerInfo.oid {
+				nextSide := sideInfo.side
+				if roomInfo.nextSideCanProc(nextSide) {
+					roomInfo.sendNormalTurnToNext(nextSide)
+					isFindNext = true
+					break
+				}
+			}
+		}
+		if !isFindNext {
+			log.Debug("Game over!")
+			roomInfo.sendGameOver()
 		}
 	}
 }
@@ -1032,66 +1042,6 @@ func (roomInfo *RoomInfo) sendPengTurnToNext(nextSide pb.BattleSide) {
 			sideInfo.robotTurnSwitchAfterPeng()
 		}
 	}
-}
-
-func (roomInfo *RoomInfo) sendHuTurnToNext(curHuList []*SideInfo) {
-	log.Debug("sendHuTurnToNext, hu count=[%v]", len(curHuList))
-	huPlayerCount := len(curHuList)
-	if huPlayerCount == 1 {
-		if curHuList[0].side != pb.BattleSide_none {
-			count := 0
-			for {
-				nextSide := pb.BattleSide_none
-				if curHuList[0].side == pb.BattleSide_east {
-					nextSide = pb.BattleSide_south
-				} else if curHuList[0].side == pb.BattleSide_south {
-					nextSide = pb.BattleSide_west
-				} else if curHuList[0].side == pb.BattleSide_west {
-					nextSide = pb.BattleSide_north
-				} else if curHuList[0].side == pb.BattleSide_north {
-					nextSide = pb.BattleSide_east
-				}
-				if roomInfo.nextSideCanProc(nextSide) {
-					roomInfo.sendNormalTurnToNext(nextSide)
-					break
-				}
-				count++
-				if count >= 4 {
-					break
-				}
-			}
-			if count >= 4 {
-				log.Debug("Game over!")
-			}
-		} else {
-			log.Error("current turn side is none!")
-		}
-	} else if huPlayerCount == 2 {
-		isFindNext := false
-		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-			if sideInfo.playerInfo.oid != curTurnPlayerOid &&
-				sideInfo.playerInfo.oid != curHuList[0].playerInfo.oid && sideInfo.playerInfo.oid != curHuList[1].playerInfo.oid {
-				nextSide := sideInfo.side
-				if roomInfo.nextSideCanProc(nextSide) {
-					roomInfo.sendNormalTurnToNext(nextSide)
-					isFindNext = true
-					break
-				}
-			}
-		}
-		if !isFindNext {
-			log.Debug("Game over!")
-		}
-	}
-}
-
-func (roomInfo *RoomInfo) getCurTurnSideInfo() *SideInfo {
-	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if sideInfo.playerInfo.oid == curTurnPlayerOid {
-			return sideInfo
-		}
-	}
-	return nil
 }
 
 func (roomInfo *RoomInfo) robotProcOver(robotOid int32, procType pb.ProcType) {
@@ -1140,16 +1090,4 @@ func (roomInfo *RoomInfo) sendGameOver() {
 			msgHandler.SendGS2CGameOver(sideInfo.agent)
 		}
 	}
-}
-
-//获取CardStatus_PRE_DISCARD状态的牌
-func (roomInfo *roomInfo.RoomInfo) getPreDiscard() *card.Card {
-	for _, sideInfo := range roomInfo.sideMap.cMap {
-		for _, card := range sideInfo.cardList {
-			if card.status == CardStatus_PRE_DISCARD {
-				return card
-			}
-		}
-	}
-	return nil
 }

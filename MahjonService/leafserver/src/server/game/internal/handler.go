@@ -44,14 +44,14 @@ func recvC2GSExchangeCard(args []interface{}) {
 	log.Debug("recvC2GSExchangeCard <<--")
 	m := args[0].(*pb.C2GSExchangeCard)
 	a := args[1].(gate.Agent)
-	roomMgr.UpdateExchangeCard(m, a)
+	roomMgr.UpdateExchangeCard(m.CardOidList, a)
 }
 
 func recvC2GSSelectLack(args []interface{}) {
 	log.Debug("recvC2GSSelectLack <<--")
 	m := args[0].(*pb.C2GSSelectLack)
 	a := args[1].(gate.Agent)
-	roomMgr.UpdateLackCard(m.Type, a)
+	roomMgr.UpdateLackCard(m.GetType(), a)
 }
 
 func recvC2GSDiscard(args []interface{}) {

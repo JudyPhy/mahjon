@@ -378,37 +378,6 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CExchangeCardRet")]
-  public partial class GS2CExchangeCardRet : global::ProtoBuf.IExtensible
-  {
-    public GS2CExchangeCardRet() {}
-    
-    private pb.GS2CExchangeCardRet.ErrorCode _errorCode;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"errorCode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.GS2CExchangeCardRet.ErrorCode errorCode
-    {
-      get { return _errorCode; }
-      set { _errorCode = value; }
-    }
-    [global::ProtoBuf.ProtoContract(Name=@"ErrorCode")]
-    public enum ErrorCode
-    {
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"SUCCESS", Value=1)]
-      SUCCESS = 1,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"FAIL", Value=2)]
-      FAIL = 2,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"FAIL_CARD_COUNT_ERROR", Value=3)]
-      FAIL_CARD_COUNT_ERROR = 3
-    }
-  
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CUpdateCardInfoAfterExchange")]
   public partial class GS2CUpdateCardInfoAfterExchange : global::ProtoBuf.IExtensible
   {
@@ -467,6 +436,38 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CTurnToNext")]
+  public partial class GS2CTurnToNext : global::ProtoBuf.IExtensible
+  {
+    public GS2CTurnToNext() {}
+    
+    private int _playerOid;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"playerOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int playerOid
+    {
+      get { return _playerOid; }
+      set { _playerOid = value; }
+    }
+    private pb.CardInfo _card = null;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"card", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(null)]
+    public pb.CardInfo card
+    {
+      get { return _card; }
+      set { _card = value; }
+    }
+    private pb.TurnSwitchType _type;
+    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.TurnSwitchType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
+    private global::ProtoBuf.IExtension extensionObject;
+    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+  }
+  
   [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSDiscard")]
   public partial class C2GSDiscard : global::ProtoBuf.IExtensible
   {
@@ -495,38 +496,6 @@ namespace pb
     {
       get { return _cardOid; }
       set { _cardOid = value; }
-    }
-    private global::ProtoBuf.IExtension extensionObject;
-    global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-      { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
-  }
-  
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CTurnToNext")]
-  public partial class GS2CTurnToNext : global::ProtoBuf.IExtensible
-  {
-    public GS2CTurnToNext() {}
-    
-    private int _playerOid;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"playerOid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int playerOid
-    {
-      get { return _playerOid; }
-      set { _playerOid = value; }
-    }
-    private pb.CardInfo _card = null;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"card", DataFormat = global::ProtoBuf.DataFormat.Default)]
-    [global::System.ComponentModel.DefaultValue(null)]
-    public pb.CardInfo card
-    {
-      get { return _card; }
-      set { _card = value; }
-    }
-    private pb.TurnSwitchType _type;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.TurnSwitchType type
-    {
-      get { return _type; }
-      set { _type = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
@@ -741,8 +710,25 @@ namespace pb
       [global::ProtoBuf.ProtoEnum(Name=@"discard", Value=5)]
       discard = 5,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"hu", Value=6)]
-      hu = 6
+      [global::ProtoBuf.ProtoEnum(Name=@"deal", Value=6)]
+      deal = 6,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"hu", Value=7)]
+      hu = 7
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"ExchangeType")]
+    public enum ExchangeType
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"ClockWise", Value=1)]
+      ClockWise = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"AntiClock", Value=2)]
+      AntiClock = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"Opposite", Value=3)]
+      Opposite = 3
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"CardType")]
@@ -760,20 +746,6 @@ namespace pb
             
       [global::ProtoBuf.ProtoEnum(Name=@"None", Value=4)]
       None = 4
-    }
-  
-    [global::ProtoBuf.ProtoContract(Name=@"ExchangeType")]
-    public enum ExchangeType
-    {
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"ClockWise", Value=1)]
-      ClockWise = 1,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"AntiClock", Value=2)]
-      AntiClock = 2,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"Opposite", Value=3)]
-      Opposite = 3
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"ProcType")]

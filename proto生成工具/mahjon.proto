@@ -26,7 +26,15 @@ enum CardStatus
 	bePeng = 3;
 	beGang = 4;
 	discard = 5;
-	hu = 6;
+	deal = 6;
+	hu = 7;
+}
+
+enum ExchangeType
+{
+	ClockWise = 1;
+	AntiClock = 2;
+	Opposite = 3;
 }
 
 enum CardType
@@ -37,11 +45,10 @@ enum CardType
 	None = 4;
 }
 
-enum ExchangeType
+message LackCard
 {
-	ClockWise = 1;
-	AntiClock = 2;
-	Opposite = 3;
+	required int32 playerId = 1;
+	required CardType type = 2;
 }
 
 enum ProcType
@@ -59,12 +66,6 @@ enum TurnSwitchType
 	Normal = 1;
 	JustCanDiscard = 2;
 	NotDrawCard = 3;
-}
-
-message LackCard
-{
-	required int32 playerId = 1;
-	required CardType type = 2;
 }
 
 message CardInfo
@@ -154,16 +155,6 @@ message C2GSExchangeCard
 	repeated int32 cardOidList = 1;
 }
 
-message GS2CExchangeCardRet
-{	
-	enum ErrorCode{
-		SUCCESS = 1; 
-		FAIL = 2;
-		FAIL_CARD_COUNT_ERROR = 3;
-	}
-	required ErrorCode errorCode = 1;
-}
-
 message GS2CUpdateCardInfoAfterExchange
 {
 	required ExchangeType type = 1;
@@ -180,6 +171,13 @@ message GS2CSelectLackRet
 	repeated LackCard lackCard = 1;
 }
 
+message GS2CTurnToNext
+{
+	required int32 playerOid = 1;
+	optional CardInfo card = 2;
+	required TurnSwitchType type = 3;
+}
+
 message C2GSDiscard
 {
 	required int32 cardOid = 1;
@@ -188,13 +186,6 @@ message C2GSDiscard
 message GS2CDiscardRet
 {
 	required int32 cardOid = 1;
-}
-
-message GS2CTurnToNext
-{
-	required int32 playerOid = 1;
-	optional CardInfo card = 2;
-	required TurnSwitchType type = 3;
 }
 
 message GS2CRobotProc

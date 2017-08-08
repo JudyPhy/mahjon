@@ -11,7 +11,7 @@ import (
 
 //接口必须在摸牌后执行
 func (sideInfo *SideInfo) playerTurnSwitch() {
-	log.Debug("turn switch to real player%v", sideInfo.playerInfo.oid)
+	log.Debug("turn switch to real player%v", sideInfo.playerOid)
 	inhandList := getInHandCardIdList(sideInfo.cardList)
 	gList := getGangCardIdList(sideInfo.cardList)
 	pList := getPengCardIdList(sideInfo.cardList)

@@ -20,13 +20,12 @@ It has these top-level messages:
 	GS2CUpdateRoomInfo
 	GS2CBattleStart
 	C2GSExchangeCard
-	GS2CExchangeCardRet
 	GS2CUpdateCardInfoAfterExchange
 	C2GSSelectLack
 	GS2CSelectLackRet
+	GS2CTurnToNext
 	C2GSDiscard
 	GS2CDiscardRet
-	GS2CTurnToNext
 	GS2CRobotProc
 	C2GSRobotProcOver
 	GS2CPlayerEnsureProc
@@ -129,7 +128,8 @@ const (
 	CardStatus_bePeng  CardStatus = 3
 	CardStatus_beGang  CardStatus = 4
 	CardStatus_discard CardStatus = 5
-	CardStatus_hu      CardStatus = 6
+	CardStatus_deal    CardStatus = 6
+	CardStatus_hu      CardStatus = 7
 )
 
 var CardStatus_name = map[int32]string{
@@ -138,7 +138,8 @@ var CardStatus_name = map[int32]string{
 	3: "bePeng",
 	4: "beGang",
 	5: "discard",
-	6: "hu",
+	6: "deal",
+	7: "hu",
 }
 var CardStatus_value = map[string]int32{
 	"noDeal":  1,
@@ -146,7 +147,8 @@ var CardStatus_value = map[string]int32{
 	"bePeng":  3,
 	"beGang":  4,
 	"discard": 5,
-	"hu":      6,
+	"deal":    6,
+	"hu":      7,
 }
 
 func (x CardStatus) Enum() *CardStatus {
@@ -163,6 +165,42 @@ func (x *CardStatus) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = CardStatus(value)
+	return nil
+}
+
+type ExchangeType int32
+
+const (
+	ExchangeType_ClockWise ExchangeType = 1
+	ExchangeType_AntiClock ExchangeType = 2
+	ExchangeType_Opposite  ExchangeType = 3
+)
+
+var ExchangeType_name = map[int32]string{
+	1: "ClockWise",
+	2: "AntiClock",
+	3: "Opposite",
+}
+var ExchangeType_value = map[string]int32{
+	"ClockWise": 1,
+	"AntiClock": 2,
+	"Opposite":  3,
+}
+
+func (x ExchangeType) Enum() *ExchangeType {
+	p := new(ExchangeType)
+	*p = x
+	return p
+}
+func (x ExchangeType) String() string {
+	return proto.EnumName(ExchangeType_name, int32(x))
+}
+func (x *ExchangeType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(ExchangeType_value, data, "ExchangeType")
+	if err != nil {
+		return err
+	}
+	*x = ExchangeType(value)
 	return nil
 }
 
@@ -202,42 +240,6 @@ func (x *CardType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = CardType(value)
-	return nil
-}
-
-type ExchangeType int32
-
-const (
-	ExchangeType_ClockWise ExchangeType = 1
-	ExchangeType_AntiClock ExchangeType = 2
-	ExchangeType_Opposite  ExchangeType = 3
-)
-
-var ExchangeType_name = map[int32]string{
-	1: "ClockWise",
-	2: "AntiClock",
-	3: "Opposite",
-}
-var ExchangeType_value = map[string]int32{
-	"ClockWise": 1,
-	"AntiClock": 2,
-	"Opposite":  3,
-}
-
-func (x ExchangeType) Enum() *ExchangeType {
-	p := new(ExchangeType)
-	*p = x
-	return p
-}
-func (x ExchangeType) String() string {
-	return proto.EnumName(ExchangeType_name, int32(x))
-}
-func (x *ExchangeType) UnmarshalJSON(data []byte) error {
-	value, err := proto.UnmarshalJSONEnum(ExchangeType_value, data, "ExchangeType")
-	if err != nil {
-		return err
-	}
-	*x = ExchangeType(value)
 	return nil
 }
 
@@ -436,42 +438,6 @@ func (x *GS2CUpdateRoomInfo_Status) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = GS2CUpdateRoomInfo_Status(value)
-	return nil
-}
-
-type GS2CExchangeCardRet_ErrorCode int32
-
-const (
-	GS2CExchangeCardRet_SUCCESS               GS2CExchangeCardRet_ErrorCode = 1
-	GS2CExchangeCardRet_FAIL                  GS2CExchangeCardRet_ErrorCode = 2
-	GS2CExchangeCardRet_FAIL_CARD_COUNT_ERROR GS2CExchangeCardRet_ErrorCode = 3
-)
-
-var GS2CExchangeCardRet_ErrorCode_name = map[int32]string{
-	1: "SUCCESS",
-	2: "FAIL",
-	3: "FAIL_CARD_COUNT_ERROR",
-}
-var GS2CExchangeCardRet_ErrorCode_value = map[string]int32{
-	"SUCCESS":               1,
-	"FAIL":                  2,
-	"FAIL_CARD_COUNT_ERROR": 3,
-}
-
-func (x GS2CExchangeCardRet_ErrorCode) Enum() *GS2CExchangeCardRet_ErrorCode {
-	p := new(GS2CExchangeCardRet_ErrorCode)
-	*p = x
-	return p
-}
-func (x GS2CExchangeCardRet_ErrorCode) String() string {
-	return proto.EnumName(GS2CExchangeCardRet_ErrorCode_name, int32(x))
-}
-func (x *GS2CExchangeCardRet_ErrorCode) UnmarshalJSON(data []byte) error {
-	value, err := proto.UnmarshalJSONEnum(GS2CExchangeCardRet_ErrorCode_value, data, "GS2CExchangeCardRet_ErrorCode")
-	if err != nil {
-		return err
-	}
-	*x = GS2CExchangeCardRet_ErrorCode(value)
 	return nil
 }
 
@@ -796,22 +762,6 @@ func (m *C2GSExchangeCard) GetCardOidList() []int32 {
 	return nil
 }
 
-type GS2CExchangeCardRet struct {
-	ErrorCode        *GS2CExchangeCardRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CExchangeCardRet_ErrorCode" json:"errorCode,omitempty"`
-	XXX_unrecognized []byte                         `json:"-"`
-}
-
-func (m *GS2CExchangeCardRet) Reset()         { *m = GS2CExchangeCardRet{} }
-func (m *GS2CExchangeCardRet) String() string { return proto.CompactTextString(m) }
-func (*GS2CExchangeCardRet) ProtoMessage()    {}
-
-func (m *GS2CExchangeCardRet) GetErrorCode() GS2CExchangeCardRet_ErrorCode {
-	if m != nil && m.ErrorCode != nil {
-		return *m.ErrorCode
-	}
-	return GS2CExchangeCardRet_SUCCESS
-}
-
 type GS2CUpdateCardInfoAfterExchange struct {
 	Type             *ExchangeType `protobuf:"varint,1,req,name=type,enum=pb.ExchangeType" json:"type,omitempty"`
 	CardList         []*CardInfo   `protobuf:"bytes,2,rep,name=cardList" json:"cardList,omitempty"`
@@ -868,38 +818,6 @@ func (m *GS2CSelectLackRet) GetLackCard() []*LackCard {
 	return nil
 }
 
-type C2GSDiscard struct {
-	CardOid          *int32 `protobuf:"varint,1,req,name=cardOid" json:"cardOid,omitempty"`
-	XXX_unrecognized []byte `json:"-"`
-}
-
-func (m *C2GSDiscard) Reset()         { *m = C2GSDiscard{} }
-func (m *C2GSDiscard) String() string { return proto.CompactTextString(m) }
-func (*C2GSDiscard) ProtoMessage()    {}
-
-func (m *C2GSDiscard) GetCardOid() int32 {
-	if m != nil && m.CardOid != nil {
-		return *m.CardOid
-	}
-	return 0
-}
-
-type GS2CDiscardRet struct {
-	CardOid          *int32 `protobuf:"varint,1,req,name=cardOid" json:"cardOid,omitempty"`
-	XXX_unrecognized []byte `json:"-"`
-}
-
-func (m *GS2CDiscardRet) Reset()         { *m = GS2CDiscardRet{} }
-func (m *GS2CDiscardRet) String() string { return proto.CompactTextString(m) }
-func (*GS2CDiscardRet) ProtoMessage()    {}
-
-func (m *GS2CDiscardRet) GetCardOid() int32 {
-	if m != nil && m.CardOid != nil {
-		return *m.CardOid
-	}
-	return 0
-}
-
 type GS2CTurnToNext struct {
 	PlayerOid        *int32          `protobuf:"varint,1,req,name=playerOid" json:"playerOid,omitempty"`
 	Card             *CardInfo       `protobuf:"bytes,2,opt,name=card" json:"card,omitempty"`
@@ -930,6 +848,38 @@ func (m *GS2CTurnToNext) GetType() TurnSwitchType {
 		return *m.Type
 	}
 	return TurnSwitchType_Normal
+}
+
+type C2GSDiscard struct {
+	CardOid          *int32 `protobuf:"varint,1,req,name=cardOid" json:"cardOid,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *C2GSDiscard) Reset()         { *m = C2GSDiscard{} }
+func (m *C2GSDiscard) String() string { return proto.CompactTextString(m) }
+func (*C2GSDiscard) ProtoMessage()    {}
+
+func (m *C2GSDiscard) GetCardOid() int32 {
+	if m != nil && m.CardOid != nil {
+		return *m.CardOid
+	}
+	return 0
+}
+
+type GS2CDiscardRet struct {
+	CardOid          *int32 `protobuf:"varint,1,req,name=cardOid" json:"cardOid,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *GS2CDiscardRet) Reset()         { *m = GS2CDiscardRet{} }
+func (m *GS2CDiscardRet) String() string { return proto.CompactTextString(m) }
+func (*GS2CDiscardRet) ProtoMessage()    {}
+
+func (m *GS2CDiscardRet) GetCardOid() int32 {
+	if m != nil && m.CardOid != nil {
+		return *m.CardOid
+	}
+	return 0
 }
 
 type GS2CRobotProc struct {
@@ -1088,12 +1038,11 @@ func init() {
 	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
 	proto.RegisterEnum("pb.BattleSide", BattleSide_name, BattleSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
-	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
 	proto.RegisterEnum("pb.ExchangeType", ExchangeType_name, ExchangeType_value)
+	proto.RegisterEnum("pb.CardType", CardType_name, CardType_value)
 	proto.RegisterEnum("pb.ProcType", ProcType_name, ProcType_value)
 	proto.RegisterEnum("pb.TurnSwitchType", TurnSwitchType_name, TurnSwitchType_value)
 	proto.RegisterEnum("pb.GS2CLoginRet_ErrorCode", GS2CLoginRet_ErrorCode_name, GS2CLoginRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CEnterGameRet_ErrorCode", GS2CEnterGameRet_ErrorCode_name, GS2CEnterGameRet_ErrorCode_value)
 	proto.RegisterEnum("pb.GS2CUpdateRoomInfo_Status", GS2CUpdateRoomInfo_Status_name, GS2CUpdateRoomInfo_Status_value)
-	proto.RegisterEnum("pb.GS2CExchangeCardRet_ErrorCode", GS2CExchangeCardRet_ErrorCode_name, GS2CExchangeCardRet_ErrorCode_value)
 }

@@ -2,6 +2,8 @@ package roomMgr
 
 import (
 	"math/rand"
+	"server/card"
+	"server/eventDispatch"
 	"server/msgHandler"
 	"server/pb"
 	"strconv"
@@ -107,21 +109,6 @@ func robotSelfGangOver(roomId string) {
 	}
 }
 
-func broadcastRobotDiscard(roomId string, discard *card.Card) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.broadcastDiscard(discard)
-		//after discard, wait 1 seconds for client ani
-		timer := time.NewTimer(time.Second * 1)
-		<-timer.C
-		roomInfo.checkTurnOver()
-	} else {
-		log.Error("broadcastDiscard, no room[%v]", roomId)
-	}
-}
-
 func curTurnPlayerSelfGang(roomId string) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
@@ -175,6 +162,33 @@ func setOtherProcess(roomId string, exceptPlayerOid int32, process ProcessStatus
 		roomInfo.setOtherProcessBySelfProc(exceptPlayerOid, process)
 	} else {
 		log.Error("sendRobotSelfGang, no room[%v]", roomId)
+	}
+}
+
+func sendRobotProc(roomId string, procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
+	log.Debug("sendRobotProc, roomId=%v, procType=%v", roomId, procType)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendRobotProc(procPlayer, procType, beProcPlayer)
+	} else {
+		log.Error("sendRobotProc, no room[%v]", roomId)
+	}
+}
+
+func broadcastRobotDiscard(roomId string, discard *card.Card) {
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.broadcastAndProcDiscard(discard)
+		//after discard, wait 1 seconds for client ani
+		timer := time.NewTimer(time.Second * 1)
+		<-timer.C
+		roomInfo.checkTurnOver()
+	} else {
+		log.Error("broadcastDiscard, no room[%v]", roomId)
 	}
 }
 
@@ -280,12 +294,11 @@ func QuickEnterRoomRet(a gate.Agent) {
 	roomInfo.startBattle()
 }
 
-func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
+func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 	log.Debug("UpdateExchangeCard")
-	exchangeCount := len(m.CardOidList)
+	exchangeCount := len(cardOidList)
 	if exchangeCount != 3 {
 		log.Error("exchange card count[%v] is error", exchangeCount)
-		msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL_CARD_COUNT_ERROR.Enum(), a)
 		return
 	}
 	player := player.GetPlayerBtAgent(a)
@@ -295,16 +308,7 @@ func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
 		roomInfo, ok := RoomManager.roomMap[player.roomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			result := roomInfo.updateExchangeCards(m.CardOidList, player.oid)
-			if !result {
-				msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_FAIL.Enum(), a)
-			} else {
-				log.Debug("The exchanging card has update in list.")
-				msgHandler.SendGS2CExchangeCardRet(pb.GS2CExchangeCardRet_SUCCESS.Enum(), a)
-				if roomInfo.isExchangeOver() {
-					roomInfo.processExchangeCard()
-				}
-			}
+			roomInfo.updateExchangeCards(cardOidList, player.oid)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}
@@ -313,7 +317,7 @@ func UpdateExchangeCard(m *pb.C2GSExchangeCard, a gate.Agent) {
 	}
 }
 
-func UpdateLackCard(lackType *pb.CardType, a gate.Agent) {
+func UpdateLackCard(lackType pb.CardType, a gate.Agent) {
 	log.Debug("UpdateLackCard")
 	player := getPlayerBtAgent(a)
 	if player != nil {
@@ -323,10 +327,6 @@ func UpdateLackCard(lackType *pb.CardType, a gate.Agent) {
 		RoomManager.lock.Unlock()
 		if ok {
 			roomInfo.updateLack(player.oid, lackType)
-			if roomInfo.selectLackOver() {
-				roomInfo.sendLackCard()
-				roomInfo.dealerStart()
-			}
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

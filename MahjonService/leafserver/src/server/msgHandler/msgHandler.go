@@ -33,13 +33,6 @@ func SendGS2CBattleStart(dealerId int32, cardList []*pb.CardInfo, a gate.Agent) 
 	a.WriteMsg(data)
 }
 
-func SendGS2CExchangeCardRet(errorCode *pb.GS2CExchangeCardRet_ErrorCode, a gate.Agent) {
-	log.Debug("SendGS2CExchangeCardRet-->>")
-	data := &pb.GS2CExchangeCardRet{}
-	data.ErrorCode = errorCode
-	a.WriteMsg(data)
-}
-
 func SendGS2CUpdateCardInfoAfterExchange(exchangeType *pb.ExchangeType, cardList []*pb.CardInfo, a gate.Agent) {
 	log.Debug("SendGS2CUpdateCardInfoAfterExchange-->>")
 	data := &pb.GS2CUpdateCardInfoAfterExchange{}
