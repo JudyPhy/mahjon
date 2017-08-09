@@ -129,23 +129,7 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 			sideInfo.robotProcSelfGang()
 		} else {
 			log.Debug("can't self gang, proc discard")
-			discard := sideInfo.getRobotDiscard()
-			log.Debug("robot%v 出牌%v(%v)", sideInfo.playerOid, discard.oid, discard.id)
-			isFind := false
-			for n, card := range sideInfo.cardList {
-				if card.oid == discard.oid {
-					card.status = card.CardStatus_PRE_DISCARD
-					sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
-					sideInfo.cardList = append(sideInfo.cardList, card)
-					sideInfo.process = ProcessStatus_TURN_OVER
-					broadcastRobotDiscard(sideInfo.roomId, discard)
-					isFind = true
-					break
-				}
-			}
-			if !isFind {
-				log.Error("robot%v discard%v is not in it's cardList.", sideInfo.playerOid, discard.oid)
-			}
+			sideInfo.robotDiscard()
 		}
 	}
 }
@@ -210,22 +194,23 @@ func (sideInfo *SideInfo) getRobotDiscard() *card.Card {
 	return ableDiscardList[rnd]
 }
 
-func (sideInfo *SideInfo) robotTurnSwitchAfterPeng() {
-	log.Debug("turn switch to robot%v after peng", sideInfo.playerInfo.oid)
-	timer := time.NewTimer(time.Second * 1)
-	<-timer.C
-	//1秒后执行
+func (sideInfo *SideInfo) robotDiscard() {
 	discard := sideInfo.getRobotDiscard()
-	log.Debug("discard[%v](%v)", discard.oid, discard.id)
+	log.Debug("robot%v 出牌%v(%v)", discard.oid, discard.id)
+	isFind := false
 	for n, card := range sideInfo.cardList {
 		if card.oid == discard.oid {
 			card.status = CardStatus_PRE_DISCARD
 			sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
 			sideInfo.cardList = append(sideInfo.cardList, card)
 			sideInfo.process = ProcessStatus_TURN_OVER
-			broadcastRobotDiscard(sideInfo.playerInfo.roomId, discard)
+			broadcastRobotDiscard(sideInfo.roomId, discard)
+			isFind = true
 			break
 		}
+	}
+	if !isFind {
+		log.Error("robot%v discard%v is not in it's cardList.", sideInfo.playerOid, discard.oid)
 	}
 }
 

@@ -1038,8 +1038,11 @@ func (roomInfo *RoomInfo) sendPengTurnToNext(nextSide pb.BattleSide) {
 		}
 	}
 	for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-		if curTurnPlayerOid == sideInfo.playerInfo.oid && sideInfo.isRobot {
-			sideInfo.robotTurnSwitchAfterPeng()
+		if curTurnPlayerOid == sideInfo.playerOid && sideInfo.isRobot {
+			timer := time.NewTimer(time.Second * 1)
+			<-timer.C
+			sideInfo.robotDiscard()
+			break
 		}
 	}
 }
