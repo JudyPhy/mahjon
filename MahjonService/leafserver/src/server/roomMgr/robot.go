@@ -216,24 +216,36 @@ func (sideInfo *SideInfo) robotDiscard() {
 
 func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 	if procType == pb.ProcType_Peng {
-		log.Debug("robot peng over, turn switch.")
 		//peng
 		sideInfo.process = ProcessStatus_TURN_OVER_PENG
+		sideInfo.robotDiscard()
 	} else if procType == pb.ProcType_HuOther {
-		log.Debug("robot hu over, wait check turn over.")
 		//hu other
 		sideInfo.process = ProcessStatus_TURN_OVER_HU
+		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
+			if sideInfo.process == ProcessStatus_PROC_HU {
+				return
+			}
+		}
+		roomInfo.checkTurnOver()
 	} else if procType == pb.ProcType_SelfHu {
 		//self hu
-		sideInfo.process = ProcessStatus_TURN_OVER_HU
-		setOtherProcess(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, ProcessStatus_TURN_OVER)
-	} else if procType == pb.ProcType_GangOther {
-		log.Debug("robot gang over, turn switch.")
-		//gang other
+		sideInfo.process = ProcessStatus_GAME_OVER
+		huCard := sideInfo.getDealCard()
+		huCard.status = card.CardStatus_HU
+		turnToSelfAfterHu(sideInfo.roomId, , []*SideInfo{sideInfo})
+	} else if procType == pb.ProcType_GangOther || procType == pb.ProcType_SelfGang {
+		//gang other、self gang
 		sideInfo.process = ProcessStatus_TURN_OVER_GANG
-	} else if procType == pb.ProcType_SelfGang {
-		//self gang
-		sideInfo.process = ProcessStatus_TURN_OVER_GANG
-		setOtherProcess(sideInfo.playerInfo.roomId, sideInfo.playerInfo.oid, ProcessStatus_TURN_OVER)
+		turnToSelfAfterGang(sideInfo.roomId, sideInfo.side)
 	}
+}
+
+func (sideInfo *SideInfo) getDealCard() *card.Card {
+	for _, curCard := range sideInfo.cardList {
+		if curCard.status == card.CardStatus_DEAL {
+			return curCard
+		}
+	}
+	return nil
 }

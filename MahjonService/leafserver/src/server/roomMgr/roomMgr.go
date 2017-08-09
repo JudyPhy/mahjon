@@ -19,20 +19,19 @@ import (
 type ProcessStatus int32
 
 const (
-	ProcessStatus_DEFAULT         ProcessStatus = 1
-	ProcessStatus_EXCHANGE_OVER   ProcessStatus = 2
-	ProcessStatus_LACK_OVER       ProcessStatus = 3
-	ProcessStatus_TURN_START      ProcessStatus = 4
-	ProcessStatus_TURN_START_OVER ProcessStatus = 5
-	ProcessStatus_TURN_OVER       ProcessStatus = 6
-	ProcessStatus_TURN_OVER_PENG  ProcessStatus = 7
-	ProcessStatus_TURN_OVER_GANG  ProcessStatus = 8
-	ProcessStatus_TURN_OVER_HU    ProcessStatus = 9
-	ProcessStatus_WAITING_HU      ProcessStatus = 10
-	ProcessStatus_PROC_HU         ProcessStatus = 11 //real player
-	ProcessStatus_WAITING_GANG    ProcessStatus = 12
-	ProcessStatus_WAITING_PENG    ProcessStatus = 13
-	ProcessStatus_GAME_OVER       ProcessStatus = 14
+	ProcessStatus_DEFAULT        ProcessStatus = 1
+	ProcessStatus_EXCHANGE_OVER  ProcessStatus = 2
+	ProcessStatus_LACK_OVER      ProcessStatus = 3
+	ProcessStatus_TURN_START     ProcessStatus = 4
+	ProcessStatus_TURN_OVER      ProcessStatus = 5
+	ProcessStatus_TURN_OVER_PENG ProcessStatus = 6
+	ProcessStatus_TURN_OVER_GANG ProcessStatus = 7
+	ProcessStatus_TURN_OVER_HU   ProcessStatus = 8
+	ProcessStatus_WAITING_HU     ProcessStatus = 9
+	ProcessStatus_PROC_HU        ProcessStatus = 10 //real player
+	ProcessStatus_WAITING_GANG   ProcessStatus = 11
+	ProcessStatus_WAITING_PENG   ProcessStatus = 12
+	ProcessStatus_GAME_OVER      ProcessStatus = 13
 )
 
 func (x ProcessStatus) Enum() *ProcessStatus {
@@ -120,17 +119,6 @@ func curTurnPlayerSelfGang(roomId string) {
 	}
 }
 
-func curTurnPlayerSelfHu(roomId string) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.procSelfHu()
-	} else {
-		log.Error("curTurnPlayerSelfGang, no room[%v]", roomId)
-	}
-}
-
 func sendRobotSelfGangProc(roomId string) {
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
@@ -153,18 +141,6 @@ func sendRobotSelfHuProc(roomId string) {
 	}
 }
 
-func setOtherProcess(roomId string, exceptPlayerOid int32, process ProcessStatus) {
-	log.Debug("setOtherProcess, roomId=%v, exceptPlayerOid=%v, process=%v", roomId, exceptPlayerOid, process)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.setOtherProcessBySelfProc(exceptPlayerOid, process)
-	} else {
-		log.Error("sendRobotSelfGang, no room[%v]", roomId)
-	}
-}
-
 func sendRobotProc(roomId string, procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
 	log.Debug("sendRobotProc, roomId=%v, procType=%v", roomId, procType)
 	RoomManager.lock.Lock()
@@ -174,6 +150,31 @@ func sendRobotProc(roomId string, procPlayer int32, procType pb.ProcType, beProc
 		roomInfo.sendRobotProc(procPlayer, procType, beProcPlayer)
 	} else {
 		log.Error("sendRobotProc, no room[%v]", roomId)
+	}
+}
+
+func sendRealPlayerProc(roomId string, procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
+	log.Debug("sendRealPlayerProc, roomId=%v, procType=%v", roomId, procType)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendRealPlayerProc(procPlayer, procType, beProcPlayer)
+	} else {
+		log.Error("sendRealPlayerProc, no room[%v]", roomId)
+	}
+}
+
+func sendRealPlayerCardListAfterProc(roomId string, procPlayer int32, beProcPlayer int32) {
+	log.Debug("sendRealPlayerCardListAfterProc, roomId=%v, card count=%v", roomId, len(cardList))
+	pbCardList := make([]*pb.CardInfo, 0)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendRealPlayerCardListAfterProc(procPlayer, beProcPlayer)
+	} else {
+		log.Error("sendRealPlayerCardListAfterProc, no room[%v]", roomId)
 	}
 }
 
@@ -189,6 +190,30 @@ func broadcastRobotDiscard(roomId string, discard *card.Card) {
 		roomInfo.checkTurnOver()
 	} else {
 		log.Error("broadcastDiscard, no room[%v]", roomId)
+	}
+}
+
+func turnToSelfAfterGang(roomId string, side pb.BattleSide) {
+	log.Debug("turnToSelfAfterGang, roomId%v, side%v", roomId, side)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendNormalTurnToNext(side)
+	} else {
+		log.Error("turnToSelfAfterGang, no room[%v]", roomId)
+	}
+}
+
+func turnToSelfAfterHu(roomId string, sideInfoList []*SideInfo) {
+	log.Debug("turnToSelfAfterHu, roomId%v", roomId)
+	RoomManager.lock.Lock()
+	roomInfo, ok := RoomManager.roomMap[roomId]
+	RoomManager.lock.Unlock()
+	if ok {
+		roomInfo.sendHuTurnToNext(sideInfoList)
+	} else {
+		log.Error("turnToSelfAfterGang, no room[%v]", roomId)
 	}
 }
 
@@ -343,7 +368,7 @@ func UpdateDiscard(cardOid int32, a gate.Agent) {
 		roomInfo, ok := RoomManager.roomMap[player.roomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.recvDiscard(player.oid, cardOid)
+			roomInfo.recvRealPlayerDiscard(player.oid, cardOid)
 		} else {
 			log.Error("no room[%v]", player.roomId)
 		}

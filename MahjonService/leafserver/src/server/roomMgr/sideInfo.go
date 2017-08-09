@@ -73,18 +73,13 @@ func (sideInfo *SideInfo) drawNewCard(newCard *card.Card) {
 	sideInfo.cardList = append(sideInfo.cardList, newCard)
 }
 
-func (sideInfo *SideInfo) procSelfHuPlayAndRobot() {
-	log.Debug("player%v self hu", sideInfo.playerInfo.oid)
-	curTurnPlayerSelfHu(sideInfo.playerInfo.roomId)
-}
-
 func (sideInfo *SideInfo) procSelfGangPlayerAndRobot() {
 	log.Debug("player%v self gang", sideInfo.playerInfo.oid)
 	curTurnPlayerSelfGang(sideInfo.playerInfo.roomId)
 }
 
 func (sideInfo *SideInfo) addDiscardAsPeng(card *card.Card) {
-	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
+	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", card.oid, card.id, sideInfo.playerOid)
 	card.status = CardStatus_PENG
 	card.fromOther = true
 	sideInfo.cardList = append(sideInfo.cardList, card)
