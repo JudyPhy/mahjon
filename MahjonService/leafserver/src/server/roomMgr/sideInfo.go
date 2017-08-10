@@ -4,7 +4,6 @@ import (
 	"server/card"
 	"server/pb"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
@@ -19,15 +18,6 @@ type SideInfo struct {
 	lackType  pb.CardType
 	cardList  []*card.Card
 	process   ProcessStatus
-}
-
-func (sideInfo *SideInfo) ToPbBattlePlayerInfo() *pb.BattlePlayerInfo {
-	ret := &pb.BattlePlayerInfo{}
-	ret.Side = sideInfo.side.Enum()
-	ret.IsOwner = proto.Bool(sideInfo.isOwner)
-	ret.Player = &pb.PlayerInfo{}
-	ret.Player.Oid = proto.Int32(sideInfo.playerOid)
-	return ret
 }
 
 func (sideInfo *SideInfo) resetCardsData() {

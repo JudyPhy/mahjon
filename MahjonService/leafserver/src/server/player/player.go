@@ -70,6 +70,16 @@ func GetPlayerBtAgent(a gate.Agent) *Player {
 	}
 }
 
+func (player *Player) ToPbPlayerInfo() *pb.PlayerInfo {
+	pbPlayer := &pb.PlayerInfo{}
+	pbPlayer.Oid = proto.Int32(player.OID)
+	pbPlayer.NickName = proto.String(player.NickName)
+	pbPlayer.HeadIcon = proto.String(player.HeadIcon)
+	pbPlayer.Gold = proto.Int32(player.Gold)
+	pbPlayer.Diamond = proto.Int32(player.Diamond)
+	return pbPlayer
+}
+
 func (player *Player) ToPbBattlePlayerInfo(side pb.BattleSide, isOwner bool) *pb.BattlePlayerInfo {
 	pbPlayer := &pb.BattlePlayerInfo{}
 	pbPlayer.Player = &pb.PlayerInfo{}
@@ -81,4 +91,18 @@ func (player *Player) ToPbBattlePlayerInfo(side pb.BattleSide, isOwner bool) *pb
 	pbPlayer.Side = side.Enum()
 	pbPlayer.IsOwner = proto.Bool(isOwner)
 	return pbPlayer
+}
+
+func (player *Player) OffLine(a gate.Agent) {
+	log.Debug("OffLine, player%v", player.OID)
+	AgentPlayer.lock.Lock()
+	_, ok := AgentPlayer.CMap[a]
+	AgentPlayer.lock.Unlock()
+	if ok {
+		AgentPlayer.lock.Lock()
+		delete(AgentPlayer.CMap, a)
+		AgentPlayer.lock.Unlock()
+	} else {
+		log.Error("player%v not login.", player.OID)
+	}
 }

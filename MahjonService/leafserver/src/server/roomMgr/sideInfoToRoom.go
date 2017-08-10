@@ -34,7 +34,6 @@ func sendRealPlayerProc(roomId string, procPlayer int32, procType pb.ProcType, b
 
 func sendRealPlayerCardListAfterProc(roomId string, procPlayer int32, beProcPlayer int32) {
 	log.Debug("sendRealPlayerCardListAfterProc, roomId=%v", roomId)
-	pbCardList := make([]*pb.CardInfo, 0)
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
 	RoomManager.lock.Unlock()
@@ -72,18 +71,6 @@ func turnToSelfAfterGang(roomId string, side pb.BattleSide) {
 	}
 }
 
-func turnToSelfAfterHu(roomId string, sideInfoList []*SideInfo) {
-	log.Debug("turnToSelfAfterHu, roomId%v", roomId)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendHuTurnToNext(sideInfoList)
-	} else {
-		log.Error("turnToSelfAfterGang, no room[%v]", roomId)
-	}
-}
-
 func realPlayerTurnToSelfAfterPeng(roomId string, playerOid int32) {
 	log.Debug("realPlayerTurnToSelfAfterPeng, roomId%v, playerOid%v", roomId, playerOid)
 	RoomManager.lock.Lock()
@@ -93,29 +80,5 @@ func realPlayerTurnToSelfAfterPeng(roomId string, playerOid int32) {
 		roomInfo.sendRealPlayerPengTurnToNext(playerOid)
 	} else {
 		log.Error("realPlayerTurnToSelfAfterPeng, no room[%v]", roomId)
-	}
-}
-
-func checkHuOtherOver(roomId string, curHuOverPlayer int32) {
-	log.Debug("checkHuOtherOver, roomId%v, curHuOverPlayer%v", roomId, curHuOverPlayer)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.checkHuOtherOver(curHuOverPlayer)
-	} else {
-		log.Error("checkHuOtherOver, no room[%v]", roomId)
-	}
-}
-
-func turnToNextAfterHuOther(roomId string) {
-	log.Debug("turnToNextAfterHuOther, roomId%v", roomId)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.checkHuOtherOver(curHuOverPlayer)
-	} else {
-		log.Error("checkHuOtherOver, no room[%v]", roomId)
 	}
 }

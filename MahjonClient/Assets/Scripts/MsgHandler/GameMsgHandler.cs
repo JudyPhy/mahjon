@@ -59,7 +59,7 @@ public class GameMsgHandler
             card.CardId = exchangeList[i].Id;
             card.playerId = exchangeList[i].PlayerID;
             card.Status = pb.CardStatus.inHand;
-            msg.cardList.Add(card);
+            //msg.cardList.Add(card);
         }
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
     }

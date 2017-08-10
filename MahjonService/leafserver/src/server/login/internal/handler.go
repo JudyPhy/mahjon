@@ -4,9 +4,7 @@ import (
 	"reflect"
 	"server/pb"
 	"server/player"
-	"server/roomMgr"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
@@ -31,20 +29,20 @@ func recvC2GSLogin(args []interface{}) {
 	a := args[1].(gate.Agent)
 
 	// get data from db
-	player := &player.Player{}
-	player.oid = 10000
-	player.nickName = m.GetAccount()
-	player.headIcon = "nil"
-	player.gold = 0
-	player.diamond = 0
-	ret := realPlayer.AddChanPlayerInfo(a, player)
+	onlinePlayer := &player.Player{}
+	onlinePlayer.OID = 10000
+	onlinePlayer.NickName = m.GetAccount()
+	onlinePlayer.HeadIcon = "nil"
+	onlinePlayer.Gold = 0
+	onlinePlayer.Diamond = 0
+	ret := player.AddChanPlayerInfo(a, onlinePlayer)
 
 	//ret to client
 	msg := &pb.GS2CLoginRet{}
 	if ret {
 		log.Error("the agent login success.")
 		msg.ErrorCode = pb.GS2CLoginRet_SUCCESS.Enum()
-		msg.PlayerInfo = player.ToPbPlayerInfo()
+		msg.PlayerInfo = onlinePlayer.ToPbPlayerInfo()
 	} else {
 		log.Error("the agent login fail.")
 		msg.ErrorCode = pb.GS2CLoginRet_FAIL.Enum()

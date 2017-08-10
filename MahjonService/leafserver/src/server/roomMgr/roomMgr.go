@@ -2,7 +2,6 @@ package roomMgr
 
 import (
 	"math/rand"
-	"server/eventDispatch"
 	"server/msgHandler"
 	"server/pb"
 	"server/player"
@@ -122,33 +121,6 @@ func CreateRoomRet(a gate.Agent) {
 
 	//test: add other 3 robot to room
 	roomInfo.waitingRoomOk()
-
-	//register out room event
-	dispatcher := eventDispatch.GetSingletonDispatcher()
-	var outRoomFunc eventDispatch.EventCallback = OutRoom
-	dispatcher.AddEventListener("outRoom", &outRoomFunc)
-}
-
-func OutRoom(event *eventDispatch.Event) {
-	roomId := event.Params["roomId"]
-	playerOid := event.Params["playerOid"]
-	log.Debug("OutRoom: player%v out room=%v", playerOid, roomId)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.outRoom(playerOid)
-		if roomInfo.isEmptyRoom() {
-			RoomManager.lock.Lock()
-			delete(RoomManager.roomMap, roomId)
-			RoomManager.lock.Unlock()
-			//remove outRoom event
-			dispatcher := eventDispatch.GetSingletonDispatcher()
-			dispatcher.RemoveEventListener("outRoom", &outRoomFunc)
-		}
-	} else {
-		log.Error("room %v not exist.", roomId)
-	}
 }
 
 func JoinRoomRet(roomId string, a gate.Agent) {
@@ -201,6 +173,31 @@ func QuickEnterRoomRet(a gate.Agent) {
 	}
 }
 
+func PlayerOffline(a gate.Agent) {
+	log.Debug("PlayerOffline")
+	offPlayer := player.GetPlayerBtAgent(a)
+	if offPlayer.RoomId != "" {
+		log.Debug("player%v in room, out room first.", offPlayer.OID)
+		RoomManager.lock.Lock()
+		roomInfo, ok := RoomManager.roomMap[offPlayer.RoomId]
+		RoomManager.lock.Unlock()
+		if ok {
+			roomInfo.outRoom(offPlayer)
+			if roomInfo.isEmptyRoom() {
+				RoomManager.lock.Lock()
+				delete(RoomManager.roomMap, offPlayer.RoomId)
+				RoomManager.lock.Unlock()
+				offPlayer.RoomId = ""
+			}
+		} else {
+			log.Error("room %v not exist.", offPlayer.RoomId)
+		}
+	} else {
+		log.Debug("player%v not in room, exit directly.", offPlayer.OID)
+	}
+	offPlayer.OffLine(a)
+}
+
 func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 	log.Debug("UpdateExchangeCard")
 	exchangeCount := len(cardOidList)
@@ -208,16 +205,16 @@ func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 		log.Error("exchange card count[%v] is error", exchangeCount)
 		return
 	}
-	player := player.GetPlayerBtAgent(a)
-	if player != nil {
-		log.Debug("player%v exchange card", player.OID)
+	curPlayer := player.GetPlayerBtAgent(a)
+	if curPlayer != nil {
+		log.Debug("player%v exchange card", curPlayer.OID)
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.RoomId]
+		roomInfo, ok := RoomManager.roomMap[curPlayer.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.updateExchangeCards(cardOidList, player.OID)
+			roomInfo.updateExchangeCards(cardOidList, curPlayer.OID)
 		} else {
-			log.Error("no room[%v]", player.RoomId)
+			log.Error("no room[%v]", curPlayer.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -226,16 +223,16 @@ func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 
 func UpdateLackCard(lackType pb.CardType, a gate.Agent) {
 	log.Debug("UpdateLackCard")
-	player := player.GetPlayerBtAgent(a)
-	if player != nil {
-		log.Debug("player=%v select lack card type=%v", player.OID, lackType.String())
+	curPlayer := player.GetPlayerBtAgent(a)
+	if curPlayer != nil {
+		log.Debug("player=%v select lack card type=%v", curPlayer.OID, lackType.String())
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.RoomId]
+		roomInfo, ok := RoomManager.roomMap[curPlayer.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.updateLack(player.OID, lackType)
+			roomInfo.updateLack(curPlayer.OID, lackType)
 		} else {
-			log.Error("no room[%v]", player.RoomId)
+			log.Error("no room[%v]", curPlayer.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -244,15 +241,15 @@ func UpdateLackCard(lackType pb.CardType, a gate.Agent) {
 
 func UpdateDiscard(cardOid int32, a gate.Agent) {
 	log.Debug("UpdateDiscard")
-	player := player.GetPlayerBtAgent(a)
-	if player != nil {
+	curPlayer := player.GetPlayerBtAgent(a)
+	if curPlayer != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.RoomId]
+		roomInfo, ok := RoomManager.roomMap[curPlayer.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.recvRealPlayerDiscard(player.OID, cardOid)
+			roomInfo.recvRealPlayerDiscard(curPlayer.OID, cardOid)
 		} else {
-			log.Error("no room[%v]", player.RoomId)
+			log.Error("no room[%v]", curPlayer.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -261,15 +258,15 @@ func UpdateDiscard(cardOid int32, a gate.Agent) {
 
 func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 	log.Debug("RobotProcOver, robotOid=%v, procType=%v", robotOid, procType)
-	player := player.GetPlayerBtAgent(a)
-	if player != nil {
+	curPlayer := player.GetPlayerBtAgent(a)
+	if curPlayer != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.RoomId]
+		roomInfo, ok := RoomManager.roomMap[curPlayer.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
 			roomInfo.robotProcOver(robotOid, procType)
 		} else {
-			log.Error("no room[%v]", player.RoomId)
+			log.Error("no room[%v]", curPlayer.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -278,15 +275,15 @@ func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 
 func PlayerEnsureProc(procType pb.ProcType, procCardId int32, a gate.Agent) {
 	log.Debug("PlayerEnsureProc, procType=%v", procType)
-	player := player.GetPlayerBtAgent(a)
-	if player != nil {
+	curPlayer := player.GetPlayerBtAgent(a)
+	if curPlayer != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.RoomId]
+		roomInfo, ok := RoomManager.roomMap[curPlayer.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.playerEnsureProc(player.OID, procType, procCardId)
+			roomInfo.playerEnsureProc(curPlayer.OID, procType, procCardId)
 		} else {
-			log.Error("no room[%v]", player.RoomId)
+			log.Error("no room[%v]", curPlayer.RoomId)
 		}
 	} else {
 		log.Error("player not login.")

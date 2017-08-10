@@ -227,7 +227,6 @@ func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 		sideInfo.process = ProcessStatus_GAME_OVER
 		huCard := sideInfo.getDealCard()
 		huCard.Status = card.CardStatus_HU
-		turnToSelfAfterHu(sideInfo.roomId, []*SideInfo{sideInfo})
 	} else if procType == pb.ProcType_GangOther || procType == pb.ProcType_SelfGang {
 		//gang other、self gang
 		sideInfo.process = ProcessStatus_TURN_OVER_GANG

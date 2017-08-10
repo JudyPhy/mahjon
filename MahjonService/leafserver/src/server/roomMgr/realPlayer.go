@@ -62,10 +62,6 @@ func (sideInfo *SideInfo) realPlayerProcOver(procType pb.ProcType, procCardId in
 		huCard := sideInfo.getDealCard()
 		huCard.Status = card.CardStatus_HU
 		sendRealPlayerCardListAfterProc(sideInfo.roomId, sideInfo.playerOid, 0)
-		//client needs time to play ani of updating cards
-		timer := time.NewTimer(time.Second * 1)
-		<-timer.C
-		turnToSelfAfterHu(sideInfo.roomId, []*SideInfo{sideInfo})
 	} else if procType == pb.ProcType_GangOther {
 		//gang other
 		sideInfo.realPlayerEnsureGang(curTurnSideInfo)
@@ -183,5 +179,6 @@ func (sideInfo *SideInfo) realPlayerEnsureHuOther(curTurnSideInfo *SideInfo) {
 	huCard.Status = card.CardStatus_HU
 	sideInfo.addDiscardAsHu(huCard)
 	sideInfo.process = ProcessStatus_GAME_OVER
+	curTurnSideInfo.deleteDiscard(preDiscard)
 	sendRealPlayerCardListAfterProc(sideInfo.roomId, sideInfo.playerOid, curTurnSideInfo.playerOid)
 }
