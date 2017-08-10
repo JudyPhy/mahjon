@@ -34,9 +34,9 @@ func (sideInfo *SideInfo) robotSelectExchangeCard() {
 		typeCardList = append(typeCardList[:rnd], typeCardList[rnd+1:]...)
 	}
 	for _, oid := range exchangeList {
-		for _, card := range sideInfo.cardList {
-			if card.oid == oid {
-				card.status = CardStatus_EXCHANGE
+		for _, curCard := range sideInfo.cardList {
+			if curCard.OID == oid {
+				curCard.Status = card.CardStatus_EXCHANGE
 				break
 			}
 		}
@@ -46,11 +46,11 @@ func (sideInfo *SideInfo) robotSelectExchangeCard() {
 	//log
 	logStr := "robot"
 	buf := bytes.NewBufferString(logStr)
-	buf.Write([]byte(strconv.Itoa(sideInfo.playerOid)))
+	buf.Write([]byte(strconv.Itoa(int(sideInfo.playerOid))))
 	buf.Write([]byte(" exchange card oid list =>"))
-	for _, card := range sideInfo.cardList {
-		if card.status == CardStatus_EXCHANGE {
-			str := strconv.Itoa(int(card.oid))
+	for _, curCard := range sideInfo.cardList {
+		if curCard.Status == card.CardStatus_EXCHANGE {
+			str := strconv.Itoa(int(curCard.OID))
 			buf.Write([]byte(str))
 			buf.Write([]byte(", "))
 		}
@@ -93,13 +93,13 @@ func getSeparateCardTypeMap(list []*card.Card) map[int][]int32 {
 	var listWan []int32
 	var listTiao []int32
 	var listTong []int32
-	for _, card := range list {
-		if card.id > 0 && card.id < 10 {
-			listWan = append(listWan, card.oid)
-		} else if card.id > 10 && card.id < 20 {
-			listTiao = append(listTiao, card.oid)
-		} else if card.id > 20 && card.id < 30 {
-			listTong = append(listTong, card.oid)
+	for _, curCard := range list {
+		if curCard.ID > 0 && curCard.ID < 10 {
+			listWan = append(listWan, curCard.OID)
+		} else if curCard.ID > 10 && curCard.ID < 20 {
+			listTiao = append(listTiao, curCard.OID)
+		} else if curCard.ID > 20 && curCard.ID < 30 {
+			listTong = append(listTong, curCard.OID)
 		}
 	}
 	resultMap[0] = listWan
@@ -110,7 +110,7 @@ func getSeparateCardTypeMap(list []*card.Card) map[int][]int32 {
 
 //接口必须在摸牌后执行
 func (sideInfo *SideInfo) robotTurnSwitch() {
-	log.Debug("turn switch to robot%v, wait for 1 second.", sideInfo.playerInfo.oid)
+	log.Debug("turn switch to robot%v, wait for 1 second.", sideInfo.playerOid)
 	timer := time.NewTimer(time.Second * 1)
 	<-timer.C
 
@@ -137,13 +137,13 @@ func (sideInfo *SideInfo) robotTurnSwitch() {
 func (sideInfo *SideInfo) robotProcSelfGang() {
 	log.Debug("robotProcSelfGang")
 	dict := make(map[int32]int)
-	for _, card := range sideInfo.cardList {
-		if card.status == card.CardStatus_INHAND || card.status == card.CardStatus_PENG || card.status == card.CardStatus_DEAL {
-			_, ok := dict[card.id]
+	for _, curCard := range sideInfo.cardList {
+		if curCard.Status == card.CardStatus_INHAND || curCard.Status == card.CardStatus_PENG || curCard.Status == card.CardStatus_DEAL {
+			_, ok := dict[curCard.ID]
 			if ok {
-				dict[card.id]++
+				dict[curCard.ID]++
 			} else {
-				dict[card.id] = 1
+				dict[curCard.ID] = 1
 			}
 		}
 	}
@@ -157,9 +157,9 @@ func (sideInfo *SideInfo) robotProcSelfGang() {
 	if gCardId == 0 {
 		log.Error("player%v has no self gang card!", sideInfo.playerOid)
 	} else {
-		for _, card := range sideInfo.cardList {
-			if card.id == gCardId {
-				card.status = CardStatus_GANG
+		for _, curCard := range sideInfo.cardList {
+			if curCard.ID == gCardId {
+				curCard.Status = card.CardStatus_GANG
 			}
 		}
 		sendRobotProc(sideInfo.roomId, sideInfo.playerOid, pb.ProcType_SelfGang, 0)
@@ -167,21 +167,21 @@ func (sideInfo *SideInfo) robotProcSelfGang() {
 }
 
 func (sideInfo *SideInfo) getRobotDiscard() *card.Card {
-	var ableDiscardList []*Card
+	var ableDiscardList []*card.Card
 	for _, curCard := range sideInfo.cardList {
-		if curCard.status == CardStatus_INHAND {
+		if curCard.Status == card.CardStatus_INHAND {
 			ableDiscardList = append(ableDiscardList, curCard)
 		}
 	}
 	log.Debug("robot inhand card count=%v", len(ableDiscardList))
 	//first find lack card
-	lackCardList := make([]*Card, 0)
+	lackCardList := make([]*card.Card, 0)
 	for _, curCard := range ableDiscardList {
-		if curCard.id > 0 && curCard.id < 10 && sideInfo.lackType == pb.CardType_Wan.Enum() {
+		if curCard.ID > 0 && curCard.ID < 10 && sideInfo.lackType == pb.CardType_Wan {
 			lackCardList = append(lackCardList, curCard)
-		} else if curCard.id > 10 && curCard.id < 20 && sideInfo.lackType == pb.CardType_Tiao.Enum() {
+		} else if curCard.ID > 10 && curCard.ID < 20 && sideInfo.lackType == pb.CardType_Tiao {
 			lackCardList = append(lackCardList, curCard)
-		} else if curCard.id > 20 && curCard.id < 30 && sideInfo.lackType == pb.CardType_Tong.Enum() {
+		} else if curCard.ID > 20 && curCard.ID < 30 && sideInfo.lackType == pb.CardType_Tong {
 			lackCardList = append(lackCardList, curCard)
 		}
 	}
@@ -196,13 +196,13 @@ func (sideInfo *SideInfo) getRobotDiscard() *card.Card {
 
 func (sideInfo *SideInfo) robotDiscard() {
 	discard := sideInfo.getRobotDiscard()
-	log.Debug("robot%v 出牌%v(%v)", discard.oid, discard.id)
+	log.Debug("robot%v 出牌%v(%v)", discard.OID, discard.ID)
 	isFind := false
-	for n, card := range sideInfo.cardList {
-		if card.oid == discard.oid {
-			card.status = CardStatus_PRE_DISCARD
+	for n, curCard := range sideInfo.cardList {
+		if curCard.OID == discard.OID {
+			curCard.Status = card.CardStatus_PRE_DISCARD
 			sideInfo.cardList = append(sideInfo.cardList[:n], sideInfo.cardList[n+1:]...)
-			sideInfo.cardList = append(sideInfo.cardList, card)
+			sideInfo.cardList = append(sideInfo.cardList, curCard)
 			sideInfo.process = ProcessStatus_TURN_OVER
 			broadcastRobotDiscard(sideInfo.roomId, discard)
 			isFind = true
@@ -210,7 +210,7 @@ func (sideInfo *SideInfo) robotDiscard() {
 		}
 	}
 	if !isFind {
-		log.Error("robot%v discard%v is not in it's cardList.", sideInfo.playerOid, discard.oid)
+		log.Error("robot%v discard%v is not in it's cardList.", sideInfo.playerOid, discard.OID)
 	}
 }
 
@@ -221,19 +221,13 @@ func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 		sideInfo.robotDiscard()
 	} else if procType == pb.ProcType_HuOther {
 		//hu other
-		sideInfo.process = ProcessStatus_TURN_OVER_HU
-		for _, sideInfo := range roomInfo.sideInfoMap.cMap {
-			if sideInfo.process == ProcessStatus_PROC_HU {
-				return
-			}
-		}
-		roomInfo.checkTurnOver()
+		sideInfo.process = ProcessStatus_GAME_OVER
 	} else if procType == pb.ProcType_SelfHu {
 		//self hu
 		sideInfo.process = ProcessStatus_GAME_OVER
 		huCard := sideInfo.getDealCard()
-		huCard.status = card.CardStatus_HU
-		turnToSelfAfterHu(sideInfo.roomId, , []*SideInfo{sideInfo})
+		huCard.Status = card.CardStatus_HU
+		turnToSelfAfterHu(sideInfo.roomId, []*SideInfo{sideInfo})
 	} else if procType == pb.ProcType_GangOther || procType == pb.ProcType_SelfGang {
 		//gang other、self gang
 		sideInfo.process = ProcessStatus_TURN_OVER_GANG
@@ -243,9 +237,20 @@ func (sideInfo *SideInfo) robotProcOver(procType pb.ProcType) {
 
 func (sideInfo *SideInfo) getDealCard() *card.Card {
 	for _, curCard := range sideInfo.cardList {
-		if curCard.status == card.CardStatus_DEAL {
+		if curCard.Status == card.CardStatus_DEAL {
 			return curCard
 		}
 	}
 	return nil
+}
+
+func (sideInfo *SideInfo) robotProcHuOther(preDiscard *card.Card) {
+	log.Debug("robotProcHuOther, preDiscard%v", preDiscard.ID)
+	huCard := &card.Card{}
+	huCard.OID = preDiscard.OID
+	huCard.ID = preDiscard.ID
+	huCard.FromOther = true
+	huCard.Status = card.CardStatus_HU
+	sideInfo.addDiscardAsHu(huCard)
+	sideInfo.process = ProcessStatus_GAME_OVER
 }

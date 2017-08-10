@@ -2,10 +2,10 @@ package roomMgr
 
 import (
 	"math/rand"
-	"server/card"
 	"server/eventDispatch"
 	"server/msgHandler"
 	"server/pb"
+	"server/player"
 	"strconv"
 	"strings"
 	"sync"
@@ -95,139 +95,17 @@ func reqNewRoom(a gate.Agent) *RoomInfo {
 	return roomInfo
 }
 
-func robotSelfGangOver(roomId string) {
-	log.Debug("robotSelfGangOver")
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		side := roomInfo.getSideByPlayerOid(curTurnPlayerOid)
-		roomInfo.sendNormalTurnToNext(side)
-	} else {
-		log.Debug("room[%v] not exist.")
-	}
-}
-
-func curTurnPlayerSelfGang(roomId string) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.procSelfGang()
-	} else {
-		log.Error("curTurnPlayerSelfGang, no room[%v]", roomId)
-	}
-}
-
-func sendRobotSelfGangProc(roomId string) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendRobotProc(curTurnPlayerOid, 0, pb.ProcType_SelfGang)
-	} else {
-		log.Error("sendRobotSelfGang, no room[%v]", roomId)
-	}
-}
-
-func sendRobotSelfHuProc(roomId string) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendRobotProc(curTurnPlayerOid, 0, pb.ProcType_SelfHu)
-	} else {
-		log.Error("sendRobotSelfHuProc, no room[%v]", roomId)
-	}
-}
-
-func sendRobotProc(roomId string, procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
-	log.Debug("sendRobotProc, roomId=%v, procType=%v", roomId, procType)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendRobotProc(procPlayer, procType, beProcPlayer)
-	} else {
-		log.Error("sendRobotProc, no room[%v]", roomId)
-	}
-}
-
-func sendRealPlayerProc(roomId string, procPlayer int32, procType pb.ProcType, beProcPlayer int32) {
-	log.Debug("sendRealPlayerProc, roomId=%v, procType=%v", roomId, procType)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendRealPlayerProc(procPlayer, procType, beProcPlayer)
-	} else {
-		log.Error("sendRealPlayerProc, no room[%v]", roomId)
-	}
-}
-
-func sendRealPlayerCardListAfterProc(roomId string, procPlayer int32, beProcPlayer int32) {
-	log.Debug("sendRealPlayerCardListAfterProc, roomId=%v, card count=%v", roomId, len(cardList))
-	pbCardList := make([]*pb.CardInfo, 0)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendRealPlayerCardListAfterProc(procPlayer, beProcPlayer)
-	} else {
-		log.Error("sendRealPlayerCardListAfterProc, no room[%v]", roomId)
-	}
-}
-
-func broadcastRobotDiscard(roomId string, discard *card.Card) {
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.broadcastAndProcDiscard(discard)
-		//after discard, wait 1 seconds for client ani
-		timer := time.NewTimer(time.Second * 1)
-		<-timer.C
-		roomInfo.checkTurnOver()
-	} else {
-		log.Error("broadcastDiscard, no room[%v]", roomId)
-	}
-}
-
-func turnToSelfAfterGang(roomId string, side pb.BattleSide) {
-	log.Debug("turnToSelfAfterGang, roomId%v, side%v", roomId, side)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendNormalTurnToNext(side)
-	} else {
-		log.Error("turnToSelfAfterGang, no room[%v]", roomId)
-	}
-}
-
-func turnToSelfAfterHu(roomId string, sideInfoList []*SideInfo) {
-	log.Debug("turnToSelfAfterHu, roomId%v", roomId)
-	RoomManager.lock.Lock()
-	roomInfo, ok := RoomManager.roomMap[roomId]
-	RoomManager.lock.Unlock()
-	if ok {
-		roomInfo.sendHuTurnToNext(sideInfoList)
-	} else {
-		log.Error("turnToSelfAfterGang, no room[%v]", roomId)
-	}
-}
-
 //------------------------------------------------------------------------------
 //								   public func
 //------------------------------------------------------------------------------
 func Init() {
 	log.Debug("init player map.")
-	ChanPlayerStruct = &ChanPlayer{}
-	ChanPlayerStruct.aPlayerMap = make(map[gate.Agent]*PlayerInfo)
+	player.AgentPlayer = &player.ChanPlayer{}
+	player.AgentPlayer.CMap = make(map[gate.Agent]*player.Player)
 
 	log.Debug("init room map.")
 	RoomManager = &mgrRoom{}
-	RoomManager.roomMap = make(map[string]*RolomInfo)
+	RoomManager.roomMap = make(map[string]*RoomInfo)
 }
 
 func CreateRoomRet(a gate.Agent) {
@@ -252,8 +130,8 @@ func CreateRoomRet(a gate.Agent) {
 }
 
 func OutRoom(event *eventDispatch.Event) {
-	roomId := event.params["roomId"]
-	playerOid := event.params["playerOid"]
+	roomId := event.Params["roomId"]
+	playerOid := event.Params["playerOid"]
 	log.Debug("OutRoom: player%v out room=%v", playerOid, roomId)
 	RoomManager.lock.Lock()
 	roomInfo, ok := RoomManager.roomMap[roomId]
@@ -283,13 +161,13 @@ func JoinRoomRet(roomId string, a gate.Agent) {
 	RoomManager.lock.Unlock()
 	if ok {
 		if len(roomInfo.sideInfoMap.cMap) >= 4 {
-			ret.ErrorCode = GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
+			ret.ErrorCode = pb.GS2CEnterGameRet_PLAYER_COUNT_LIMITE.Enum()
 		} else {
 			roomInfo.addPlayerToRoom(a, false)
-			ret.ErrorCode = GS2CEnterGameRet_SUCCESS.Enum()
+			ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
 		}
 	} else {
-		ret.ErrorCode = GS2CEnterGameRet_ROOM_NOT_EXIST.Enum()
+		ret.ErrorCode = pb.GS2CEnterGameRet_ROOM_NOT_EXIST.Enum()
 	}
 	a.WriteMsg(ret)
 
@@ -297,26 +175,30 @@ func JoinRoomRet(roomId string, a gate.Agent) {
 }
 
 func QuickEnterRoomRet(a gate.Agent) {
-	log.Debug("JoinRoomRet: room=%v", roomId)
+	log.Debug("JoinRoomRet")
 	ret := &pb.GS2CEnterGameRet{}
 	ret.Mode = pb.GameMode_QuickEnter.Enum()
 	findRoom := false
+	var roomInfo *RoomInfo
 	for _, room := range RoomManager.roomMap {
-		if len(roomInfo.sideInfoMap.cMap) < 4 {
+		if len(room.sideInfoMap.cMap) < 4 {
 			ret.RoomId = proto.String(room.roomId)
 			room.addPlayerToRoom(a, false)
 			findRoom = true
+			roomInfo = room
 			break
 		}
 	}
 	if findRoom {
-		ret.ErrorCode = GS2CEnterGameRet_SUCCESS.Enum()
+		ret.ErrorCode = pb.GS2CEnterGameRet_SUCCESS.Enum()
 	} else {
-		ret.ErrorCode = GS2CEnterGameRet_NO_EMPTY_ROOM.Enum()
+		ret.ErrorCode = pb.GS2CEnterGameRet_NO_EMPTY_ROOM.Enum()
 	}
 	a.WriteMsg(ret)
 
-	roomInfo.startBattle()
+	if roomInfo != nil {
+		roomInfo.startBattle()
+	}
 }
 
 func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
@@ -328,14 +210,14 @@ func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 	}
 	player := player.GetPlayerBtAgent(a)
 	if player != nil {
-		log.Debug("player%v exchange card", player.oid)
+		log.Debug("player%v exchange card", player.OID)
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		roomInfo, ok := RoomManager.roomMap[player.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.updateExchangeCards(cardOidList, player.oid)
+			roomInfo.updateExchangeCards(cardOidList, player.OID)
 		} else {
-			log.Error("no room[%v]", player.roomId)
+			log.Error("no room[%v]", player.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -344,16 +226,16 @@ func UpdateExchangeCard(cardOidList []int32, a gate.Agent) {
 
 func UpdateLackCard(lackType pb.CardType, a gate.Agent) {
 	log.Debug("UpdateLackCard")
-	player := getPlayerBtAgent(a)
+	player := player.GetPlayerBtAgent(a)
 	if player != nil {
-		log.Debug("player=%v select lack card type=%v", player.oid, lackType.String())
+		log.Debug("player=%v select lack card type=%v", player.OID, lackType.String())
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		roomInfo, ok := RoomManager.roomMap[player.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.updateLack(player.oid, lackType)
+			roomInfo.updateLack(player.OID, lackType)
 		} else {
-			log.Error("no room[%v]", player.roomId)
+			log.Error("no room[%v]", player.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -362,15 +244,15 @@ func UpdateLackCard(lackType pb.CardType, a gate.Agent) {
 
 func UpdateDiscard(cardOid int32, a gate.Agent) {
 	log.Debug("UpdateDiscard")
-	player := getPlayerBtAgent(a)
+	player := player.GetPlayerBtAgent(a)
 	if player != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		roomInfo, ok := RoomManager.roomMap[player.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.recvRealPlayerDiscard(player.oid, cardOid)
+			roomInfo.recvRealPlayerDiscard(player.OID, cardOid)
 		} else {
-			log.Error("no room[%v]", player.roomId)
+			log.Error("no room[%v]", player.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -379,15 +261,15 @@ func UpdateDiscard(cardOid int32, a gate.Agent) {
 
 func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 	log.Debug("RobotProcOver, robotOid=%v, procType=%v", robotOid, procType)
-	player := getPlayerBtAgent(a)
+	player := player.GetPlayerBtAgent(a)
 	if player != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		roomInfo, ok := RoomManager.roomMap[player.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
 			roomInfo.robotProcOver(robotOid, procType)
 		} else {
-			log.Error("no room[%v]", player.roomId)
+			log.Error("no room[%v]", player.RoomId)
 		}
 	} else {
 		log.Error("player not login.")
@@ -396,15 +278,15 @@ func RobotProcOver(robotOid int32, procType pb.ProcType, a gate.Agent) {
 
 func PlayerEnsureProc(procType pb.ProcType, procCardId int32, a gate.Agent) {
 	log.Debug("PlayerEnsureProc, procType=%v", procType)
-	player := getPlayerBtAgent(a)
+	player := player.GetPlayerBtAgent(a)
 	if player != nil {
 		RoomManager.lock.Lock()
-		roomInfo, ok := RoomManager.roomMap[player.roomId]
+		roomInfo, ok := RoomManager.roomMap[player.RoomId]
 		RoomManager.lock.Unlock()
 		if ok {
-			roomInfo.playerEnsureProc(player.oid, procType, procCardId)
+			roomInfo.playerEnsureProc(player.OID, procType, procCardId)
 		} else {
-			log.Error("no room[%v]", player.roomId)
+			log.Error("no room[%v]", player.RoomId)
 		}
 	} else {
 		log.Error("player not login.")

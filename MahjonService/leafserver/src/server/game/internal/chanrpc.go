@@ -21,5 +21,5 @@ func rpcCloseAgent(args []interface{}) {
 	a := args[0].(gate.Agent)
 	_ = a
 	log.Debug("rpcCloseAgent")
-	realPlayer.DeleteChan(a)
+	player.DeleteChan(a)
 }

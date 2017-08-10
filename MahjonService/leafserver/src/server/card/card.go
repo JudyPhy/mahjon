@@ -57,10 +57,10 @@ func (x CardStatus) Enum() *CardStatus {
 }
 
 type Card struct {
-	oid       int32
-	id        int32
-	status    CardStatus
-	fromOther bool
+	OID       int32
+	ID        int32
+	Status    CardStatus
+	FromOther bool
 }
 
 var mjType MJType
@@ -68,14 +68,14 @@ var mjType MJType
 func (card *Card) TopbCard(playerOid int32) *pb.CardInfo {
 	ret := &pb.CardInfo{}
 	ret.PlayerId = proto.Int32(playerOid)
-	ret.CardOid = proto.Int32(card.oid)
-	ret.CardId = proto.Int32(card.id)
-	ret.Status = cardStatusToPbCardStatus(card.status).Enum()
-	ret.FromOther = proto.Bool(card.fromOther)
+	ret.CardOid = proto.Int32(card.OID)
+	ret.CardId = proto.Int32(card.ID)
+	ret.Status = CardStatusToPbCardStatus(card.Status).Enum()
+	ret.FromOther = proto.Bool(card.FromOther)
 	return ret
 }
 
-func cardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
+func CardStatusToPbCardStatus(status CardStatus) pb.CardStatus {
 	switch status {
 	case CardStatus_INHAND:
 		return pb.CardStatus_inHand
@@ -107,16 +107,16 @@ func LoadAllCards() []*Card {
 	id := int(0)
 	for i := int(0); i < maxCount; i++ {
 		card := &Card{}
-		card.oid = int32(i)
+		card.OID = int32(i)
 		if i%4 == 0 {
 			id++
 			if id%10 == 0 {
 				id++
 			}
 		}
-		card.id = int32(id)
-		card.status = CardStatus_NODEAL
-		card.fromOther = false
+		card.ID = int32(id)
+		card.Status = CardStatus_NODEAL
+		card.FromOther = false
 		origCardWall = append(origCardWall, card)
 		//log.Debug("card oid=%v, id=%v", card.oid, card.id)
 	}
@@ -363,8 +363,8 @@ func hasCardById(id int, list []int) bool {
 func GetCardIdListByStatus(list []*Card, status CardStatus) []int {
 	result := make([]int, 0)
 	for i := 0; i < len(list); i++ {
-		if list[i].status == status {
-			result = append(result, int(list[i].id))
+		if list[i].Status == status {
+			result = append(result, int(list[i].ID))
 		}
 	}
 	return result
@@ -393,7 +393,7 @@ func CanSelfGang(list []int) bool {
 func CanGangOther(list []int, discard *Card) bool {
 	count := 0
 	for _, id := range list {
-		if id == int(discard.oid) {
+		if id == int(discard.OID) {
 			count++
 		}
 	}
@@ -403,7 +403,7 @@ func CanGangOther(list []int, discard *Card) bool {
 func CanPeng(list []int, discard *Card) bool {
 	count := 0
 	for _, id := range list {
-		if int(discard.id) == id {
+		if int(discard.ID) == id {
 			count++
 		}
 	}

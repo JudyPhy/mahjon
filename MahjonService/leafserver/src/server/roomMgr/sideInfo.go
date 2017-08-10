@@ -4,6 +4,8 @@ import (
 	"server/card"
 	"server/pb"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/name5566/leaf/gate"
 	"github.com/name5566/leaf/log"
 )
 
@@ -13,9 +15,19 @@ type SideInfo struct {
 	side      pb.BattleSide
 	playerOid int32
 	roomId    string
+	agent     gate.Agent
 	lackType  pb.CardType
 	cardList  []*card.Card
 	process   ProcessStatus
+}
+
+func (sideInfo *SideInfo) ToPbBattlePlayerInfo() *pb.BattlePlayerInfo {
+	ret := &pb.BattlePlayerInfo{}
+	ret.Side = sideInfo.side.Enum()
+	ret.IsOwner = proto.Bool(sideInfo.isOwner)
+	ret.Player = &pb.PlayerInfo{}
+	ret.Player.Oid = proto.Int32(sideInfo.playerOid)
+	return ret
 }
 
 func (sideInfo *SideInfo) resetCardsData() {
@@ -23,9 +35,9 @@ func (sideInfo *SideInfo) resetCardsData() {
 	sideInfo.cardList = make([]*card.Card, 0)
 }
 
-func (sideInfo *SideInfo) playerProcDiscard(discard *card.Card) {
-	log.Debug("player:%v process discard:%v(%v)", sideInfo.playerInfo.oid, discard.oid, discard.id)
-	if curTurnPlayerOid == sideInfo.playerInfo.oid {
+func (sideInfo *SideInfo) playerProcDiscard(curTurnPlayerOid int32, discard *card.Card) {
+	log.Debug("player:%v process discard:%v(%v)", sideInfo.playerOid, discard.OID, discard.ID)
+	if curTurnPlayerOid == sideInfo.playerOid {
 		log.Debug("player self turn, don't need process.")
 		return
 	}
@@ -34,7 +46,7 @@ func (sideInfo *SideInfo) playerProcDiscard(discard *card.Card) {
 		return
 	}
 	handCard := card.GetCardIdListByStatus(sideInfo.cardList, card.CardStatus_INHAND)
-	handCard = append(handCard, int(discard.id))
+	handCard = append(handCard, int(discard.ID))
 	dealCard := card.GetCardIdListByStatus(sideInfo.cardList, card.CardStatus_DEAL)
 	pList := card.GetCardIdListByStatus(sideInfo.cardList, card.CardStatus_PENG)
 	gList := card.GetCardIdListByStatus(sideInfo.cardList, card.CardStatus_GANG)
@@ -61,74 +73,69 @@ func (sideInfo *SideInfo) playerProcDiscard(discard *card.Card) {
 
 func (sideInfo *SideInfo) refreshCard() {
 	log.Debug("refreshCard")
-	for _, card := range sideInfo.cardList {
-		if card.status == card.CardStatus_DEAL {
-			card.status = card.CardStatus_INHAND
+	for _, curCard := range sideInfo.cardList {
+		if curCard.Status == card.CardStatus_DEAL {
+			curCard.Status = card.CardStatus_INHAND
 		}
 	}
 }
 
 func (sideInfo *SideInfo) drawNewCard(newCard *card.Card) {
-	log.Debug("切换操作方，摸牌%v(%v)", newCard.oid, newCard.id)
+	log.Debug("切换操作方，摸牌%v(%v)", newCard.OID, newCard.ID)
 	sideInfo.cardList = append(sideInfo.cardList, newCard)
 }
 
-func (sideInfo *SideInfo) procSelfGangPlayerAndRobot() {
-	log.Debug("player%v self gang", sideInfo.playerInfo.oid)
-	curTurnPlayerSelfGang(sideInfo.playerInfo.roomId)
-}
-
-func (sideInfo *SideInfo) addDiscardAsPeng(card *card.Card) {
-	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", card.oid, card.id, sideInfo.playerOid)
-	card.status = CardStatus_PENG
-	card.fromOther = true
-	sideInfo.cardList = append(sideInfo.cardList, card)
+func (sideInfo *SideInfo) addDiscardAsPeng(discard *card.Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的碰牌堆中", discard.OID, discard.ID, sideInfo.playerOid)
+	discard.Status = card.CardStatus_PENG
+	discard.FromOther = true
+	sideInfo.cardList = append(sideInfo.cardList, discard)
 	for i := 0; i < 2; i++ {
 		for _, value := range sideInfo.cardList {
-			if value.status == CardStatus_INHAND && value.id == card.id {
-				value.status = CardStatus_PENG
+			if value.Status == card.CardStatus_INHAND && value.ID == discard.ID {
+				value.Status = card.CardStatus_PENG
 				break
 			}
 		}
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsGang(card *card.Card) {
-	log.Debug("将牌%v(%v)加入到玩家[%v]的杠牌堆中", card.oid, card.id, sideInfo.playerInfo.oid)
-	card.status = CardStatus_GANG
-	card.fromOther = true
-	sideInfo.cardList = append(sideInfo.cardList, card)
+func (sideInfo *SideInfo) addDiscardAsGang(discard *card.Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的杠牌堆中", discard.OID, discard.ID, sideInfo.playerOid)
+	discard.Status = card.CardStatus_GANG
+	discard.FromOther = true
+	sideInfo.cardList = append(sideInfo.cardList, discard)
 	for i := 0; i < 3; i++ {
 		for _, value := range sideInfo.cardList {
-			if value.status == CardStatus_INHAND && value.id == card.id {
-				value.status = CardStatus_GANG
+			if value.Status == card.CardStatus_INHAND && value.ID == discard.ID {
+				value.Status = card.CardStatus_GANG
 				break
 			}
 		}
 	}
 }
 
-func (sideInfo *SideInfo) deleteDiscard(card *card.Card) {
-	log.Debug("将牌%v(%v)从玩家[%v]的牌堆中去除", card.oid, card.id, sideInfo.playerInfo.oid)
+func (sideInfo *SideInfo) deleteDiscard(discard *card.Card) {
+	log.Debug("将牌%v(%v)从玩家[%v]的牌堆中去除", discard.OID, discard.ID, sideInfo.playerOid)
 	for i, value := range sideInfo.cardList {
-		if value.oid == card.oid {
+		if value.OID == discard.OID {
 			sideInfo.cardList = append(sideInfo.cardList[:i], sideInfo.cardList[i+1:]...)
 			break
 		}
 	}
 }
 
-func (sideInfo *SideInfo) addDiscardAsHu(card *card.Card) {
-	log.Debug("将牌%v(%v)加入到玩家[%v]的胡牌中", card.oid, card.id, sideInfo.playerInfo.oid)
-	card.status = CardStatus_HU
-	card.fromOther = true
-	sideInfo.cardList = append(sideInfo.cardList, card)
+func (sideInfo *SideInfo) addDiscardAsHu(discard *card.Card) {
+	log.Debug("将牌%v(%v)加入到玩家[%v]的胡牌中", discard.OID, discard.ID, sideInfo.playerOid)
+	discard.Status = card.CardStatus_HU
+	discard.FromOther = true
+	sideInfo.cardList = append(sideInfo.cardList, discard)
 }
 
 func (sideInfo *SideInfo) checkPengOk(discard *card.Card) bool {
 	count := 0
-	for _, card := range sideInfo.cardList {
-		if card.status == CardStatus_INHAND && card.id == discard.id {
+	for _, curCard := range sideInfo.cardList {
+		if curCard.Status == card.CardStatus_INHAND && curCard.ID == discard.ID {
 			count++
 		}
 	}
@@ -137,9 +144,9 @@ func (sideInfo *SideInfo) checkPengOk(discard *card.Card) bool {
 
 func (sideInfo *SideInfo) updateCardInfoBySelfGang(gCardId int32) {
 	log.Debug("updateCardInfoBySelfGang")
-	for _, card := range sideInfo.cardList {
-		if card.status == CardStatus_INHAND && card.id == gCardId {
-			card.status = CardStatus_GANG
+	for _, curCard := range sideInfo.cardList {
+		if curCard.Status == card.CardStatus_INHAND && curCard.ID == gCardId {
+			curCard.Status = card.CardStatus_GANG
 		}
 	}
 }
