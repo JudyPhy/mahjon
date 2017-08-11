@@ -5,29 +5,29 @@ package pb;
 
 enum GameMode
 {
-    JoinRoom = 1;
-	CreateRoom = 2;
+	CreateRoom = 1;
+    JoinRoom = 2;	
 	QuickEnter = 3;
 }
 
-enum BattleSide
+enum MahjonSide
 {
-	east = 1;
-	south = 2;
-	west = 3;
-	north = 4;
-	none = 5;
+	DEFAULT = 1;
+	EAST = 2;
+	SOUTH = 3;
+	WEST = 4;
+	NORTH = 5;
 }
 
 enum CardStatus
 {
-	noDeal = 1;
-	inHand = 2;
-	bePeng = 3;
-	beGang = 4;
-	discard = 5;
-	deal = 6;
-	hu = 7;
+	Wall = 1;
+	InHand = 2;
+	P = 3;
+	G = 4;
+	Dis = 5;
+	Deal = 6;
+	Hu = 7;
 }
 
 enum ExchangeType
@@ -39,26 +39,27 @@ enum ExchangeType
 
 enum CardType
 {
-	Wan = 1;
-	Tiao = 2;
-	Tong = 3;
-	None = 4;
+	Default = 1;
+	Wan = 2;
+	Tiao = 3;
+	Tong = 4;
 }
 
 message LackCard
 {
-	required int32 playerId = 1;
+	required int32 playerOID = 1;
 	required CardType type = 2;
 }
 
 enum ProcType
 {
-	SelfGang = 1;
-	GangOther = 2;
-	Peng = 3;
-	SelfHu = 4;
-	HuOther = 5;
-	Discard = 6;	//仅真实玩家需要
+	SelfHu = 1;
+	SelfGang = 2;
+	HuOther = 3;
+	GangOther = 4;
+	Peng = 5;
+	Discard = 6;	
+	Pass = 7;
 }
 
 enum TurnSwitchType
@@ -70,27 +71,29 @@ enum TurnSwitchType
 
 message CardInfo
 {
-	required int32 playerId = 1;
-	required int32 CardOid = 2;
-	required int32 CardId = 3;
+	required int32 playerOID = 1;
+	required int32 OID = 2;
+	required int32 ID = 3;
 	required CardStatus Status = 4;
 	optional bool fromOther = 5;
 }
 
-message BattlePlayerInfo
-{
-	required BattleSide side = 1;
-	required bool isOwner = 2;
-	required PlayerInfo player = 3;
-}
-
 message PlayerInfo
 {
-	required int32 oid = 1;
-	required string nickName = 2;
-	required string headIcon = 3;
-	required int32 gold = 4;
-	required int32 diamond = 5;
+	required int32 OID = 1;
+	required string NickName = 2;
+	required string HeadIcon = 3;
+	required int32 Gold = 4;
+	required int32 Diamond = 5;
+	optional MahjonSide Side = 6;
+	optional bool IsOwner = 7;
+}
+
+message GameOverInfo
+{
+	required PlayerInfo player = 1;
+	required int32 fan = 2;
+	repeated CardInfo cardList = 3;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -133,15 +136,9 @@ message GS2CEnterGameRet
 	optional string roomId = 3;
 }
 
-message GS2CUpdateRoomInfo
+message GS2CUpdateRoomMember
 {
-	enum Status{
-		ADD = 1;
-		REMOVE = 2;
-		UPDATE = 3;
-	}
-    repeated BattlePlayerInfo player = 1;
-	required Status status = 2;
+    repeated PlayerInfo player = 1;
 }
 
 message GS2CBattleStart
@@ -152,10 +149,10 @@ message GS2CBattleStart
 
 message C2GSExchangeCard
 {	
-	repeated int32 cardOidList = 1;
+	repeated int32 cardOIDList = 1;
 }
 
-message GS2CUpdateCardInfoAfterExchange
+message GS2CExchangeCardRet
 {
 	required ExchangeType type = 1;
     repeated CardInfo cardList = 2;
@@ -173,36 +170,12 @@ message GS2CSelectLackRet
 
 message GS2CTurnToNext
 {
-	required int32 playerOid = 1;
-	optional CardInfo card = 2;
-	required TurnSwitchType type = 3;
+	required int32 playerOID = 1;
+	required TurnSwitchType type = 2;
+	optional CardInfo drawCard = 3;
 }
 
-message C2GSDiscard
-{
-	required int32 cardOid = 1;
-}
-
-message GS2CDiscardRet
-{
-	required int32 cardOid = 1;
-}
-
-message GS2CRobotProc
-{
-	required int32 procPlayer = 1;
-	required ProcType procType = 2;
-	optional int32 beProcPlayer = 3;
-	repeated CardInfo cardList = 4;
-}
-
-message C2GSRobotProcOver
-{
-	required int32 robotOid = 1;
-	required ProcType procType = 2;
-}
-
-message GS2CPlayerEnsureProc
+message GS2CPlayerProc
 {
 	required int32 procPlayer = 1;
 	required ProcType procType = 2;
@@ -210,20 +183,22 @@ message GS2CPlayerEnsureProc
 	optional int32 procCardId = 4;
 }
 
-message C2GSPlayerEnsureProcRet
+message C2GSPlayerProcRet
 {
 	required ProcType procType = 1;
 	optional int32 procCardId = 2;
 }
 
-message GS2CUpdateCardAfterPlayerProc
-{
-	repeated CardInfo cardList = 1;
+message GS2CPlayProcAni
+{	
+	required int32 procPlayer = 1;
+	required ProcType procType = 2;
+	repeated CardInfo cardList = 3;
 }
 
 message GS2CGameOver
 {
-	
+	repeated GameOverInfo list = 1;
 }
 
 
