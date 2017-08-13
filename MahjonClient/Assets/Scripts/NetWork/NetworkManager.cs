@@ -69,20 +69,19 @@ public class NetworkManager : MonoBehaviour
 
     //注册需要处理的消息函数
     public void RegisterAllNetworkMsgHandler()
-    {        
+    {
         RegisterMessageHandler((int)MsgDef.GS2CLoginRet, GameMsgHandler.Instance.RevMsgGS2CLoginRet);
         RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
-        RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomInfo, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomInfo);
-        RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
-        RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
-        RegisterMessageHandler((int)MsgDef.GS2CExchangeCardRet, GameMsgHandler.Instance.RevMsgGS2CExchangeCardRet);
-        RegisterMessageHandler((int)MsgDef.GS2CUpdateCardInfoAfterExchange, GameMsgHandler.Instance.RevMsgGS2CUpdateCardInfoAfterExchange);
-        RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);
-        RegisterMessageHandler((int)MsgDef.GS2CTurnToNext, GameMsgHandler.Instance.RevMsgGS2CTurnToNext);
-        RegisterMessageHandler((int)MsgDef.GS2CRobotProc, GameMsgHandler.Instance.RevMsgGS2CRobotProc);
-        RegisterMessageHandler((int)MsgDef.GS2CPlayerEnsureProc, GameMsgHandler.Instance.RevMsgGS2CPlayerEnsureProc);
-        RegisterMessageHandler((int)MsgDef.GS2CUpdateCardAfterPlayerProc, GameMsgHandler.Instance.RevMsgGS2CUpdateCardAfterPlayerProc);
-        RegisterMessageHandler((int)MsgDef.GS2CGameOver, GameMsgHandler.Instance.RevMsgGS2CGameOver);
+        RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomMember, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomMember);
+        //RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
+        //RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
+        //RegisterMessageHandler((int)MsgDef.GS2CUpdateCardInfoAfterExchange, GameMsgHandler.Instance.RevMsgGS2CUpdateCardInfoAfterExchange);
+        //RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);
+        //RegisterMessageHandler((int)MsgDef.GS2CTurnToNext, GameMsgHandler.Instance.RevMsgGS2CTurnToNext);
+        //RegisterMessageHandler((int)MsgDef.GS2CRobotProc, GameMsgHandler.Instance.RevMsgGS2CRobotProc);
+        //RegisterMessageHandler((int)MsgDef.GS2CPlayerEnsureProc, GameMsgHandler.Instance.RevMsgGS2CPlayerEnsureProc);
+        //RegisterMessageHandler((int)MsgDef.GS2CUpdateCardAfterPlayerProc, GameMsgHandler.Instance.RevMsgGS2CUpdateCardAfterPlayerProc);
+        //RegisterMessageHandler((int)MsgDef.GS2CGameOver, GameMsgHandler.Instance.RevMsgGS2CGameOver);
     }
 
     private void RegisterMessageHandler(int pid, PacketHandle hander)

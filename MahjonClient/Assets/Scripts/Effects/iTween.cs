@@ -6737,8 +6737,8 @@ public class iTween : MonoBehaviour{
 			args["target"] = target;
 		}		
 		tweens.Insert(0,args);
-		target.AddComponent<iTween>();
-	}		
+        target.AddComponent<iTween>();
+    }		
 	
 	//cast any accidentally supplied doubles and ints as floats as iTween only uses floats internally and unify parameter case:
 	static Hashtable CleanArgs(Hashtable args){

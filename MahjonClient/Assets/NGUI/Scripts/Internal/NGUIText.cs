@@ -959,8 +959,7 @@ static public class NGUIText
 					i += symbol.sequence.Length - 1;
 					prev = 0;
 				}
-			}
-
+			}            
 			v.x = ((x > maxX) ? x - finalSpacingX : maxX);
 			v.y = (y + finalLineHeight);
 		}

@@ -101,12 +101,12 @@ MonoBehaviour:
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
   mWidth: 700
-  mHeight: 69
+  mHeight: 50
   mDepth: 1
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 10.144928
+  aspectRatio: 7.72
   mType: 1
   mFillDirection: 4
   mFillAmount: 1
@@ -117,8 +117,8 @@ MonoBehaviour:
   rightType: 1
   bottomType: 1
   topType: 1
-  mAtlas: {fileID: 114661016292421922, guid: 884511ce948f608499f132fea729840a, type: 2}
-  mSpriteName: tips_bg1
+  mAtlas: {fileID: 114264344697458264, guid: 3faefd6e195a2204c8ea67c125021133, type: 2}
+  mSpriteName: bg_gold
   mFillCenter: 1
 --- !u!114 &114773890608148834
 MonoBehaviour:

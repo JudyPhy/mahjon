@@ -3,7 +3,14 @@ package pb;
 /////////////////////////////////////////////////////////////
 // define types
 
-enum GameMode
+enum GameType
+{
+	XueZhan = 1;
+    XueLiu = 2;	
+	DouDiZhu = 3;
+}
+
+enum EnterMode
 {
 	CreateRoom = 1;
     JoinRoom = 2;	
@@ -118,8 +125,9 @@ message GS2CLoginRet
 
 message C2GSEnterGame
 {
-    required GameMode mode = 1;
-	optional string roomId = 2;	
+	required GameType type = 1;
+    required EnterMode mode = 2;
+	optional string roomId = 3;	
 }
 
 message GS2CEnterGameRet
@@ -131,8 +139,8 @@ message GS2CEnterGameRet
 		ROOM_NOT_EXIST = 4;
 		NO_EMPTY_ROOM = 5;
 	}
-    required ErrorCode errorCode = 1;	
-	required GameMode mode = 2;
+    required ErrorCode errorCode = 1;
+	required GameType type = 2;
 	optional string roomId = 3;
 }
 

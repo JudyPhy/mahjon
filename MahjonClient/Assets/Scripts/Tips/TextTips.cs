@@ -15,7 +15,10 @@ public class TextTips : MonoBehaviour {
 
     public void Show(string text)
     {
-        _text.text = text;
+        _text.text = text;     
+        _bg.width = (int)_text.printedSize.x + 10;
+
+        // animation
         transform.localPosition = new Vector3(0, -50, 0);
         _bg.color = new Color(1, 1, 1, 0);
         _text.color = new Color(1, 1, 1, 0);

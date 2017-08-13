@@ -9,17 +9,17 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1407994591332296}
+  m_RootGameObject: {fileID: 1394231303084618}
   m_IsPrefabParent: 1
---- !u!1 &1407994591332296
+--- !u!1 &1394231303084618
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4475191292931684}
-  - component: {fileID: 114905136680711630}
+  - component: {fileID: 4706217307257132}
+  - component: {fileID: 114771245132266918}
   m_Layer: 0
   m_Name: Battle
   m_TagString: Untagged
@@ -27,12 +27,12 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4475191292931684
+--- !u!4 &4706217307257132
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1407994591332296}
+  m_GameObject: {fileID: 1394231303084618}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -40,12 +40,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114905136680711630
+--- !u!114 &114771245132266918
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1407994591332296}
+  m_GameObject: {fileID: 1394231303084618}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4d0c51bb0b6e93049af5e88f93826e3b, type: 3}
@@ -53,50 +53,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 2c4df4e517940c6469f15733fa5b4d7a, type: 2}
   mSprites:
-  - name: arrow
-    x: 467
-    y: 684
-    width: 85
-    height: 49
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: bg_result
-    x: 0
-    y: 595
-    width: 157
-    height: 278
-    borderLeft: 60
-    borderRight: 60
-    borderTop: 130
-    borderBottom: 130
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: bg_result2
-    x: 0
-    y: 11
-    width: 48
-    height: 12
-    borderLeft: 10
-    borderRight: 10
-    borderTop: 1
-    borderBottom: 1
-    paddingLeft: 2
-    paddingRight: 2
-    paddingTop: 2
-    paddingBottom: 2
-  - name: Button_GangAction
-    x: 542
-    y: 739
+  - name: b1
+    x: 397
+    y: 576
     width: 161
-    height: 134
+    height: 41
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -105,11 +66,11 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: Button_GuoAction
-    x: 158
-    y: 197
-    width: 98
-    height: 97
+  - name: b2
+    x: 834
+    y: 803
+    width: 161
+    height: 41
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -118,24 +79,24 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: Button_HuAction
-    x: 704
-    y: 743
-    width: 147
-    height: 130
+  - name: bg_gold
+    x: 711
+    y: 863
+    width: 296
+    height: 51
     borderLeft: 0
     borderRight: 0
     borderTop: 0
     borderBottom: 0
-    paddingLeft: 1
-    paddingRight: 1
-    paddingTop: 1
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
     paddingBottom: 0
-  - name: Button_PengAction
+  - name: bg_headIcon_b
     x: 0
-    y: 308
-    width: 156
-    height: 136
+    y: 845
+    width: 179
+    height: 179
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -144,11 +105,24 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: card1
-    x: 257
-    y: 203
-    width: 60
-    height: 91
+  - name: bg_headIcon_s
+    x: 135
+    y: 426
+    width: 92
+    height: 88
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 4
+    paddingTop: 0
+    paddingBottom: 0
+  - name: bg_name
+    x: 350
+    y: 863
+    width: 296
+    height: 83
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -157,11 +131,141 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: card1_back
-    x: 335
-    y: 643
-    width: 60
-    height: 90
+  - name: btn
+    x: 416
+    y: 729
+    width: 165
+    height: 60
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn_back
+    x: 0
+    y: 735
+    width: 252
+    height: 109
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 11
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn_dismiss
+    x: 0
+    y: 625
+    width: 252
+    height: 109
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 11
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn_invite
+    x: 711
+    y: 915
+    width: 252
+    height: 109
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 11
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn_ready
+    x: 0
+    y: 515
+    width: 252
+    height: 109
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 11
+    paddingTop: 0
+    paddingBottom: 0
+  - name: btn_send
+    x: 397
+    y: 515
+    width: 108
+    height: 60
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 3
+    paddingBottom: 0
+  - name: diaglog_box2
+    x: 647
+    y: 893
+    width: 53
+    height: 53
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog_box1
+    x: 964
+    y: 971
+    width: 30
+    height: 53
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog_box3
+    x: 995
+    y: 971
+    width: 22
+    height: 53
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog_line
+    x: 616
+    y: 428
+    width: 355
+    height: 4
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog_off
+    x: 119
+    y: 14
+    width: 58
+    height: 238
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -170,10 +274,244 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 1
-  - name: curSide
-    x: 301
-    y: 384
-    width: 32
+  - name: dialog_on
+    x: 178
+    y: 14
+    width: 58
+    height: 238
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 1
+    paddingBottom: 0
+  - name: dialog1
+    x: 582
+    y: 762
+    width: 352
+    height: 27
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog10
+    x: 311
+    y: 649
+    width: 270
+    height: 27
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog11
+    x: 582
+    y: 650
+    width: 244
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog2
+    x: 559
+    y: 591
+    width: 243
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog3
+    x: 654
+    y: 549
+    width: 241
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog4
+    x: 582
+    y: 707
+    width: 325
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog5
+    x: 827
+    y: 650
+    width: 189
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog6
+    x: 582
+    y: 734
+    width: 326
+    height: 27
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog7
+    x: 311
+    y: 677
+    width: 299
+    height: 27
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog8
+    x: 611
+    y: 677
+    width: 299
+    height: 27
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: dialog9
+    x: 632
+    y: 622
+    width: 244
+    height: 26
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: expression_off
+    x: 253
+    y: 227
+    width: 57
+    height: 238
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 1
+    paddingTop: 0
+    paddingBottom: 1
+  - name: expression_on
+    x: 253
+    y: 466
+    width: 57
+    height: 238
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 1
+    paddingTop: 0
+    paddingBottom: 1
+  - name: headIcon_default_b
+    x: 180
+    y: 855
+    width: 169
+    height: 169
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: headIcon_default_s
+    x: 311
+    y: 7
+    width: 68
+    height: 68
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: icon_banker
+    x: 87
+    y: 103
+    width: 30
+    height: 30
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: icon_chat
+    x: 397
+    y: 439
+    width: 75
+    height: 75
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 2
+    paddingTop: 2
+    paddingBottom: 0
+  - name: icon_gold
+    x: 647
+    y: 853
+    width: 40
     height: 39
     borderLeft: 0
     borderRight: 0
@@ -183,50 +521,76 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: eff_gang
-    x: 158
-    y: 734
-    width: 211
-    height: 139
+  - name: icon_tiao
+    x: 253
+    y: 151
+    width: 33
+    height: 37
     borderLeft: 0
     borderRight: 0
     borderTop: 0
     borderBottom: 0
     paddingLeft: 0
     paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 1
-  - name: eff_hu
+    paddingTop: 0
+    paddingBottom: 0
+  - name: icon_tong
+    x: 253
+    y: 189
+    width: 33
+    height: 37
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: icon_wan
+    x: 253
+    y: 113
+    width: 33
+    height: 37
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: input
+    x: 253
+    y: 790
+    width: 265
+    height: 54
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: IP
+    x: 397
+    y: 618
+    width: 234
+    height: 30
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: lack_tiao
     x: 0
-    y: 445
-    width: 154
-    height: 149
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 1
-  - name: eff_peng
-    x: 370
-    y: 741
-    width: 171
-    height: 132
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 1
-  - name: F0B3864B
-    x: 659
-    y: 879
-    width: 244
-    height: 145
+    y: 134
+    width: 118
+    height: 118
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -235,11 +599,11 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: inhand_bg_back1
-    x: 553
-    y: 659
-    width: 49
-    height: 74
+  - name: lack_tong
+    x: 119
+    y: 253
+    width: 118
+    height: 118
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -248,180 +612,11 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: inhand_bg_back2
-    x: 979
-    y: 964
-    width: 41
-    height: 60
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 1
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: inhand_bg_back3
-    x: 979
-    y: 904
-    width: 41
-    height: 59
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: inhand_bg1
-    x: 158
-    y: 84
-    width: 76
-    height: 112
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: inhand_bg2
-    x: 235
-    y: 85
-    width: 76
-    height: 111
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 0
-  - name: inhand_turnto
-    x: 904
-    y: 885
-    width: 74
-    height: 139
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: left
-    x: 989
-    y: 813
-    width: 26
-    height: 60
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: PG_bg_s
-    x: 603
-    y: 663
-    width: 48
-    height: 70
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 2
-    paddingBottom: 0
-  - name: quetiao1
-    x: 158
-    y: 579
-    width: 176
-    height: 154
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 2
-  - name: quetiao2
-    x: 158
-    y: 424
-    width: 176
-    height: 154
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 1
-  - name: quetong1
-    x: 158
-    y: 295
-    width: 142
-    height: 128
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 17
-    paddingRight: 17
-    paddingTop: 26
-    paddingBottom: 2
-  - name: quetong2
+  - name: lack_wan
     x: 0
-    y: 163
-    width: 142
-    height: 144
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 17
-    paddingRight: 17
-    paddingTop: 10
-    paddingBottom: 2
-  - name: quewan1
-    x: 852
-    y: 735
-    width: 136
-    height: 138
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 20
-    paddingRight: 20
-    paddingTop: 15
-    paddingBottom: 3
-  - name: quewan2
-    x: 0
-    y: 24
-    width: 146
-    height: 138
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 10
-    paddingRight: 20
-    paddingTop: 15
-    paddingBottom: 3
-  - name: right
-    x: 989
-    y: 752
-    width: 24
-    height: 60
+    y: 253
+    width: 118
+    height: 118
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -430,50 +625,11 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: room_color1
-    x: 158
-    y: 14
-    width: 70
-    height: 69
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 0
-  - name: room_color2
-    x: 235
-    y: 15
-    width: 70
-    height: 69
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 0
-  - name: room_color3
-    x: 396
-    y: 664
-    width: 70
-    height: 69
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 1
-    paddingBottom: 0
-  - name: Status_Hu
-    x: 699
-    y: 648
-    width: 38
-    height: 38
+  - name: text_
+    x: 506
+    y: 433
+    width: 126
+    height: 32
     borderLeft: 0
     borderRight: 0
     borderTop: 0
@@ -482,62 +638,270 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: Status_ZiMo
-    x: 467
-    y: 645
-    width: 72
-    height: 38
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tbg_title
-    x: 0
-    y: 874
-    width: 658
-    height: 150
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tileImage_17
-    x: 744
-    y: 680
-    width: 60
-    height: 24
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tileImage_249
-    x: 652
-    y: 681
-    width: 46
-    height: 52
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: tileImage_43
-    x: 744
+  - name: text_chi
+    x: 935
     y: 705
-    width: 61
+    width: 84
+    height: 84
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_chi_s
+    x: 311
+    y: 317
+    width: 80
+    height: 82
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 11
+    paddingRight: 5
+    paddingTop: 6
+    paddingBottom: 0
+  - name: text_gang
+    x: 311
+    y: 565
+    width: 85
+    height: 83
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_gang_s
+    x: 311
+    y: 76
+    width: 80
+    height: 78
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 11
+    paddingRight: 5
+    paddingTop: 7
+    paddingBottom: 3
+  - name: text_hu
+    x: 311
+    y: 482
+    width: 82
+    height: 82
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_hu_s
+    x: 311
+    y: 155
+    width: 79
+    height: 80
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 11
+    paddingRight: 6
+    paddingTop: 7
+    paddingBottom: 1
+  - name: text_hu_self
+    x: 253
+    y: 705
+    width: 162
+    height: 84
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_lack1
+    x: 397
+    y: 360
+    width: 97
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 31
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_lack2
+    x: 506
+    y: 400
+    width: 109
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 19
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_lack3
+    x: 887
+    y: 433
+    width: 118
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 10
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_lack4
+    x: 506
+    y: 499
+    width: 128
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok1
+    x: 760
+    y: 433
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok2
+    x: 633
+    y: 433
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok3
+    x: 896
+    y: 543
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok4
+    x: 764
+    y: 499
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok5
+    x: 887
+    y: 466
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok6
+    x: 891
+    y: 499
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok7
+    x: 506
+    y: 466
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok8
+    x: 633
+    y: 466
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ok9
+    x: 760
+    y: 466
+    width: 126
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_owner
+    x: 964
+    y: 942
+    width: 52
     height: 28
     borderLeft: 0
     borderRight: 0
@@ -547,11 +911,167 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: zhuang
-    x: 699
-    y: 687
-    width: 44
-    height: 46
+  - name: text_pass_s
+    x: 311
+    y: 236
+    width: 79
+    height: 80
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 12
+    paddingRight: 5
+    paddingTop: 5
+    paddingBottom: 3
+  - name: text_peng
+    x: 0
+    y: 49
+    width: 86
+    height: 84
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_peng_s
+    x: 311
+    y: 400
+    width: 82
+    height: 81
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 10
+    paddingRight: 4
+    paddingTop: 5
+    paddingBottom: 2
+  - name: text_playerInfo
+    x: 506
+    y: 532
+    width: 147
+    height: 43
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_ready
+    x: 397
+    y: 393
+    width: 77
+    height: 45
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_select_lack
+    x: 519
+    y: 809
+    width: 314
+    height: 35
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_select1
+    x: 397
+    y: 327
+    width: 97
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 31
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_select2
+    x: 135
+    y: 393
+    width: 109
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 19
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_select3
+    x: 0
+    y: 16
+    width: 118
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 10
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_select4
+    x: 635
+    y: 499
+    width: 128
+    height: 32
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: text_tips_hu
+    x: 803
+    y: 582
+    width: 179
+    height: 35
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: tips_card
+    x: 0
+    y: 372
+    width: 134
+    height: 142
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: "\u89E3\u6563\u623F\u95F4\u63D0\u793A"
+    x: 350
+    y: 947
+    width: 360
+    height: 77
     borderLeft: 0
     borderRight: 0
     borderTop: 0

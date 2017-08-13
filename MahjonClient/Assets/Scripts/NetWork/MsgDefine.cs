@@ -8,7 +8,7 @@ public enum MsgDef
     GS2CLoginRet = 1,
     C2GSEnterGame = 2,
     GS2CEnterGameRet = 3,
-    GS2CUpdateRoomInfo = 4,
+    GS2CUpdateRoomMember = 4,
     GS2CBattleStart = 5,
     C2GSExchangeCard = 6,
     GS2CExchangeCardRet = 7,

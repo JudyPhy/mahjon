@@ -38,39 +38,75 @@ import math "math"
 var _ = proto.Marshal
 var _ = math.Inf
 
-type GameMode int32
+type GameType int32
 
 const (
-	GameMode_CreateRoom GameMode = 1
-	GameMode_JoinRoom   GameMode = 2
-	GameMode_QuickEnter GameMode = 3
+	GameType_XueZhan  GameType = 1
+	GameType_XueLiu   GameType = 2
+	GameType_DouDiZhu GameType = 3
 )
 
-var GameMode_name = map[int32]string{
+var GameType_name = map[int32]string{
+	1: "XueZhan",
+	2: "XueLiu",
+	3: "DouDiZhu",
+}
+var GameType_value = map[string]int32{
+	"XueZhan":  1,
+	"XueLiu":   2,
+	"DouDiZhu": 3,
+}
+
+func (x GameType) Enum() *GameType {
+	p := new(GameType)
+	*p = x
+	return p
+}
+func (x GameType) String() string {
+	return proto.EnumName(GameType_name, int32(x))
+}
+func (x *GameType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GameType_value, data, "GameType")
+	if err != nil {
+		return err
+	}
+	*x = GameType(value)
+	return nil
+}
+
+type EnterMode int32
+
+const (
+	EnterMode_CreateRoom EnterMode = 1
+	EnterMode_JoinRoom   EnterMode = 2
+	EnterMode_QuickEnter EnterMode = 3
+)
+
+var EnterMode_name = map[int32]string{
 	1: "CreateRoom",
 	2: "JoinRoom",
 	3: "QuickEnter",
 }
-var GameMode_value = map[string]int32{
+var EnterMode_value = map[string]int32{
 	"CreateRoom": 1,
 	"JoinRoom":   2,
 	"QuickEnter": 3,
 }
 
-func (x GameMode) Enum() *GameMode {
-	p := new(GameMode)
+func (x EnterMode) Enum() *EnterMode {
+	p := new(EnterMode)
 	*p = x
 	return p
 }
-func (x GameMode) String() string {
-	return proto.EnumName(GameMode_name, int32(x))
+func (x EnterMode) String() string {
+	return proto.EnumName(EnterMode_name, int32(x))
 }
-func (x *GameMode) UnmarshalJSON(data []byte) error {
-	value, err := proto.UnmarshalJSONEnum(GameMode_value, data, "GameMode")
+func (x *EnterMode) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(EnterMode_value, data, "EnterMode")
 	if err != nil {
 		return err
 	}
-	*x = GameMode(value)
+	*x = EnterMode(value)
 	return nil
 }
 
@@ -622,20 +658,28 @@ func (m *GS2CLoginRet) GetPlayerInfo() *PlayerInfo {
 }
 
 type C2GSEnterGame struct {
-	Mode             *GameMode `protobuf:"varint,1,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
-	RoomId           *string   `protobuf:"bytes,2,opt,name=roomId" json:"roomId,omitempty"`
-	XXX_unrecognized []byte    `json:"-"`
+	Type             *GameType  `protobuf:"varint,1,req,name=type,enum=pb.GameType" json:"type,omitempty"`
+	Mode             *EnterMode `protobuf:"varint,2,req,name=mode,enum=pb.EnterMode" json:"mode,omitempty"`
+	RoomId           *string    `protobuf:"bytes,3,opt,name=roomId" json:"roomId,omitempty"`
+	XXX_unrecognized []byte     `json:"-"`
 }
 
 func (m *C2GSEnterGame) Reset()         { *m = C2GSEnterGame{} }
 func (m *C2GSEnterGame) String() string { return proto.CompactTextString(m) }
 func (*C2GSEnterGame) ProtoMessage()    {}
 
-func (m *C2GSEnterGame) GetMode() GameMode {
+func (m *C2GSEnterGame) GetType() GameType {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return GameType_XueZhan
+}
+
+func (m *C2GSEnterGame) GetMode() EnterMode {
 	if m != nil && m.Mode != nil {
 		return *m.Mode
 	}
-	return GameMode_CreateRoom
+	return EnterMode_CreateRoom
 }
 
 func (m *C2GSEnterGame) GetRoomId() string {
@@ -647,7 +691,7 @@ func (m *C2GSEnterGame) GetRoomId() string {
 
 type GS2CEnterGameRet struct {
 	ErrorCode        *GS2CEnterGameRet_ErrorCode `protobuf:"varint,1,req,name=errorCode,enum=pb.GS2CEnterGameRet_ErrorCode" json:"errorCode,omitempty"`
-	Mode             *GameMode                   `protobuf:"varint,2,req,name=mode,enum=pb.GameMode" json:"mode,omitempty"`
+	Type             *GameType                   `protobuf:"varint,2,req,name=type,enum=pb.GameType" json:"type,omitempty"`
 	RoomId           *string                     `protobuf:"bytes,3,opt,name=roomId" json:"roomId,omitempty"`
 	XXX_unrecognized []byte                      `json:"-"`
 }
@@ -663,11 +707,11 @@ func (m *GS2CEnterGameRet) GetErrorCode() GS2CEnterGameRet_ErrorCode {
 	return GS2CEnterGameRet_SUCCESS
 }
 
-func (m *GS2CEnterGameRet) GetMode() GameMode {
-	if m != nil && m.Mode != nil {
-		return *m.Mode
+func (m *GS2CEnterGameRet) GetType() GameType {
+	if m != nil && m.Type != nil {
+		return *m.Type
 	}
-	return GameMode_CreateRoom
+	return GameType_XueZhan
 }
 
 func (m *GS2CEnterGameRet) GetRoomId() string {
@@ -934,7 +978,8 @@ func (m *GS2CGameOver) GetList() []*GameOverInfo {
 }
 
 func init() {
-	proto.RegisterEnum("pb.GameMode", GameMode_name, GameMode_value)
+	proto.RegisterEnum("pb.GameType", GameType_name, GameType_value)
+	proto.RegisterEnum("pb.EnterMode", EnterMode_name, EnterMode_value)
 	proto.RegisterEnum("pb.MahjonSide", MahjonSide_name, MahjonSide_value)
 	proto.RegisterEnum("pb.CardStatus", CardStatus_name, CardStatus_value)
 	proto.RegisterEnum("pb.ExchangeType", ExchangeType_name, ExchangeType_value)

@@ -8,152 +8,153 @@ public class MainUI : WindowsBasePanel
     private UISprite _headicon;
     private UILabel _playerName;
     private UILabel _gold;
-    private UILabel _diamond;
-    private UIButton _btnAddGold;
-    private UIButton _btnAddDiamond;
+    private UILabel _fangka;
 
-    // center
-    private UIButton _btnCreateRoom;
-    private UIButton _btnJoinRoom;
-    private UIButton _btnQuickGame;
+    //main ui
+    private GameObject _mainui;
+    private GameObject _btnJoinXueLiu;
+    private GameObject _btnJoinXueZhan;
+    private GameObject _btnCreateRoom;
 
-    // input roomId
-    private GameObject _inputRoomIDContainer;
-    private UIButton _btnClose;
-    private GameObject _inputRoomIdMask;
-    private UILabel _roomID;
-    private UIButton _btnDel;
-    private UIButton _btnEnsure;
-    private List<UIButton> _btnNumList = new List<UIButton>();
+    private GameObject _friendList;
+    private UIGrid _gridFriend;
+    //private List<Item_friend> _friendItemList = new List<Item_friend>();
+
+    //create room
+    private GameObject _createRoom;
+    private GameObject _btnBack;
+    private GameObject _friendRoomList;
+    private GameObject _btnTuidaohu;
+    private GameObject _btnDoudizhu;
+    private GameObject _btnEnterRoom;
 
     private string _curRoomId;
 
     public override void OnAwake()
     {
         base.OnAwake();
-        // top
-        Transform _playerContainer = transform.FindChild("PlayerInfoContainer");
-        _headicon = _playerContainer.transform.FindChild("headIcon").GetComponent<UISprite>();
+        //top
+       Transform _playerContainer = transform.FindChild("TopLeftAnchor/PlayerInfoContainer");
+        _headicon = _playerContainer.transform.FindChild("headIcon/icon").GetComponent<UISprite>();
         _playerName = _playerContainer.transform.FindChild("name").GetComponent<UILabel>();
-        _gold = _playerContainer.transform.FindChild("gold/Label").GetComponent<UILabel>();
-        _btnAddGold = _playerContainer.transform.FindChild("gold/AddButton").GetComponent<UIButton>();
-        _diamond = _playerContainer.transform.FindChild("diamond/Label").GetComponent<UILabel>();
-        _btnAddDiamond = _playerContainer.transform.FindChild("diamond/AddButton").GetComponent<UIButton>();
-        UIEventListener.Get(_btnAddGold.gameObject).onClick = OnClikAddGold;
-        UIEventListener.Get(_btnAddDiamond.gameObject).onClick = OnClikAddDiamond;
+        _gold = _playerContainer.transform.FindChild("gold/value").GetComponent<UILabel>();
+        _fangka = _playerContainer.transform.FindChild("fangka/value").GetComponent<UILabel>();
 
-        // center   
-        _btnCreateRoom = transform.FindChild("CenterContainer/ButtonCreate").GetComponent<UIButton>();
-        _btnJoinRoom = transform.FindChild("CenterContainer/ButtonJoin").GetComponent<UIButton>();
-        _btnQuickGame = transform.FindChild("CenterContainer/ButtonQuick").GetComponent<UIButton>();
+        //main ui
+        _mainui = transform.FindChild("MainContainer").gameObject;
+        _btnJoinXueLiu = _mainui.transform.FindChild("RightAnchor/ButtonXueZhan").gameObject;
+        _btnJoinXueZhan = _mainui.transform.FindChild("RightAnchor/ButtonXueLiu").gameObject;
+        _btnCreateRoom = _mainui.transform.FindChild("RightAnchor/ButtonCreate").gameObject;
+        UIEventListener.Get(_btnJoinXueLiu).onClick = OnClikJoinXueLiu;
+        UIEventListener.Get(_btnJoinXueZhan.gameObject).onClick = OnClikJoinXueZhan;
         UIEventListener.Get(_btnCreateRoom.gameObject).onClick = OnClikCreateRoom;
-        UIEventListener.Get(_btnJoinRoom.gameObject).onClick = OnClikJoinRoom;
-        UIEventListener.Get(_btnQuickGame.gameObject).onClick = OnClikQuickGame;
 
-        //input roomId
-        _inputRoomIDContainer = transform.FindChild("RoomIdContainer").gameObject;
-        _inputRoomIDContainer.SetActive(false);
-        _btnClose = _inputRoomIDContainer.transform.FindChild("CloseButton").GetComponent<UIButton>();
-        _inputRoomIdMask = _inputRoomIDContainer.transform.FindChild("BG/Mask").gameObject;
-        _roomID = _inputRoomIDContainer.transform.FindChild("NumContainer/Value").GetComponent<UILabel>();
-        _curRoomId = "";
-        _roomID.text = _curRoomId;
-        _btnDel = _inputRoomIDContainer.transform.FindChild("NumContainer/ButtonDel").GetComponent<UIButton>();
-        _btnEnsure = _inputRoomIDContainer.transform.FindChild("NumContainer/ButtonEnsure").GetComponent<UIButton>();
-        _btnNumList.Clear();
-        for (int i = 0; i < 10; i++)
-        {
-            UIButton btn = _inputRoomIDContainer.transform.FindChild("NumContainer/Button" + i.ToString()).GetComponent<UIButton>();
-            UIEventListener.Get(btn.gameObject).onClick = OnClickBtnNum;
-            _btnNumList.Add(btn);
-        }
-        UIEventListener.Get(_inputRoomIdMask).onClick = OnClikCloseRoomIdContainer;
-        UIEventListener.Get(_btnClose.gameObject).onClick = OnClikCloseRoomIdContainer;
-        UIEventListener.Get(_btnDel.gameObject).onClick = OnClikDelNumRoom;
-        UIEventListener.Get(_btnEnsure.gameObject).onClick = OnClikEnsureEnterRoom;
+        _friendList = _mainui.transform.FindChild("LeftAnchor").gameObject;
+        _gridFriend = _friendList.transform.FindChild("friendPanel/Grid").GetComponent<UIGrid>();
+
+        //create room
+        _createRoom = transform.FindChild("CreateRoomContainer").gameObject;        
+        _friendRoomList = _createRoom.transform.FindChild("LeftAnchor").gameObject;
+        _btnTuidaohu = _createRoom.transform.FindChild("LeftAnchor/ButtonTuidaohu").gameObject;
+        _btnDoudizhu = _createRoom.transform.FindChild("LeftAnchor/ButtonDoudizhu").gameObject;
+        _btnEnterRoom = _createRoom.transform.FindChild("RightAnchor/ButtonCreate").gameObject;
+        _btnBack = _createRoom.transform.FindChild("RightAnchor/ButtonBack").gameObject;
+        UIEventListener.Get(_btnTuidaohu).onClick = OnClickTuidao;
+        UIEventListener.Get(_btnDoudizhu).onClick = OnClickDoudizhu;
+        UIEventListener.Get(_btnEnterRoom).onClick = OnClickEnterRoom;
+        UIEventListener.Get(_btnBack).onClick = OnClickBackMainUI;
     }
 
     public override void OnEnableWindow()
     {
         base.OnEnableWindow();
         UpdatePlayerInfoUI();
+        ShowMainUI();
     }
 
     private void UpdatePlayerInfoUI()
     {
-        _headicon.spriteName = Player.Instance.PlayerInfo.HeadIcon;
+        _headicon.spriteName = Player.Instance.HeadIcon;
         _headicon.MakePixelPerfect();
-        _playerName.text = Player.Instance.PlayerInfo.NickName;
-        _gold.text = Player.Instance.PlayerInfo.Gold.ToString();
-        _diamond.text = Player.Instance.PlayerInfo.Diamond.ToString();
+        _playerName.text = Player.Instance.NickName;
+        _gold.text = Player.Instance.GetGold();
+        _fangka.text = Player.Instance.Fangka.ToString() + "张";
     }
 
-    private void OnClikAddGold(GameObject go)
+    private void OnClikJoinXueLiu(GameObject go)
     {
-
+        UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
     }
 
-    private void OnClikAddDiamond(GameObject go)
+    private void OnClikJoinXueZhan(GameObject go)
     {
-
+        UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
     }
 
     private void OnClikCreateRoom(GameObject go)
     {
-        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.CreateRoom);
-        BattleManager.Instance.IsWaitingEnterRoomRet = true;
-        UIManager.Instance.ShowMainWindow<Panel_loading>(eWindowsID.LoadingUI);
+        ShowCreateRoomUI();
     }
 
-    private void OnClikJoinRoom(GameObject go)
+    private void ShowCreateRoomUI()
     {
-        _inputRoomIDContainer.SetActive(true);
+        _mainui.SetActive(false);
+        _createRoom.SetActive(true);
+        _friendRoomList.transform.localScale = Vector3.zero;
+        _btnEnterRoom.transform.localPosition = new Vector3(200, 36, 0);
+        _btnBack.SetActive(false);
+        iTween.MoveTo(_btnEnterRoom, iTween.Hash("x", -260, "islocal", true, "time", 0.5f, "easytype", iTween.EaseType.easeOutBack));
+        Invoke("ShowFriendRoomBtn", 0.5f);
     }
 
-    private void OnClikEnsureEnterRoom(GameObject go)
+    private void ShowFriendRoomBtn()
     {
-        if (string.IsNullOrEmpty(_curRoomId))
-        {
-            return;
-        }
-        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.JoinRoom, _curRoomId);
+        iTween.ScaleTo(_friendRoomList, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutBack));
+        Invoke("ShowBtnBack", 0.5f);
     }
 
-    private void OnClikQuickGame(GameObject go)
+    private void ShowBtnBack()
     {
-        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameMode.QuickEnter);
+        _btnBack.SetActive(true);
     }
 
-    private void OnClickBtnNum(GameObject go)
+    private void ShowMainUI()
     {
-        for (int i = 0; i < _btnNumList.Count; i++)
-        {
-            if (_btnNumList[i].gameObject == go)
-            {
-                _curRoomId += i.ToString();
-                break;
-            }
-        }
-        //Debug.LogError("click num, _curRoomId=" + _curRoomId);
-        _roomID.text = _curRoomId;
+        _createRoom.SetActive(false);
+        _mainui.SetActive(true);
+        _friendList.transform.localScale = Vector3.zero;
+        _btnJoinXueLiu.transform.localPosition = new Vector3(200, 170, 0);
+        _btnJoinXueZhan.transform.localPosition = new Vector3(200, 18, 0);
+        _btnCreateRoom.transform.localPosition = new Vector3(200, -134, 0);
+        iTween.MoveTo(_btnJoinXueLiu, iTween.Hash("x", -276, "islocal", true, "time", 0.5f, "easytype", iTween.EaseType.easeOutBack));
+        iTween.MoveTo(_btnJoinXueZhan, iTween.Hash("x", -276, "islocal", true, "time", 0.5f, "delay", 0.3f, "easytype", iTween.EaseType.easeOutBack));
+        iTween.MoveTo(_btnCreateRoom, iTween.Hash("x", -276, "islocal", true, "time", 0.5f, "delay", 0.6f, "easytype", iTween.EaseType.easeOutBack));
+        Invoke("ShowFriendList", 1f);
     }
 
-    private void OnClikDelNumRoom(GameObject go)
+    private void ShowFriendList()
     {
-        if (_curRoomId.Length < 1)
-        {
-            return;
-        }
-        _curRoomId = _curRoomId.Substring(0, _curRoomId.Length - 1);
-        //Debug.LogError("delete num, _curRoomId=" + _curRoomId);
-        _roomID.text = _curRoomId;
+        iTween.ScaleTo(_friendList, iTween.Hash("scale", Vector3.one, "time", 0.5f, "easytype", iTween.EaseType.easeOutBack));
     }
 
-    private void OnClikCloseRoomIdContainer(GameObject go)
+    private void OnClickBackMainUI(GameObject go)
     {
-        _inputRoomIDContainer.SetActive(false);
-        _curRoomId = "";
-        _roomID.text = _curRoomId;
+        ShowMainUI();
+    }
+
+    private void OnClickTuidao(GameObject go)
+    {
+        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameType.XueZhan, pb.EnterMode.CreateRoom);
+    }
+
+    private void OnClickDoudizhu(GameObject go)
+    {
+        UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
+    }
+
+    private void OnClickEnterRoom(GameObject go)
+    {
+        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameType.XueZhan, pb.EnterMode.QuickEnter);
     }
 
 

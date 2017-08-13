@@ -115,7 +115,7 @@ namespace pb
     }
     private int _Diamond;
     [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"Diamond", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int Diamond
+    public int Fangka
     {
       get { return _Diamond; }
       set { _Diamond = value; }
@@ -243,15 +243,22 @@ namespace pb
   {
     public C2GSEnterGame() {}
     
-    private pb.GameMode _mode;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"mode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.GameMode mode
+    private pb.GameType _type;
+    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GameType type
+    {
+      get { return _type; }
+      set { _type = value; }
+    }
+    private pb.EnterMode _mode;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"mode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.EnterMode mode
     {
       get { return _mode; }
       set { _mode = value; }
     }
     private string _roomId = "";
-    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
     [global::System.ComponentModel.DefaultValue("")]
     public string roomId
     {
@@ -275,12 +282,12 @@ namespace pb
       get { return _errorCode; }
       set { _errorCode = value; }
     }
-    private pb.GameMode _mode;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"mode", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.GameMode mode
+    private pb.GameType _type;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public pb.GameType type
     {
-      get { return _mode; }
-      set { _mode = value; }
+      get { return _type; }
+      set { _type = value; }
     }
     private string _roomId = "";
     [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"roomId", DataFormat = global::ProtoBuf.DataFormat.Default)]
@@ -576,8 +583,22 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-    [global::ProtoBuf.ProtoContract(Name=@"GameMode")]
-    public enum GameMode
+    [global::ProtoBuf.ProtoContract(Name=@"GameType")]
+    public enum GameType
+    {
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"XueZhan", Value=1)]
+      XueZhan = 1,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"XueLiu", Value=2)]
+      XueLiu = 2,
+            
+      [global::ProtoBuf.ProtoEnum(Name=@"DouDiZhu", Value=3)]
+      DouDiZhu = 3
+    }
+  
+    [global::ProtoBuf.ProtoContract(Name=@"EnterMode")]
+    public enum EnterMode
     {
             
       [global::ProtoBuf.ProtoEnum(Name=@"CreateRoom", Value=1)]

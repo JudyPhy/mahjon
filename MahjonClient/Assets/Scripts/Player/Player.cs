@@ -2,8 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerInfo
+public class Player
 {
+    private static Player _instance;
+    public static Player Instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = new Player();
+            return _instance;
+        }
+    }
+
     private int _oid;
     public int OID
     {
@@ -23,44 +34,29 @@ public class PlayerInfo
     }
 
     private int _gold;
-    public int Gold
+
+    private int _fangka;
+    public int Fangka
     {
-        get { return _gold; }
+        get { return _fangka; }
     }
 
-    private int _diamond;
-    public int Diamond
+    public void UpdatePlayer(pb.PlayerInfo player)
     {
-        get { return _diamond; }
+        _oid = player.OID;
+        _nickName = player.NickName;
+        _headIcon = player.HeadIcon;
+        _gold = player.Gold;
+        _fangka = player.Fangka;
     }
 
-    public PlayerInfo(pb.PlayerInfo player)
-    {        
-        _oid = player.oid;
-        _nickName = player.nickName;
-        _headIcon = player.headIcon;
-        _gold = player.gold;
-        _diamond = player.diamond;
-    }
-}
-
-public class Player
-{
-    private static Player _instance;
-    public static Player Instance
+    public string GetGold()
     {
-        get
+        if (_gold > 9999)
         {
-            if (_instance == null)
-                _instance = new Player();
-            return _instance;
+            float value = _gold / 10000f;
+            return value.ToString("0.0") + "万";
         }
-    }
-
-    private PlayerInfo _info;
-    public PlayerInfo PlayerInfo
-    {
-        set { _info = value; }
-        get { return _info; }
+        return _gold.ToString();
     }
 }
