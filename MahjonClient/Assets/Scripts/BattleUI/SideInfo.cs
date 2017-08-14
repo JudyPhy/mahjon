@@ -72,10 +72,28 @@ public class SideInfo
         get { return _isOwner; }
     }
 
-    private int _playerOid;
-    public int PlayerOID
+    private int _oid;
+    public int OID
     {
-        get { return _playerOid; }
+        get { return _oid; }
+    }
+
+    private string _nickName;
+    public string NickName
+    {
+        get { return _nickName; }
+    }
+
+    private string _headIcon;
+    public string HeadIcon
+    {
+        get { return _headIcon; }
+    }
+
+    private int _score;
+    public int Score
+    {
+        get { return _score; }
     }
 
     //    private List<Pai> _paiList = new List<Pai>();
@@ -91,7 +109,9 @@ public class SideInfo
     {
         _side = info.Side;
         _isOwner = info.IsOwner;
-        _playerOid = info.OID;
+        _oid = info.OID;
+        _nickName = info.NickName;
+        _headIcon = info.HeadIcon;
     }
 
     //    public List<Pai> GetPaiList()

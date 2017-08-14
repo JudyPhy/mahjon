@@ -12,6 +12,7 @@ public class MainUI : WindowsBasePanel
 
     //main ui
     private GameObject _mainui;
+    private UITexture _bgMainui;
     private GameObject _btnJoinXueLiu;
     private GameObject _btnJoinXueZhan;
     private GameObject _btnCreateRoom;
@@ -42,6 +43,7 @@ public class MainUI : WindowsBasePanel
 
         //main ui
         _mainui = transform.FindChild("MainContainer").gameObject;
+        _bgMainui = transform.FindChild("BG").GetComponent<UITexture>();
         _btnJoinXueLiu = _mainui.transform.FindChild("RightAnchor/ButtonXueZhan").gameObject;
         _btnJoinXueZhan = _mainui.transform.FindChild("RightAnchor/ButtonXueLiu").gameObject;
         _btnCreateRoom = _mainui.transform.FindChild("RightAnchor/ButtonCreate").gameObject;
@@ -98,6 +100,7 @@ public class MainUI : WindowsBasePanel
 
     private void ShowCreateRoomUI()
     {
+        _bgMainui.mainTexture = Resources.Load("BG/bg_mainui") as Texture;
         _mainui.SetActive(false);
         _createRoom.SetActive(true);
         _friendRoomList.transform.localScale = Vector3.zero;
@@ -120,6 +123,7 @@ public class MainUI : WindowsBasePanel
 
     private void ShowMainUI()
     {
+        _bgMainui.mainTexture = Resources.Load("BG/bg_mainui2") as Texture;
         _createRoom.SetActive(false);
         _mainui.SetActive(true);
         _friendList.transform.localScale = Vector3.zero;

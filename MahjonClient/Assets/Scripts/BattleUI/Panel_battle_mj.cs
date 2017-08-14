@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EventTransmit;
 
 public enum RoomProcess
 {
     PlayingEnterRoomAni,
+    PlayEnterRoomAniOver,
 }
 
 public class Panel_battle_mj : WindowsBasePanel
@@ -63,11 +65,13 @@ public class Panel_battle_mj : WindowsBasePanel
     public override void OnRegisterEvent()
     {
         base.OnRegisterEvent();
+        EventDispatcher.AddEventListener(EventDefine.UpdateRoomMember, UpdateRoomMember);
     }
 
     public override void OnRemoveEvent()
     {
         base.OnRemoveEvent();
+        EventDispatcher.RemoveEventListener(EventDefine.UpdateRoomMember, UpdateRoomMember);
     }
 
     public override void OnEnableWindow()
@@ -104,7 +108,14 @@ public class Panel_battle_mj : WindowsBasePanel
         //timer
         _timerObj.SetActive(false);
 
-        Debug.Log("PlayEnterRoomAni over.");
+        Invoke("PlayEnterRoomAniOver", 1f);
+    }
+
+    private void PlayEnterRoomAniOver()
+    {
+        Debug.Log("PlayEnterRoomAniOver");
+        _roomProcess = RoomProcess.PlayEnterRoomAniOver;
+        RefreshRoleItems();
     }
 
     private void hideAllPlayerItems()
@@ -132,6 +143,47 @@ public class Panel_battle_mj : WindowsBasePanel
     private void OnClickReady(GameObject go)
     {
 
+    }
+
+    private Item_role getItemRole(int index,int sideIndex)
+    {
+        if (index < _playerItems.Count)
+        {
+            return _playerItems[index];
+        }
+        GameObject root = sideIndex == 0 || sideIndex == 3 ? _playerRootLeft : _playerRootRight;
+        Item_role item = UIManager.AddChild<Item_role>(root);
+        return item;
+    }
+
+    private void UpdateRoomMember()
+    {
+        if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
+        {
+            Debug.Log("Is playing enter room ani, can't show player item.");
+            return;
+        }
+        Debug.Log("UpdateRoomMember");
+        RefreshRoleItems();
+    }
+
+    private void RefreshRoleItems()
+    {
+        List<SideInfo> list = BattleManager.Instance.GetRoomMembers();
+        Debug.Log("current member count:" + list.Count);
+        Vector3[] pos = { new Vector3(65, -116, 0), new Vector3(-65, 10, 0), new Vector3(-65, 180, 0), new Vector3(65, 50, 0) };
+        hideAllPlayerItems();
+        int n = 0;
+        for (int i = 0; i < list.Count; i++)
+        {
+            int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(list[i].Side);
+            Debug.Log("sideIndex:" + sideIndex + ", side:" + list[i].Side.ToString());
+            Item_role role = getItemRole(n, sideIndex);
+            n++;
+            role.gameObject.SetActive(true);
+            role.UpdateUI(list[i]);
+            role.transform.localPosition = pos[sideIndex];
+        }
     }
 
 }

@@ -3,67 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
-//public enum BattleProcess
-//{
-//    Default,
-
-//    PlayTableAniStart,
-//    PlayingTableAni,
-//    PlayingTableAniOver,
-
-//    PlayShaiZiAniStart,
-//    PlayingShaiZiAni,
-//    PlayShaiZiAniOver,
-
-//    PlayStartDrawAniStart,
-//    PlayingStartDrawAni,
-//    PlayStartDrawAniOver,
-
-//    SortPai,
-//    SortPaiOver,
-
-//    SelectingExchangeCard,
-//    WaitingExchangeCardOver,
-
-//    PlayingExchangeAni,
-//    PlayExchangeAniOver,
-
-//    SelectingLackCard,
-//    WaitingLackCardInfo,
-//    PlayingLackAni,
-
-//    BattleReady,
-
-//    DrawingCard,
-//    DrawCardOver,
-
-//    SortingCard,
-//    SortCardOver,
-
-//    CheckingHu,
-//    EnsureHuStart,
-//    EnsuringHu,
-//    WaitingHuRet,
-
-//    CheckingGang,
-//    EnsureGangStart,
-
-//    CheckingPeng,
-//    EnsurePengStart,
-
-//    SelectingDiscard,
-//    WaitingDiscardRet,
-
-//    CheckPengOver,
-//    EnsurePG,
-
-//    SelfTurnOver,
-
-//    SelfGanging,
-
-//    GameOver,
-//}
-
 public class BattleManager
 {
     private static BattleManager _instance;
@@ -199,8 +138,55 @@ public class BattleManager
         }
         foreach (int id in _SideInfoDict.Keys)
         {
-            
+            bool isFind = false;
+            for (int i = 0; i < msg.player.Count; i++)
+            {
+                if (msg.player[i].OID == id)
+                {
+                    isFind = true;
+                    break;
+                }
+            }
+            if (!isFind)
+            {
+                _SideInfoDict.Remove(id);
+            }
         }
+        EventDispatcher.TriggerEvent(EventDefine.UpdateRoomMember);
+    }
+
+    public List<pb.MahjonSide> GetSortedSideFromSelf()
+    {
+        List<pb.MahjonSide> result = new List<pb.MahjonSide>();
+        int curSide = (int)_SideInfoDict[Player.Instance.OID].Side;
+        for (int i = 0; i < 4; i++)
+        {
+            result.Add((pb.MahjonSide)curSide);
+            curSide++;
+            if (curSide > (int)pb.MahjonSide.NORTH)
+            {
+                curSide = (int)pb.MahjonSide.EAST;
+            }
+        }
+        return result;
+    }
+
+    public List<SideInfo> GetRoomMembers()
+    {
+        return new List<SideInfo>(_SideInfoDict.Values);
+    }
+
+    public int GetSideIndexFromSelf(pb.MahjonSide side)
+    {
+        List<pb.MahjonSide> sideList = GetSortedSideFromSelf();
+        for (int i = 0; i < sideList.Count; i++)
+        {
+            if (side == sideList[i])
+            {
+                return i;
+            }
+        }
+        return 0;
     }
 
     //    //方位列表：从自己方位开始按照东南西北排序

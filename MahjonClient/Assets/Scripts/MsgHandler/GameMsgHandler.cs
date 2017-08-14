@@ -146,13 +146,13 @@ public class GameMsgHandler
     }
 
 
-    //public void RevMsgGS2CBattleStart(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CBattleStart");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
-    //    BattleManager.Instance.PrepareGameStart(msg);
-    //}
+    public void RevMsgGS2CBattleStart(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CBattleStart");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
+        //BattleManager.Instance.PrepareGameStart(msg);
+    }
 
     //public void RevMsgGS2CUpdateCardInfoAfterExchange(int pid, byte[] msgBuf, int msgSize)
     //{

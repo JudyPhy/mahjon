@@ -11,12 +11,7 @@ public class Item_role : MonoBehaviour
     private GameObject _dealer;
     private UISprite _lack;
 
-    private pb.PlayerInfo _playerInfo;
-
-    public pb.PlayerInfo PlayerInfo
-    {
-        get { return _playerInfo; }
-    }
+    private SideInfo _sideInfo;
 
     void Awake()
     {
@@ -31,13 +26,13 @@ public class Item_role : MonoBehaviour
         _lack.gameObject.SetActive(false);
     }
 
-    public void UpdateUI(pb.PlayerInfo player)
+    public void UpdateUI(SideInfo info)
     {
-        _playerInfo = player;
-        _name.text = _playerInfo.NickName;
-        _headIcon.spriteName = string.IsNullOrEmpty(_playerInfo.HeadIcon) ? "headIcon_default_s" : _playerInfo.HeadIcon;
+        _sideInfo = info;
+        _name.text = _sideInfo.NickName;
+        _headIcon.spriteName = string.IsNullOrEmpty(_sideInfo.HeadIcon) ? "headIcon_default_s" : _sideInfo.HeadIcon;
         _score.text = "";
-        _owner.SetActive(player.IsOwner);
+        _owner.SetActive(_sideInfo.IsOwner);
     }
 
     public string getSpriteNameByType(pb.CardType type)
