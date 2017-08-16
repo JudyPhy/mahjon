@@ -73,7 +73,7 @@ public class NetworkManager : MonoBehaviour
         RegisterMessageHandler((int)MsgDef.GS2CLoginRet, GameMsgHandler.Instance.RevMsgGS2CLoginRet);
         RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomMember, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomMember);
-        //RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
+        RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
         //RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
         //RegisterMessageHandler((int)MsgDef.GS2CUpdateCardInfoAfterExchange, GameMsgHandler.Instance.RevMsgGS2CUpdateCardInfoAfterExchange);
         //RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);

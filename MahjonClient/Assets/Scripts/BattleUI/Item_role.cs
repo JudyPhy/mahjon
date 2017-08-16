@@ -12,6 +12,10 @@ public class Item_role : MonoBehaviour
     private UISprite _lack;
 
     private SideInfo _sideInfo;
+    public SideInfo Info
+    {
+        get { return _sideInfo; }
+    }
 
     void Awake()
     {
@@ -33,6 +37,11 @@ public class Item_role : MonoBehaviour
         _headIcon.spriteName = string.IsNullOrEmpty(_sideInfo.HeadIcon) ? "headIcon_default_s" : _sideInfo.HeadIcon;
         _score.text = "";
         _owner.SetActive(_sideInfo.IsOwner);
+    }
+
+    public void ShowDealer()
+    {
+        _dealer.SetActive(true);
     }
 
     public string getSpriteNameByType(pb.CardType type)

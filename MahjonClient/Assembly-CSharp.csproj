@@ -183,9 +183,9 @@
      <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleUI\CardSortCompare.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\Item_card.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_exchangeArrow.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_lack.cs" />
-     <Compile Include="Assets\Scripts\BattleUI\Item_pai.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_procBtn.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_role.cs" />
      <Compile Include="Assets\Scripts\BattleUI\PaiListSort.cs" />

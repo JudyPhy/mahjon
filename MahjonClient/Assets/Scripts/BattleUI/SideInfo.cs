@@ -3,59 +3,59 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
-//public enum PaiStatus
-//{
-//    Idle = 0,
-//    InHand,
-//    PrePeng,
-//    Peng,
-//    PreGang,
-//    Gang,
-//    Exchange,
-//    PreDiscard,
-//    Discard,
-//    DrawnCard,
-//    Hu,
-//}
+public enum CardStatus
+{
+    Idle = 0,
+    InHand,
+    Exchange,
+    PrePeng,
+    Peng,
+    PreGang,
+    Gang,    
+    PreDiscard,
+    Discard,
+    Deal,
+    Hu,
+}
 
-//public class Pai
-//{
-//    private int _oid;
-//    public int OID
-//    {
-//        set { _oid = value; }
-//        get { return _oid; }
-//    }
+public class Card
+{
+    private int _playerId;
+    public int PlayerID
+    {
+        set { _playerId = value; }
+        get { return _playerId; }
+    }
 
-//    private int _id;
-//    public int Id
-//    {
-//        set { _id = value; }
-//        get { return _id; }
-//    }
+    private int _oid;
+    public int OID
+    {
+        set { _oid = value; }
+        get { return _oid; }
+    }
 
-//    private PaiStatus _status;
-//    public PaiStatus Status
-//    {
-//        set { _status = value; }
-//        get { return _status; }
-//    }
+    private int _id;
+    public int Id
+    {
+        set { _id = value; }
+        get { return _id; }
+    }
 
-//    private int _playerId;
-//    public int PlayerID
-//    {
-//        set { _playerId = value; }
-//        get { return _playerId; }
-//    }
+    private CardStatus _status;
+    public CardStatus Status
+    {
+        set { _status = value; }
+        get { return _status; }
+    }
 
-//    private bool _isFromOther;
-//    public bool IsFromOther
-//    {
-//        set { _isFromOther = value; }
-//        get { return _isFromOther; }
-//    }
+    private bool _isFromOther;
+    public bool IsFromOther
+    {
+        set { _isFromOther = value; }
+        get { return _isFromOther; }
+    }
 
-//}
+}
 
 public class SideInfo
 {
@@ -96,7 +96,11 @@ public class SideInfo
         get { return _score; }
     }
 
-    //    private List<Pai> _paiList = new List<Pai>();
+    private List<Card> _cardList = new List<Card>();
+    public List<Card> CardList
+    {
+        get { return _cardList; }
+    }
 
     //    private pb.CardType _lackPaiType;
     //    public pb.CardType LackPaiType
@@ -107,6 +111,7 @@ public class SideInfo
 
     public void UpdateInfo(pb.PlayerInfo info)
     {
+        Debug.Log("OID:" + info.OID + ", isowner:" + info.IsOwner);
         _side = info.Side;
         _isOwner = info.IsOwner;
         _oid = info.OID;
@@ -176,35 +181,37 @@ public class SideInfo
     //        _paiList.Clear();
     //    }
 
-    //    private PaiStatus getPaiStatus(pb.CardStatus status)
-    //    {
-    //        switch (status)
-    //        {
-    //            case pb.CardStatus.inHand:
-    //                return PaiStatus.InHand;
-    //            case pb.CardStatus.bePeng:
-    //                return PaiStatus.Peng;
-    //            case pb.CardStatus.beGang:
-    //                return PaiStatus.Gang;
-    //            case pb.CardStatus.discard:
-    //                return PaiStatus.Discard;
-    //            case pb.CardStatus.hu:
-    //                return PaiStatus.Hu;
-    //            default:
-    //                return PaiStatus.Idle;
-    //        }
-    //    }
+    private CardStatus getCardStatus(pb.CardStatus status)
+    {
+        switch (status)
+        {
+            case pb.CardStatus.InHand:
+                return CardStatus.InHand;
+            case pb.CardStatus.P:
+                return CardStatus.Peng;
+            case pb.CardStatus.G:
+                return CardStatus.Gang;
+            case pb.CardStatus.Dis:
+                return CardStatus.Discard;
+            case pb.CardStatus.Deal:
+                return CardStatus.Deal;
+            case pb.CardStatus.Hu:
+                return CardStatus.Hu;
+            default:
+                return CardStatus.Idle;
+        }
+    }
 
-    //    public void AddPai(pb.CardInfo card)
-    //    {
-    //        Pai pai = new Pai();
-    //        pai.OID = card.CardOid;
-    //        pai.Id = card.CardId;
-    //        pai.Status = getPaiStatus(card.Status);
-    //        pai.PlayerID = card.playerId;
-    //        pai.IsFromOther = card.fromOther;
-    //        _paiList.Add(pai);
-    //    }
+    public void AddCard(pb.CardInfo card)
+    {
+        Card newCard = new Card();
+        newCard.PlayerID = card.playerOID;
+        newCard.OID = card.OID;
+        newCard.Id = card.ID;
+        newCard.Status = getCardStatus(card.Status);        
+        newCard.IsFromOther = card.fromOther;
+        _cardList.Add(newCard);
+    }
 
     //    public void UpdatePai(Pai origInfo, pb.CardInfo newInfo)
     //    {

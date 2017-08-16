@@ -17,26 +17,24 @@ public class BattleManager
     }
 
     private pb.GameType _gameType;
+
     private string _roomId;
     public string RoomID
     {
         get { return _roomId; }
     }
-    //    public bool IsWaitingEnterRoomRet = false;
-    //    private int _dealerId;
-    //    public int DealerID
-    //    {
-    //        get { return _dealerId; }
-    //    }
 
-    private Dictionary<int, SideInfo> _SideInfoDict = new Dictionary<int, SideInfo>();
-
-    //    //playing params
-    //    private pb.BattleSide _curPlaySide;
-    //    public pb.BattleSide CurPlaySide
-    //    {
-    //        get { return _curPlaySide; }
-    //    }
+    private int _dealerId;
+    public int DealerID
+    {
+        get { return _dealerId; }
+    }
+    
+    private pb.MahjonSide _curPlaySide;
+    public pb.MahjonSide CurPlaySide
+    {
+        get { return _curPlaySide; }
+    }
 
     //    private BattleProcess _curProcess;
     //    public BattleProcess CurProcess
@@ -66,6 +64,7 @@ public class BattleManager
     //        get { return _curSelfGangCardId; }
     //    }
 
+    private Dictionary<int, SideInfo> _SideInfoDict = new Dictionary<int, SideInfo>();
 
     //    private SideInfo getSideInfoBySide(pb.BattleSide side)
     //    {
@@ -189,6 +188,18 @@ public class BattleManager
         return 0;
     }
 
+    public Card GetDrawCardInfo(pb.MahjonSide side, int index)
+    {
+        foreach (SideInfo sideInfo in _SideInfoDict.Values)
+        {
+            if (sideInfo.Side == side && index < sideInfo.CardList.Count)
+            {
+                return sideInfo.CardList[index];
+            }
+        }
+        return null;
+    }
+
     //    //方位列表：从自己方位开始按照东南西北排序
     //    public List<pb.BattleSide> GetSortSideListFromSelf()
     //    {
@@ -219,24 +230,29 @@ public class BattleManager
     //        return null;
     //    }
 
-    //    public void PrepareGameStart(pb.GS2CBattleStart msg)
-    //    {
-    //        for (int i = 0; i < msg.cardList.Count; i++)
-    //        {
-    //            pb.CardInfo card = msg.cardList[i];
-    //            for (int j = 0; j < _playerPaiInfoList.Count; j++)
-    //            {
-    //                if (_playerPaiInfoList[j].PlayerInfo.OID == card.playerId)
-    //                {
-    //                    _playerPaiInfoList[j].AddPai(card);
-    //                }
-    //            }
-    //        }
-    //        _dealerId = msg.dealerId;
-    //        _curPlaySide = GetSideByPlayerOID(_dealerId);
-    //        Debug.Log("_dealerId=" + _dealerId + ", side=" + _curPlaySide.ToString());
-    //        EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
-    //    }
+    public void PrepareGameStart(pb.GS2CBattleStart msg)
+    {
+        for (int i = 0; i < msg.cardList.Count; i++)
+        {
+            pb.CardInfo card = msg.cardList[i];
+            if (_SideInfoDict.ContainsKey(card.playerOID))
+            {
+                _SideInfoDict[card.playerOID].AddCard(card);
+            }
+        }
+        _dealerId = msg.dealerId;
+        Debug.Log("_dealerId=" + _dealerId);
+        EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
+    }
+
+    public pb.MahjonSide GetSideByPlayerOID(int playerOid)
+    {
+        if (_SideInfoDict.ContainsKey(playerOid))
+        {
+            return _SideInfoDict[playerOid].Side;
+        }
+        return pb.MahjonSide.DEFAULT;
+    }
 
     //    public Pai GetPaiInfoByIndexAndSide(pb.BattleSide side, int index)
     //    {
@@ -440,17 +456,7 @@ public class BattleManager
     //        return GetSideByPlayerOID(_dealerId);
     //    }
 
-    //    public pb.BattleSide GetSideByPlayerOID(int playerOid)
-    //    {
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
-    //            {
-    //                return _playerPaiInfoList[i].Side;
-    //            }
-    //        }
-    //        return pb.BattleSide.none;
-    //    }
+
 
     //    #region playing
     //    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard, pb.TurnSwitchType type)
