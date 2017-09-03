@@ -102,12 +102,12 @@ public class SideInfo
         get { return _cardList; }
     }
 
-    //    private pb.CardType _lackPaiType;
-    //    public pb.CardType LackPaiType
-    //    {
-    //        set { _lackPaiType = value; }
-    //        get { return _lackPaiType; }
-    //    }
+    private pb.CardType _lack;
+    public pb.CardType Lack
+    {
+        set { _lack = value; }
+        get { return _lack; }
+    }
 
     public void UpdateInfo(pb.PlayerInfo info)
     {
@@ -124,18 +124,18 @@ public class SideInfo
     //        return _paiList;
     //    }
 
-    //    public List<Pai> GetPaiListByStatus(PaiStatus status)
-    //    {
-    //        List<Pai> list = new List<Pai>();
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == status)
-    //            {
-    //                list.Add(_paiList[i]);
-    //            }
-    //        }
-    //        return list; 
-    //    }
+    public List<Card> GetCardList(CardStatus status)
+    {
+        List<Card> list = new List<Card>();
+        for (int i = 0; i < _cardList.Count; i++)
+        {
+            if (_cardList[i].Status == status)
+            {
+                list.Add(_cardList[i]);
+            }
+        }
+        return list;
+    }
 
     //    public List<int> GetPaiIdListByStatus(PaiStatus status)
     //    {

@@ -29,12 +29,31 @@ public class Panel_battle_mj : WindowsBasePanel
     private GameObject _playerRootRight;
     private List<Item_role> _playerItems = new List<Item_role>();
 
-    private GameObject _btnReady;
+    private GameObject _exchangeObj;
+    private UISprite _exchangeBtnEnsure;
+    private pb.ExchangeType _exchagneType;
+    private Dictionary<pb.MahjonSide, List<Item_card>> putedExchangeCards = new Dictionary<pb.MahjonSide, List<Item_card>>(); //side : cardItemList
+
+    private GameObject _lackObj;
+    private List<GameObject> _lackBtns = new List<GameObject>();    
+
+    private GameObject _sideTipsObj;
+    private List<UISprite> _sideTips = new List<UISprite>();
+    private System.DateTime _sideTipsTime;
+    private int _sideTipsIndex;
+    private bool _playingTipsAni;
 
     private Dictionary<pb.MahjonSide, GameObject> _sideCardsRoot = new Dictionary<pb.MahjonSide, GameObject>();
-
-    private RoomProcess _roomProcess;
     private Dictionary<pb.MahjonSide, List<Item_card>> _sideCardsDict = new Dictionary<pb.MahjonSide, List<Item_card>>();
+
+    private GameObject _procObj;
+    private UISprite _procCard;
+    private UIGrid _procGrid;
+    private List<Item_proc> _procItems = new List<Item_proc>();
+
+    private bool _wait_updateMember = false;
+    private bool _wait_battleStart = false;
+    private RoomProcess _roomProcess;
 
 
     public override void OnAwake()
@@ -65,8 +84,24 @@ public class Panel_battle_mj : WindowsBasePanel
         _playerRootLeft = transform.FindChild("Players/LeftAnchor").gameObject;
         _playerRootRight = transform.FindChild("Players/RightAnchor").gameObject;
 
-        _btnReady = transform.FindChild("ButtonReady").gameObject;
-        UIEventListener.Get(_btnReady).onClick = OnClickReady;
+        _exchangeObj = transform.FindChild("Exchange").gameObject;
+        _exchangeBtnEnsure = _exchangeObj.transform.FindChild("Button/ensure").GetComponent<UISprite>();
+        UIEventListener.Get(_exchangeBtnEnsure.transform.parent.gameObject).onClick = OnClickEnsureExchange;
+
+        _lackObj = transform.FindChild("Lack").gameObject;
+        for (int i = 1; i <= 3; i++)
+        {
+            GameObject btn = _lackObj.transform.FindChild("Button" + i.ToString()).gameObject;
+            _lackBtns.Add(btn);
+            UIEventListener.Get(btn).onClick = OnClickLack;
+        }
+
+        _sideTipsObj = transform.FindChild("SideTips").gameObject;
+        for (int i = 1; i < 4; i++)
+        {
+            UISprite sp = _sideTipsObj.transform.FindChild("Anchor" + i.ToString() + "/selecting").GetComponent<UISprite>();
+            _sideTips.Add(sp);
+        }
 
         for (pb.MahjonSide i = pb.MahjonSide.EAST; i <= pb.MahjonSide.NORTH; i++)
         {
@@ -74,26 +109,55 @@ public class Panel_battle_mj : WindowsBasePanel
             GameObject root = transform.FindChild("CardRoot/Anchor" + curIndex.ToString()).gameObject;
             _sideCardsRoot.Add(i, root);
         }
+
+        _procObj = transform.FindChild("Proc/bar").gameObject;
+        _procCard = _procObj.transform.FindChild("procCard/value").GetComponent<UISprite>();
+        _procGrid = _procObj.transform.FindChild("Grid").GetComponent<UIGrid>();
     }
 
     public override void OnRegisterEvent()
     {
         base.OnRegisterEvent();
-        EventDispatcher.AddEventListener(EventDefine.UpdateRoomMember, UpdateRoomMember);
+        EventDispatcher.AddEventListener(EventDefine.UpdateRoomMember, RefreshRoleItems);
         EventDispatcher.AddEventListener(EventDefine.PlayGamePrepareAni, PlayGamePrepareAni);
+
+        EventDispatcher.AddEventListener<pb.ExchangeType>(EventDefine.UpdateAllCardsAfterExhchange, PutOtherExchangeCard);
+        EventDispatcher.AddEventListener(EventDefine.ShowLackCard, ShowLackCard);
+
+        EventDispatcher.AddEventListener<int>(EventDefine.TurnToPlayer, TurnToNextPlayer);
+        EventDispatcher.AddEventListener(EventDefine.ChooseDiscard, ChooseDiscard);
     }
 
     public override void OnRemoveEvent()
     {
         base.OnRemoveEvent();
-        EventDispatcher.RemoveEventListener(EventDefine.UpdateRoomMember, UpdateRoomMember);
+        EventDispatcher.RemoveEventListener(EventDefine.UpdateRoomMember, RefreshRoleItems);
         EventDispatcher.RemoveEventListener(EventDefine.PlayGamePrepareAni, PlayGamePrepareAni);
+
+        EventDispatcher.RemoveEventListener<pb.ExchangeType>(EventDefine.UpdateAllCardsAfterExhchange, PutOtherExchangeCard);
+        EventDispatcher.RemoveEventListener(EventDefine.ShowLackCard, ShowLackCard);
+
+        EventDispatcher.RemoveEventListener<int>(EventDefine.TurnToPlayer, TurnToNextPlayer);
+        EventDispatcher.RemoveEventListener(EventDefine.ChooseDiscard, ChooseDiscard);
+    }
+
+    private void ResetGame()
+    {
+        _wait_updateMember = false;
+        _wait_battleStart = false;
+        BattleManager.Instance.CurProcess = BattleProcess.Default;
+        _exchangeObj.SetActive(false);
+        _lackObj.SetActive(false);
+        _sideTipsObj.SetActive(false);
+        _playingTipsAni = false;
+        _procObj.transform.localPosition = new Vector3(450, 238, 0);
     }
 
     public override void OnEnableWindow()
     {
         base.OnEnableWindow();
 
+        ResetGame();
         PlayEnterRoomAni();
     }
 
@@ -131,7 +195,14 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         Debug.Log("PlayEnterRoomAniOver");
         _roomProcess = RoomProcess.PlayEnterRoomAniOver;
-        RefreshRoleItems();
+        if (_wait_updateMember)
+        {
+            RefreshRoleItems();
+        }
+        if (_wait_battleStart)
+        {
+            PlayGamePrepareAni();
+        }
     }
 
     private void hideAllPlayerItems()
@@ -156,11 +227,6 @@ public class Panel_battle_mj : WindowsBasePanel
         UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
     }
 
-    private void OnClickReady(GameObject go)
-    {
-
-    }
-
     private Item_role getItemRole(int index,int sideIndex)
     {
         if (index < _playerItems.Count)
@@ -173,18 +239,15 @@ public class Panel_battle_mj : WindowsBasePanel
         return item;
     }
 
-    private void UpdateRoomMember()
+    private void RefreshRoleItems()
     {
         if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
         {
             Debug.Log("Is playing enter room ani, can't show player item.");
+            _wait_updateMember = true;
             return;
         }
-        RefreshRoleItems();
-    }
-
-    private void RefreshRoleItems()
-    {
+        _wait_updateMember = false;
         List<SideInfo> list = BattleManager.Instance.GetRoomMembers();
         Debug.Log("current member count:" + list.Count);
         Vector3[] pos = { new Vector3(65, -95, 0), new Vector3(-65, 10, 0), new Vector3(-65, 180, 0), new Vector3(65, 50, 0) };
@@ -205,18 +268,25 @@ public class Panel_battle_mj : WindowsBasePanel
     #region draw cards animation at game start
     private int _turns = 0;
     private Dictionary<pb.MahjonSide, int> _drawItemIndex = new Dictionary<pb.MahjonSide, int>();
-    private int _curSideIndex;
+    private pb.MahjonSide _curSide;
     private int rightItemDepth = 20;
     private void PlayGamePrepareAni()
     {
+        if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
+        {
+            Debug.Log("Is playing enter room ani, can't show battle start ani.");
+            _wait_battleStart = true;
+            return;
+        }
+        _wait_battleStart = false;
         Debug.Log("PlayGamePrepareAni...");
         _timerObj.SetActive(true);
         _restCard.text = "108";
-        _restRound.text = (108 / 4).ToString();
+        _restRound.text = "8";
         ShowDealer();
 
         hideAllSideCardItem();
-        _curSideIndex = (int)BattleManager.Instance.GetSideByPlayerOID(BattleManager.Instance.DealerID);
+        _curSide = BattleManager.Instance.GetSideByPlayerOID(BattleManager.Instance.DealerID);
         for (pb.MahjonSide i = pb.MahjonSide.EAST; i <= pb.MahjonSide.NORTH; i++)
         {
             _drawItemIndex.Add(i, 0);
@@ -239,35 +309,429 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayDrawCardsAni()
     {
-        pb.MahjonSide curSide = (pb.MahjonSide)_curSideIndex;
-        Debug.Log("PlayDrawCardsAni, _turns:" + _turns + ", curSide:" + curSide);
+        Debug.Log("PlayDrawCardsAni, _turns:" + _turns + ", curSide:" + _curSide);
         if (_turns > 16)
         {
-            Debug.Log("draw animation over, start exchange cards...");
+            PlaceInHandCardList(Player.Instance.OID);
+
+            Debug.Log("draw animation over, start exchange cards...");        
+            _exchangeObj.SetActive(true);
+            ShowSideExchangeTips();            
+            BattleManager.Instance.CurProcess = BattleProcess.ExchangCard;
             return;
         }
         int curDrawCount = _turns > 11 ? 1 : 4;
-        Debug.Log("current draw card " + curDrawCount);
-        Vector3[] itemAttr = getCardsItemAttr(curSide);
+        //Debug.Log("current draw card " + curDrawCount);
+        Vector3[] itemAttr = getCardsItemAttr(_curSide);
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_curSide);
         for (int i = 0; i < curDrawCount; i++)
         {
-            Card card = BattleManager.Instance.GetDrawCardInfo(curSide, _drawItemIndex[curSide]);
-            Item_card item = getCardsItem(curSide, _drawItemIndex[curSide]);
+            Card card = BattleManager.Instance.GetDrawCardInfo(_curSide, _drawItemIndex[_curSide]);
+            Item_card item = getCardsItem(_curSide, _drawItemIndex[_curSide]);
             item.gameObject.SetActive(true);
-            item.UpdateUI(curSide, card);
-            item.transform.localPosition = itemAttr[0] + itemAttr[1] * _drawItemIndex[curSide];
-            if (_curSideIndex == 3)
+            item.UpdateUI(_curSide, card);
+            item.transform.localPosition = itemAttr[0] + itemAttr[1] * _drawItemIndex[_curSide];
+            if (sideIndex == 1)
             {
                 //右侧item要修改depth
-                int curDepth = rightItemDepth - _drawItemIndex[curSide];
-                Debug.LogError("curDepth=" + curDepth);
+                int curDepth = rightItemDepth - _drawItemIndex[_curSide];
                 item.SetDepth(curDepth);
             }
-            _drawItemIndex[curSide]++;           
+            _drawItemIndex[_curSide]++;           
         }
         _turns++;
-        _curSideIndex = _curSideIndex == 5 ? 2 : _curSideIndex + 1;
+        _curSide = _curSide == pb.MahjonSide.NORTH ? pb.MahjonSide.EAST : _curSide + 1;
         Invoke("PlayDrawCardsAni", 0.5f);
+    }
+
+    private void PlaceInHandCardList(int playerOid)
+    {
+        List<Card> inhand = BattleManager.Instance.GetCardList(playerOid, CardStatus.InHand);
+        inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
+        pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
+        Vector3[] itemAttr = getCardsItemAttr(curSide);
+        hideOneSideCardItem(curSide);
+        for (int i = 0; i < inhand.Count; i++)
+        {
+            Item_card item = getCardsItem(curSide, i);
+            item.gameObject.SetActive(true);
+            item.UpdateUI(curSide, inhand[i]);
+            item.transform.localPosition = itemAttr[0] + itemAttr[1] * i;
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                item.SetDepth(curDepth);
+            }
+        }        
+    }
+    #endregion
+
+    #region exchange
+    private void ShowSideExchangeTips()
+    {
+        _sideTipsObj.SetActive(true);
+        _playingTipsAni = true;
+        _sideTipsIndex = 1;        
+        UpdateExchangeSelecting();
+    }
+
+    private void UpdateExchangeSelecting()
+    {
+        _sideTipsTime = System.DateTime.Now;
+        for (int i = 0; i < _sideTips.Count; i++)
+        {
+            _sideTips[i].spriteName = "text_select" + _sideTipsIndex.ToString();
+            _sideTips[i].MakePixelPerfect();
+        }
+        _sideTipsIndex++;
+        if (_sideTipsIndex > 4)
+        {
+            _sideTipsIndex = 1;
+        }        
+    }
+
+    private void OnClickEnsureExchange(GameObject go)
+    {
+        List<Card> list = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.Exchange);
+        if (list.Count != 3)
+        {
+            UIManager.Instance.ShowTips(TipsType.text, "请选择3张牌");
+            return;
+        }
+        _exchangeObj.SetActive(false);
+        PutSelfExchangeCards(Player.Instance.OID);
+        Invoke("PutExchangeOver", 0.5f);
+    }
+
+    private void PutSelfExchangeCards(int playerOid)
+    {
+        Debug.Log("PutExchangeCards");
+        putedExchangeCards.Clear();
+        PlaceInHandCardList(Player.Instance.OID);
+
+        List<Card> inhand = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.InHand);
+        pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
+        //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset       
+        Vector3[] itemAttr = getCardsItemAttr(curSide);
+        List<Item_card> exchangeCard = new List<Item_card>();
+        for (int i = 0; i < 3; i++)
+        {
+            Item_card item = getCardsItem(curSide, inhand.Count + i);
+            item.gameObject.SetActive(true);
+            item.ShowBack(BattleManager.Instance.GetSideIndexFromSelf(curSide));
+            item.gameObject.SetActive(true);
+            item.transform.localPosition = itemAttr[2] + itemAttr[3] * i;
+            item.transform.localScale = Vector3.one * 1.5f;
+            iTween.MoveTo(item.gameObject, iTween.Hash("position", itemAttr[4] + itemAttr[5] * i, "islocal", true, "time", 0.5f));
+            iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
+            exchangeCard.Add(item);
+        }
+        putedExchangeCards.Add(curSide, exchangeCard);
+    }
+
+    private void PutExchangeOver()
+    {
+        List<Card> list = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.Exchange);
+        GameMsgHandler.Instance.SendMsgC2GSExchangeCard(list);
+        BattleManager.Instance.CurProcess = BattleProcess.ExchangCardOver;        
+    }
+
+    private void PutOtherExchangeCard(pb.ExchangeType type)
+    {
+        _exchagneType = type;
+        _playingTipsAni = false;
+        _sideTipsObj.SetActive(false);
+
+        List<int> players = BattleManager.Instance.GetOtherPlayers();
+        for (int i = 0; i < players.Count; i++)
+        {
+            List<Card> inhand = BattleManager.Instance.GetCardList(players[i], CardStatus.InHand);
+            for (int j = 1; j <= 3; j++)
+            {
+                inhand[inhand.Count - j].Status = CardStatus.Exchange;
+            }
+            PlaceInHandCardList(players[i]);
+            pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(players[i]);
+            //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset       
+            Vector3[] itemAttr = getCardsItemAttr(curSide);
+            List<Item_card> exchangeCard = new List<Item_card>();
+            for (int j = 0; j < 3; j++)
+            {
+                Item_card item = getCardsItem(curSide, inhand.Count - 3 + j);
+                item.gameObject.SetActive(true);
+                item.ShowBack(BattleManager.Instance.GetSideIndexFromSelf(curSide));
+                item.gameObject.SetActive(true);
+                item.transform.localPosition = itemAttr[2] + itemAttr[3] * j;
+                item.transform.localScale = Vector3.one * 1.5f;
+                iTween.MoveTo(item.gameObject, iTween.Hash("position", itemAttr[4] + itemAttr[5] * j, "islocal", true, "time", 0.5f));
+                iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
+                exchangeCard.Add(item);
+            }
+            putedExchangeCards.Add(curSide, exchangeCard);
+        }
+        Invoke("UpdateAllCardsAfterExhchange", 0.5f);
+    }
+
+    //Invoke
+    private void UpdateAllCardsAfterExhchange()
+    {
+        Debug.Log("exchange type:" + _exchagneType.ToString());
+        switch (_exchagneType)
+        {
+            case pb.ExchangeType.ClockWise:
+                PlayClockWiseAni();
+                break;
+            case pb.ExchangeType.AntiClock:
+                PlayAntiClockWiseAni();
+                break;
+            case pb.ExchangeType.Opposite:
+                PlayOppositeAni();
+                break;
+            default:
+                break;
+        }
+        Invoke("ShowExchangeCards", 0.6f);
+    }
+
+    private void PlayClockWiseAni()
+    {
+        Vector3[] toPos = { new Vector3(-677, -170, 0), new Vector3(415, -332, 0), new Vector3(677, 215, 0), new Vector3(-415, 388, 0) };
+        Vector3[] toOffset = { new Vector3(37, 0, 0), new Vector3(0, -28, 0), new Vector3(-37, 0, 0), new Vector3(0, -28, 0) };
+        foreach (pb.MahjonSide side in putedExchangeCards.Keys)
+        {
+            int fromIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+            int toIndex = fromIndex - 1;
+            if (toIndex < 0)
+            {
+                toIndex = 3;
+            }
+            for (int i = 0; i < putedExchangeCards[side].Count; i++)
+            {
+                Item_card item = putedExchangeCards[side][i];
+                item.ShowBack(toIndex);
+                iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos[toIndex] + toOffset[toIndex] * i, "islocal", true, "time", 0.4f));
+            }
+        }
+    }
+
+    private void PlayAntiClockWiseAni()
+    {
+        Vector3[] toPos = { new Vector3(603, -170, 0), new Vector3(415, 388, 0), new Vector3(-603, 215, 0), new Vector3(-415, -332, 0) };
+        Vector3[] toOffset = { new Vector3(37, 0, 0), new Vector3(0, -28, 0), new Vector3(-37, 0, 0), new Vector3(0, -28, 0) };
+        foreach (pb.MahjonSide side in putedExchangeCards.Keys)
+        {
+            int fromIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+            int toIndex = fromIndex + 1;
+            if (toIndex > 3)
+            {
+                toIndex = 0;
+            }
+            for (int i = 0; i < putedExchangeCards[side].Count; i++)
+            {
+                Item_card item = putedExchangeCards[side][i];
+                item.ShowBack(toIndex);
+                iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos[toIndex] + toOffset[toIndex] * i, "islocal", true, "time", 0.4f));
+            }
+        }
+    }
+
+    private void PlayOppositeAni()
+    {
+        Vector3[] toPos = { new Vector3(-37, -530, 0), new Vector3(1050, 28, 0), new Vector3(37, 570, 0), new Vector3(-1050, -28, 0) };
+        Vector3[] toOffset = { new Vector3(37, 0, 0), new Vector3(0, -28, 0), new Vector3(-37, 0, 0), new Vector3(0, 28, 0) };
+        foreach (pb.MahjonSide side in putedExchangeCards.Keys)
+        {
+            int fromIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+            int toIndex = fromIndex + 2;
+            if (toIndex > 3)
+            {
+                toIndex -= 4;
+            }
+            for (int i = 0; i < putedExchangeCards[side].Count; i++)
+            {
+                Item_card item = putedExchangeCards[side][i];
+                item.ShowBack(toIndex);
+                iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos[toIndex] + toOffset[toIndex] * i, "islocal", true, "time", 0.4f));
+            }
+        }
+    }
+
+    //Invoke
+    private void ShowExchangeCards()
+    {
+        Debug.Log("ShowExchangeCards");
+        hideAllSideCardItem();
+        List<int> players = BattleManager.Instance.GetOtherPlayers();
+        players.Add(Player.Instance.OID);
+        for (int i = 0; i < players.Count; i++)
+        {            
+            //inhand list
+            List<Card> inhand = BattleManager.Instance.GetCardList(players[i], CardStatus.InHand);
+            inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
+            pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(players[i]);
+            int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
+            Vector3[] itemAttr = getCardsItemAttr(curSide);
+            for (int n = 0; n < inhand.Count; n++)
+            {
+                Item_card item = getCardsItem(curSide, n);
+                item.gameObject.SetActive(true);
+                item.UpdateUI(curSide, inhand[n]);
+                item.transform.localPosition = itemAttr[0] + itemAttr[1] * n;
+                if (sideIndex == 1)
+                {
+                    //右侧item要修改depth
+                    int curDepth = rightItemDepth - n;
+                    item.SetDepth(curDepth);
+                }
+            }
+            //exchange list
+            List<Card> exchange = BattleManager.Instance.GetCardList(players[i], CardStatus.Exchange);
+            exchange.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
+            for (int n = 0; n < exchange.Count; n++)
+            {
+                Item_card item = getCardsItem(curSide, inhand.Count + n);
+                item.gameObject.SetActive(true);
+                exchange[n].Status = CardStatus.InHand;
+                item.UpdateUI(curSide, exchange[n]);
+                item.transform.localPosition = itemAttr[0] + itemAttr[1] * (inhand.Count + n) + itemAttr[6];
+                if (sideIndex == 1)
+                {
+                    //右侧item要修改depth
+                    int curDepth = rightItemDepth - (inhand.Count + n);
+                    item.SetDepth(curDepth);
+                }
+                Vector3 endPos = item.transform.localPosition - itemAttr[6];
+                iTween.MoveTo(item.gameObject, iTween.Hash("position", endPos, "islocal", true, "time", 0.5f, "delay", 0.5f));
+            }
+        }
+        Invoke("ExchangeOver", 1f);
+    }
+
+    //Invoke
+    private void ExchangeOver()
+    {
+        Debug.Log("sort and place self cards after exchange.");
+        PlaceInHandCardList(Player.Instance.OID);
+        LackStart();
+    }
+    #endregion
+
+    #region lack
+    private void LackStart()
+    {
+        Debug.Log("start select lack...");
+        _lackObj.SetActive(true);
+        _sideTipsObj.SetActive(true);
+        _sideTipsIndex = 1;
+        UpdateLackSelecting();
+        _playingTipsAni = true;
+        BattleManager.Instance.CurProcess = BattleProcess.Lack;
+    }
+
+    private void UpdateLackSelecting()
+    {
+        _sideTipsTime = System.DateTime.Now;
+        for (int i = 0; i < _sideTips.Count; i++)
+        {
+            _sideTips[i].spriteName = "text_lack" + _sideTipsIndex.ToString();
+            _sideTips[i].MakePixelPerfect();
+        }
+        _sideTipsIndex++;
+        if (_sideTipsIndex > 4)
+        {
+            _sideTipsIndex = 1;
+        }
+    }
+
+    private void OnClickLack(GameObject go)
+    {
+        for (int i = 0; i < _lackBtns.Count; i++)
+        {
+            if (go == _lackBtns[i])
+            {
+                pb.CardType type = (pb.CardType)(i + 2);
+                GameMsgHandler.Instance.SendMsgC2GSSelectLack(type);
+                break;
+            }
+        }
+        _lackObj.SetActive(false);
+        BattleManager.Instance.CurProcess = BattleProcess.LackOver;
+    }
+
+    private void ShowLackCard()
+    {
+        _sideTipsObj.SetActive(false);
+        for (int i = 0; i < _playerItems.Count; i++)
+        {
+            pb.CardType lack = _playerItems[i].Info.Lack;
+            Debug.Log("player" + _playerItems[i].Info.OID + ", lack:" + lack.ToString());
+            _playerItems[i].ShowLack();
+        }
+    }
+    #endregion
+
+    #region playing game
+    private void TurnToNextPlayer(int sideIndex)
+    {
+        for (int i = 0; i < _sideObjList.Count; i++)
+        {
+            _sideObjList[i].SetActive(i == sideIndex);
+        }
+        pb.MahjonSide side = BattleManager.Instance.GetSideByPlayerOID(BattleManager.Instance.CurTurnPlayer);
+        SortOneCards(side);
+    }
+
+    private void SortOneCards(pb.MahjonSide side)
+    {
+        hideOneSideCardItem(side);
+        Vector3[] vecs = getCardsItemAttr(side);
+
+        //inhand
+        //0:inhand_startPos、1:inhand_inlineOffset
+        List<Card> inhand = BattleManager.Instance.GetCardList(BattleManager.Instance.CurTurnPlayer, CardStatus.InHand);
+        inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
+        for (int i = 0; i < inhand.Count; i++)
+        {
+            Item_card script = getCardsItem(side, i);
+            script.gameObject.SetActive(true);
+            script.transform.localPosition = vecs[0] + i * vecs[1];
+            script.UpdateUI(side, inhand[i]);
+        }
+        Vector3 inhandLastPos = vecs[0] + inhand.Count * vecs[1];
+
+        //deal
+        //7:inhand_deal_space
+        inhandLastPos += vecs[7];
+        List<Card> deal = BattleManager.Instance.GetCardList(BattleManager.Instance.CurTurnPlayer, CardStatus.Deal);
+        for (int i = 0; i < deal.Count; i++)
+        {
+            Item_card script = getCardsItem(side, inhand.Count + i);
+            script.gameObject.SetActive(true);
+            script.transform.localPosition = inhandLastPos + i * vecs[1];
+            script.UpdateUI(side, deal[i]);
+        }
+        Vector3 dealLastPos = inhandLastPos + (deal.Count == 0 ? 1 : deal.Count) * vecs[1];
+
+        //gang
+        //8:deal_gang_space
+        dealLastPos += vecs[8];
+        List<Card> gang = BattleManager.Instance.GetCardList(BattleManager.Instance.CurTurnPlayer, CardStatus.Gang);
+        for (int i = 0; i < gang.Count; i++)
+        {
+            Item_card script = getCardsItem(side, inhand.Count + deal.Count + i);
+            script.gameObject.SetActive(true);
+            script.transform.localPosition = dealLastPos + i * vecs[1];
+            script.UpdateUI(side, gang[i]);
+        }
+        Vector3 gangLastPos = dealLastPos + gang.Count * vecs[1];
+    }
+
+    private void ChooseDiscard()
+    {
+        Debug.Log("start choose discard ==>>");
+        BattleManager.Instance.CurProcess = BattleProcess.Discard;
     }
     #endregion
 
@@ -298,7 +762,9 @@ public class Panel_battle_mj : WindowsBasePanel
         }
         if (index < _sideCardsDict[side].Count)
         {
-            return _sideCardsDict[side][index];
+            Item_card item = _sideCardsDict[side][index];
+            item.transform.localScale = Vector3.one;
+            return item;
         }
         else {
             Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[side]);
@@ -309,35 +775,88 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private Vector3[] getCardsItemAttr(pb.MahjonSide side)
     {
-        //inhand_startPos、inhand_inlineOffset、inhand_outLineOffset
+        //0:inhand_startPos、1:inhand_inlineOffset、
+        //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset、6:exchange_upOffset
+        //7:inhand_deal_space
+        //8:deal_gang_space
         int sideIndexFromSelf = BattleManager.Instance.GetSideIndexFromSelf(side);
-        Vector3[] result = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+        Vector3[] result = { Vector3.zero, Vector3.zero,
+            Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero  };
         switch (sideIndexFromSelf)
         {
             case 0:
                 result[0] = new Vector3(-453, 80, 0);
                 result[1] = new Vector3(75, 0, 0);
-                result[2] = new Vector3(0, 0, 0);
+
+                result[2] = new Vector3(-65, 160, 0);
+                result[3] = new Vector3(65, 0, 0);
+                result[4] = new Vector3(-37, 214, 0);
+                result[5] = new Vector3(37, 0, 0);
+                result[6] = new Vector3(0, 25, 0);
+
+                result[7] = new Vector3(20, 0, 0);
+
+                result[8] = new Vector3(20, 0, 0);
                 break;
             case 1:
-                result[0] = new Vector3(-168, -180, 0);
+                result[0] = new Vector3(-160, -155, 0);
                 result[1] = new Vector3(0, 28, 0);
-                result[2] = new Vector3(0, 0, 0);
+
+                result[2] = new Vector3(-215, -42, 0);
+                result[3] = new Vector3(0, 42, 0);
+                result[4] = new Vector3(-285, -28, 0);
+                result[5] = new Vector3(0, 28, 0);
+                result[6] = new Vector3(0, 10, 0);
+
+                result[7] = new Vector3(0, 10, 0);
+
+                result[8] = new Vector3(0, 10, 0);
                 break;
             case 2:
                 result[0] = new Vector3(228, -65, 0);
                 result[1] = new Vector3(-38, 0, 0);
-                result[2] = new Vector3(0, 0, 0);
+
+                result[2] = new Vector3(54, -135, 0);
+                result[3] = new Vector3(-54, 0, 0);
+                result[4] = new Vector3(36, -200, 0);
+                result[5] = new Vector3(-36, 0, 0);
+                result[6] = new Vector3(0, 10, 0);
+
+                result[7] = new Vector3(-20, 0, 0);
+
+                result[8] = new Vector3(-20, 0, 0);
                 break;
             case 3:
                 result[0] = new Vector3(160, 210, 0);
                 result[1] = new Vector3(0, -28, 0);
-                result[2] = new Vector3(0, 0, 0);
+
+                result[2] = new Vector3(215, 42, 0);
+                result[3] = new Vector3(0, -42, 0);
+                result[4] = new Vector3(285, 28, 0);
+                result[5] = new Vector3(0, -28, 0);
+                result[6] = new Vector3(0, 10, 0);
+
+                result[7] = new Vector3(0, -10, 0);
+
+                result[8] = new Vector3(0, -10, 0);
                 break;
             default:
                 break;
         }
         return result;
+    }
+
+    public override void OnUpdate()
+    {
+        base.OnUpdate();
+
+        if (_playingTipsAni)
+        {
+            if (System.DateTime.Now.Subtract(_sideTipsTime).TotalMilliseconds >= 1000)
+            {
+                UpdateExchangeSelecting();
+            }
+        }
     }
 
 }

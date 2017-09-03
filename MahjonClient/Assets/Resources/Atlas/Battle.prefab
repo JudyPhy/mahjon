@@ -55,7 +55,7 @@ MonoBehaviour:
   mSprites:
   - name: b1
     x: 397
-    y: 576
+    y: 552
     width: 161
     height: 41
     borderLeft: 0
@@ -67,8 +67,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: b2
-    x: 834
-    y: 803
+    x: 559
+    y: 552
     width: 161
     height: 41
     borderLeft: 0
@@ -80,8 +80,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: bg_gold
-    x: 711
-    y: 863
+    x: 253
+    y: 793
     width: 296
     height: 51
     borderLeft: 0
@@ -118,6 +118,19 @@ MonoBehaviour:
     paddingRight: 4
     paddingTop: 0
     paddingBottom: 0
+  - name: bg_lack
+    x: 711
+    y: 855
+    width: 310
+    height: 59
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
   - name: bg_name
     x: 350
     y: 863
@@ -133,7 +146,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: btn
     x: 416
-    y: 729
+    y: 677
     width: 165
     height: 60
     borderLeft: 0
@@ -159,7 +172,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: btn_dismiss
     x: 0
-    y: 625
+    y: 515
     width: 252
     height: 109
     borderLeft: 0
@@ -185,7 +198,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: btn_ready
     x: 0
-    y: 515
+    y: 625
     width: 252
     height: 109
     borderLeft: 0
@@ -198,7 +211,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: btn_send
     x: 397
-    y: 515
+    y: 491
     width: 108
     height: 60
     borderLeft: 0
@@ -249,8 +262,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog_line
-    x: 616
-    y: 428
+    x: 506
+    y: 451
     width: 355
     height: 4
     borderLeft: 0
@@ -262,7 +275,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog_off
-    x: 119
+    x: 178
     y: 14
     width: 58
     height: 238
@@ -275,7 +288,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 1
   - name: dialog_on
-    x: 178
+    x: 119
     y: 14
     width: 58
     height: 238
@@ -288,8 +301,8 @@ MonoBehaviour:
     paddingTop: 1
     paddingBottom: 0
   - name: dialog1
-    x: 582
-    y: 762
+    x: 519
+    y: 765
     width: 352
     height: 27
     borderLeft: 0
@@ -302,7 +315,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: dialog10
     x: 311
-    y: 649
+    y: 625
     width: 270
     height: 27
     borderLeft: 0
@@ -314,8 +327,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog11
-    x: 582
-    y: 650
+    x: 632
+    y: 598
     width: 244
     height: 26
     borderLeft: 0
@@ -327,8 +340,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog2
-    x: 559
-    y: 591
+    x: 721
+    y: 567
     width: 243
     height: 26
     borderLeft: 0
@@ -340,8 +353,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog3
-    x: 654
-    y: 549
+    x: 506
+    y: 525
     width: 241
     height: 26
     borderLeft: 0
@@ -353,8 +366,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog4
-    x: 582
-    y: 707
+    x: 519
+    y: 738
     width: 325
     height: 26
     borderLeft: 0
@@ -367,7 +380,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: dialog5
     x: 827
-    y: 650
+    y: 626
     width: 189
     height: 26
     borderLeft: 0
@@ -380,7 +393,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: dialog6
     x: 582
-    y: 734
+    y: 710
     width: 326
     height: 27
     borderLeft: 0
@@ -392,8 +405,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog7
-    x: 311
-    y: 677
+    x: 582
+    y: 654
     width: 299
     height: 27
     borderLeft: 0
@@ -405,8 +418,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog8
-    x: 611
-    y: 677
+    x: 582
+    y: 682
     width: 299
     height: 27
     borderLeft: 0
@@ -418,8 +431,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: dialog9
-    x: 632
-    y: 622
+    x: 582
+    y: 626
     width: 244
     height: 26
     borderLeft: 0
@@ -432,7 +445,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: expression_off
     x: 253
-    y: 227
+    y: 175
     width: 57
     height: 238
     borderLeft: 0
@@ -445,7 +458,7 @@ MonoBehaviour:
     paddingBottom: 1
   - name: expression_on
     x: 253
-    y: 466
+    y: 414
     width: 57
     height: 238
     borderLeft: 0
@@ -470,8 +483,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: headIcon_default_s
-    x: 311
-    y: 7
+    x: 397
+    y: 346
     width: 68
     height: 68
     borderLeft: 0
@@ -497,7 +510,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: icon_chat
     x: 397
-    y: 439
+    y: 415
     width: 75
     height: 75
     borderLeft: 0
@@ -523,7 +536,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: icon_tiao
     x: 253
-    y: 151
+    y: 137
     width: 33
     height: 37
     borderLeft: 0
@@ -536,7 +549,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: icon_tong
     x: 253
-    y: 189
+    y: 99
     width: 33
     height: 37
     borderLeft: 0
@@ -549,7 +562,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: icon_wan
     x: 253
-    y: 113
+    y: 61
     width: 33
     height: 37
     borderLeft: 0
@@ -562,7 +575,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: input
     x: 253
-    y: 790
+    y: 738
     width: 265
     height: 54
     borderLeft: 0
@@ -575,7 +588,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: IP
     x: 397
-    y: 618
+    y: 594
     width: 234
     height: 30
     borderLeft: 0
@@ -588,7 +601,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: lack_tiao
     x: 0
-    y: 134
+    y: 253
     width: 118
     height: 118
     borderLeft: 0
@@ -600,6 +613,19 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: lack_tong
+    x: 0
+    y: 134
+    width: 118
+    height: 118
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 0
+  - name: lack_wan
     x: 119
     y: 253
     width: 118
@@ -612,22 +638,9 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: lack_wan
-    x: 0
-    y: 253
-    width: 118
-    height: 118
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
   - name: text_
-    x: 506
-    y: 433
+    x: 815
+    y: 492
     width: 126
     height: 32
     borderLeft: 0
@@ -639,8 +652,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_chi
-    x: 935
-    y: 705
+    x: 909
+    y: 653
     width: 84
     height: 84
     borderLeft: 0
@@ -653,7 +666,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_chi_s
     x: 311
-    y: 317
+    y: 293
     width: 80
     height: 82
     borderLeft: 0
@@ -666,7 +679,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_gang
     x: 311
-    y: 565
+    y: 541
     width: 85
     height: 83
     borderLeft: 0
@@ -679,7 +692,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_gang_s
     x: 311
-    y: 76
+    y: 52
     width: 80
     height: 78
     borderLeft: 0
@@ -692,7 +705,7 @@ MonoBehaviour:
     paddingBottom: 3
   - name: text_hu
     x: 311
-    y: 482
+    y: 458
     width: 82
     height: 82
     borderLeft: 0
@@ -705,7 +718,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_hu_s
     x: 311
-    y: 155
+    y: 212
     width: 79
     height: 80
     borderLeft: 0
@@ -718,7 +731,7 @@ MonoBehaviour:
     paddingBottom: 1
   - name: text_hu_self
     x: 253
-    y: 705
+    y: 653
     width: 162
     height: 84
     borderLeft: 0
@@ -731,7 +744,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_lack1
     x: 397
-    y: 360
+    y: 313
     width: 97
     height: 32
     borderLeft: 0
@@ -743,8 +756,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_lack2
-    x: 506
-    y: 400
+    x: 135
+    y: 393
     width: 109
     height: 32
     borderLeft: 0
@@ -756,8 +769,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_lack3
-    x: 887
-    y: 433
+    x: 0
+    y: 16
     width: 118
     height: 32
     borderLeft: 0
@@ -769,8 +782,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_lack4
-    x: 506
-    y: 499
+    x: 872
+    y: 760
     width: 128
     height: 32
     borderLeft: 0
@@ -781,123 +794,19 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
-  - name: text_ok1
-    x: 760
-    y: 433
-    width: 126
+  - name: text_ok
+    x: 397
+    y: 247
+    width: 70
     height: 32
     borderLeft: 0
     borderRight: 0
     borderTop: 0
     borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok2
-    x: 633
-    y: 433
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok3
-    x: 896
-    y: 543
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok4
-    x: 764
-    y: 499
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok5
-    x: 887
-    y: 466
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok6
-    x: 891
-    y: 499
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok7
-    x: 506
-    y: 466
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok8
-    x: 633
-    y: 466
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
-  - name: text_ok9
-    x: 760
-    y: 466
-    width: 126
-    height: 32
-    borderLeft: 0
-    borderRight: 0
-    borderTop: 0
-    borderBottom: 0
-    paddingLeft: 0
-    paddingRight: 0
-    paddingTop: 0
-    paddingBottom: 0
+    paddingLeft: 2
+    paddingRight: 2
+    paddingTop: 2
+    paddingBottom: 3
   - name: text_owner
     x: 964
     y: 942
@@ -913,7 +822,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_pass_s
     x: 311
-    y: 236
+    y: 131
     width: 79
     height: 80
     borderLeft: 0
@@ -939,7 +848,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_peng_s
     x: 311
-    y: 400
+    y: 376
     width: 82
     height: 81
     borderLeft: 0
@@ -951,8 +860,8 @@ MonoBehaviour:
     paddingTop: 5
     paddingBottom: 2
   - name: text_playerInfo
-    x: 506
-    y: 532
+    x: 865
+    y: 801
     width: 147
     height: 43
     borderLeft: 0
@@ -964,8 +873,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_ready
-    x: 397
-    y: 393
+    x: 311
+    y: 6
     width: 77
     height: 45
     borderLeft: 0
@@ -977,7 +886,7 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_select_lack
-    x: 519
+    x: 550
     y: 809
     width: 314
     height: 35
@@ -991,7 +900,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: text_select1
     x: 397
-    y: 327
+    y: 280
     width: 97
     height: 32
     borderLeft: 0
@@ -1003,8 +912,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_select2
-    x: 135
-    y: 393
+    x: 625
+    y: 456
     width: 109
     height: 32
     borderLeft: 0
@@ -1016,8 +925,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_select3
-    x: 0
-    y: 16
+    x: 506
+    y: 456
     width: 118
     height: 32
     borderLeft: 0
@@ -1029,8 +938,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_select4
-    x: 635
-    y: 499
+    x: 686
+    y: 492
     width: 128
     height: 32
     borderLeft: 0
@@ -1042,8 +951,8 @@ MonoBehaviour:
     paddingTop: 0
     paddingBottom: 0
   - name: text_tips_hu
-    x: 803
-    y: 582
+    x: 506
+    y: 489
     width: 179
     height: 35
     borderLeft: 0

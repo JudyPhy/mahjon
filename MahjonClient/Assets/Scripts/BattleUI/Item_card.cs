@@ -40,7 +40,7 @@ public class Item_card : MonoBehaviour
     public void UpdateUI(pb.MahjonSide side, Card card)
     {
         _info = card;
-        _side = side;        
+        _side = side;
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_side);
         _collider.enabled = sideIndex == 0;
         string[] bgName = { "self", "flank", "front", "flank" };
@@ -90,6 +90,15 @@ public class Item_card : MonoBehaviour
         _bg.depth = depth;
     }
 
+    public void ShowBack(int sideIndex)
+    {
+        _card.gameObject.SetActive(false);
+        _collider.enabled = sideIndex == 0;
+        string[] bgName = { "front_back", "flank_back", "front_back", "flank_back" };
+        _bg.spriteName = bgName[sideIndex];
+        _bg.MakePixelPerfect();
+    }
+
     //public void UpdateGangCard(Pai pai, pb.BattleSide side, bool showFront)
     //{
     //    _info = pai;
@@ -106,41 +115,42 @@ public class Item_card : MonoBehaviour
     //    }
     //}
 
-    //private void OnSelectExchangeCard()
-    //{
-    //    Debug.Log("select card as exchange card, oid=" + _info.OID);
-    //    if (_info.Status == PaiStatus.Exchange)
-    //    {
-    //        _info.Status = PaiStatus.InHand;
-    //        iTween.MoveTo(gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f));
-    //        EventDispatcher.TriggerEvent<bool>(EventDefine.UpdateBtnExchangeCard, false);
-    //    }
-    //    else
-    //    {
-    //        pb.CardType exchangeType = BattleManager.Instance.GetExchangeTypeBySide(_side);
-    //        pb.CardType curType = (pb.CardType)Mathf.CeilToInt(_info.Id / 10);
-    //        //Debug.Log("curType=" + curType.ToString() + ", exchangeType=" + exchangeType.ToString());
-    //        if (exchangeType != pb.CardType.None && curType != exchangeType)
-    //        {
-    //            UIManager.Instance.ShowTips(TipsType.text, "必须选择同花色的牌");
-    //        }
-    //        else
-    //        {
-    //            int count = BattleManager.Instance.GetExchangeCardCountBySide(_side);
-    //            if (count >= 3)
-    //            {
-    //                UIManager.Instance.ShowTips(TipsType.text, "只能交换三张牌");
-    //            }
-    //            else
-    //            {
-    //                _info.Status = PaiStatus.Exchange;
-    //                iTween.MoveTo(gameObject, iTween.Hash("y", -230, "islocal", true, "time", 0.2f));
-    //                count++;
-    //                EventDispatcher.TriggerEvent<bool>(EventDefine.UpdateBtnExchangeCard, count >= 3);
-    //            }
-    //        }
-    //    }
-    //}
+    private void OnSelectExchangeCard()
+    {
+        Debug.Log("select card as exchange card, oid=" + _info.OID);
+        if (_info.Status == CardStatus.Exchange)
+        {
+            _info.Status = CardStatus.InHand;
+            iTween.MoveTo(gameObject, iTween.Hash("y", 80, "islocal", true, "time", 0.2f));
+        }
+        else
+        {
+            List<Card> list = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.Exchange);
+            if (list.Count >= 3)
+            {
+                UIManager.Instance.ShowTips(TipsType.text, "只能交换3张牌");
+            }
+            else if (list.Count <= 0)
+            {
+                _info.Status = CardStatus.Exchange;
+                iTween.MoveTo(gameObject, iTween.Hash("y", 105, "islocal", true, "time", 0.2f));
+            }
+            else
+            {
+                pb.CardType exchangeType = (pb.CardType)Mathf.CeilToInt(list[0].Id / 10);
+                pb.CardType curType = (pb.CardType)Mathf.CeilToInt(_info.Id / 10);
+                if (exchangeType != curType)
+                {
+                    UIManager.Instance.ShowTips(TipsType.text, "必须选择同花色的牌");
+                }
+                else
+                {
+                    _info.Status = CardStatus.Exchange;
+                    iTween.MoveTo(gameObject, iTween.Hash("y", 105, "islocal", true, "time", 0.2f));
+                }
+            }
+        }
+    }
 
     //public void UnSelect()
     //{
@@ -166,13 +176,13 @@ public class Item_card : MonoBehaviour
 
     private void OnClickCard(GameObject go)
     {
-        //Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
-        //    + ", curProcess=" + BattleManager.Instance.CurProcess);
-        //if (BattleManager.Instance.CurProcess == BattleProcess.SelectingExchangeCard)
-        //{
-        //    // 选择交换牌阶段            
-        //    OnSelectExchangeCard();
-        //}
+        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
+            + ", curProcess=" + BattleManager.Instance.CurProcess);
+        if (BattleManager.Instance.CurProcess == BattleProcess.ExchangCard)
+        {
+            // 选择交换牌阶段            
+            OnSelectExchangeCard();
+        }
         //else if (BattleManager.Instance.CurProcess == BattleProcess.SelectingDiscard)
         //{
         //    if (_info.Status != PaiStatus.InHand)

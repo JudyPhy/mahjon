@@ -60,6 +60,15 @@ message LackCard
 
 enum ProcType
 {
+	Proc_Hu = 1;
+	Proc_Gang = 2;
+	Proc_Peng = 3;
+	Proc_Discard = 4;	
+	Proc_Pass = 5;
+}
+
+/*enum ProcType
+{
 	SelfHu = 1;
 	SelfGang = 2;
 	HuOther = 3;
@@ -67,7 +76,7 @@ enum ProcType
 	Peng = 5;
 	Discard = 6;	
 	Pass = 7;
-}
+}*/
 
 enum TurnSwitchType
 {	
@@ -91,7 +100,7 @@ message PlayerInfo
 	required string NickName = 2;
 	required string HeadIcon = 3;
 	required int32 Gold = 4;
-	required int32 Diamond = 5;
+	required int32 Fangka = 5;
 	optional MahjonSide Side = 6;
 	optional bool IsOwner = 7;
 }
@@ -179,11 +188,29 @@ message GS2CSelectLackRet
 message GS2CTurnToNext
 {
 	required int32 playerOID = 1;
-	required TurnSwitchType type = 2;
-	optional CardInfo drawCard = 3;
+	optional CardInfo drawCard = 2;  //CardStatus必须为Deal; 该字段省略时认定为是碰牌之后的切换
 }
 
-message GS2CPlayerProc
+message GS2CInterruptAction
+{
+	repeated ProcType procList =1;
+	optional CardInfo drawCard = 2;
+}
+
+message C2GSInterruptActionRet
+{	
+	required ProcType procType = 1;
+	optional CardInfo drawCard = 2;
+}
+
+message GS2CBroadcastProc
+{	
+	required int32 procPlayer = 1;
+	required ProcType procType = 2;
+	repeated CardInfo cardList = 3;
+}
+
+/*message GS2CPlayerProc
 {
 	required int32 procPlayer = 1;
 	required ProcType procType = 2;
@@ -202,7 +229,7 @@ message GS2CPlayProcAni
 	required int32 procPlayer = 1;
 	required ProcType procType = 2;
 	repeated CardInfo cardList = 3;
-}
+}*/
 
 message GS2CGameOver
 {

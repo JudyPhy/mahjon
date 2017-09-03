@@ -41,6 +41,17 @@ public class GameMsgHandler
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSEnterGame, msg);
     }
 
+    public void SendMsgC2GSExchangeCard(List<Card> exchangeList)
+    {
+        Debug.Log("SendMsgC2GSExchangeCard==>> [" + exchangeList.Count + "]");
+        pb.C2GSExchangeCard msg = new pb.C2GSExchangeCard();
+        for (int i = 0; i < exchangeList.Count; i++)
+        {
+            msg.cardOIDList.Add(exchangeList[i].OID);
+        }
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
+    }
+
     public void SendMsgC2GSSelectLack(pb.CardType type)
     {
         Debug.Log("SendMsgC2GSSelectLack==>> [" + type.ToString() + "]");
@@ -49,21 +60,6 @@ public class GameMsgHandler
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSSelectLack, msg);
     }
 
-    //public void SendMsgC2GSExchangeCard(List<Pai> exchangeList)
-    //{
-    //    Debug.Log("SendMsgC2GSExchangeCard==>> [" + exchangeList.Count + "]");
-    //    pb.C2GSExchangeCard msg = new pb.C2GSExchangeCard();
-    //    for (int i = 0; i < exchangeList.Count; i++)
-    //    {
-    //        pb.CardInfo card = new pb.CardInfo();
-    //        card.CardOid = exchangeList[i].OID;
-    //        card.CardId = exchangeList[i].Id;
-    //        card.playerId = exchangeList[i].PlayerID;
-    //        card.Status = pb.CardStatus.inHand;
-    //        //msg.cardList.Add(card);
-    //    }
-    //    NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSExchangeCard, msg);
-    //}
     //public void SendMsgC2GSDiscard(int oid)
     //{
     //    Debug.Log("SendMsgC2GSDiscard==>> [" + oid + "]");
@@ -154,38 +150,37 @@ public class GameMsgHandler
         BattleManager.Instance.PrepareGameStart(msg);
     }
 
-    //public void RevMsgGS2CUpdateCardInfoAfterExchange(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CUpdateCardInfoAfterExchange");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CUpdateCardInfoAfterExchange msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardInfoAfterExchange>(stream);
-    //    BattleManager.Instance.UpdateExchangeCardInfo(msg);
-    //}
+    public void RevMsgGS2CExchangeCardRet(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CExchangeCardRet");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CExchangeCardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CExchangeCardRet>(stream);
+        BattleManager.Instance.UpdateAllCardsAfterExhchange(msg);
+    }
 
-    //public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CSelectLackRet");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
-    //    BattleManager.Instance.UpdateLackCardInfo(msg.lackCard);
-    //}
+    public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CSelectLackRet");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
+        BattleManager.Instance.LackRet(msg.lackCard);
+    }
 
-    //public void RevMsgGS2CDiscardRet(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CDiscardRet");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CDiscardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CDiscardRet>(stream);
-    //    BattleManager.Instance.UpdateCardInfoByDiscardRet(msg.cardOid);
-    //    EventDispatcher.TriggerEvent<int>(EventDefine.DiscardRet, msg.cardOid);
-    //}
+    public void RevMsgGS2CTurnToNext(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CTurnToNext");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
+        BattleManager.Instance.TurnToNextPlayer(msg.playerOID, msg.drawCard);
+    }
 
-    //public void RevMsgGS2CTurnToNext(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CTurnToNext");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
-    //    BattleManager.Instance.TurnToNextPlayer(msg.playerOid, msg.card, msg.type);
-    //}
+    public void RevMsgGS2CInterruptAction(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CInterruptAction");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CInterruptAction msg = ProtoBuf.Serializer.Deserialize<pb.GS2CInterruptAction>(stream);
+        BattleManager.Instance.PlayerProc(msg);
+    }
 
     //public void RevMsgGS2CRobotProc(int pid, byte[] msgBuf, int msgSize)
     //{

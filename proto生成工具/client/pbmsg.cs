@@ -113,12 +113,12 @@ namespace pb
       get { return _Gold; }
       set { _Gold = value; }
     }
-    private int _Diamond;
-    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"Diamond", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int Diamond
+    private int _Fangka;
+    [global::ProtoBuf.ProtoMember(5, IsRequired = true, Name=@"Fangka", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public int Fangka
     {
-      get { return _Diamond; }
-      set { _Diamond = value; }
+      get { return _Fangka; }
+      set { _Fangka = value; }
     }
     private pb.MahjonSide _Side = pb.MahjonSide.DEFAULT;
     [global::ProtoBuf.ProtoMember(6, IsRequired = false, Name=@"Side", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
@@ -450,15 +450,8 @@ namespace pb
       get { return _playerOID; }
       set { _playerOID = value; }
     }
-    private pb.TurnSwitchType _type;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"type", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.TurnSwitchType type
-    {
-      get { return _type; }
-      set { _type = value; }
-    }
     private pb.CardInfo _drawCard = null;
-    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"drawCard", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"drawCard", DataFormat = global::ProtoBuf.DataFormat.Default)]
     [global::System.ComponentModel.DefaultValue(null)]
     public pb.CardInfo drawCard
     {
@@ -470,50 +463,35 @@ namespace pb
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CPlayerProc")]
-  public partial class GS2CPlayerProc : global::ProtoBuf.IExtensible
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CInterruptAction")]
+  public partial class GS2CInterruptAction : global::ProtoBuf.IExtensible
   {
-    public GS2CPlayerProc() {}
+    public GS2CInterruptAction() {}
     
-    private int _procPlayer;
-    [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public int procPlayer
+    private readonly global::System.Collections.Generic.List<pb.ProcType> _procList = new global::System.Collections.Generic.List<pb.ProcType>();
+    [global::ProtoBuf.ProtoMember(1, Name=@"procList", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+    public global::System.Collections.Generic.List<pb.ProcType> procList
     {
-      get { return _procPlayer; }
-      set { _procPlayer = value; }
+      get { return _procList; }
     }
-    private pb.ProcType _procType;
-    [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    public pb.ProcType procType
+  
+    private pb.CardInfo _drawCard = null;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"drawCard", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(null)]
+    public pb.CardInfo drawCard
     {
-      get { return _procType; }
-      set { _procType = value; }
-    }
-    private int _beProcPlayer = default(int);
-    [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"beProcPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    [global::System.ComponentModel.DefaultValue(default(int))]
-    public int beProcPlayer
-    {
-      get { return _beProcPlayer; }
-      set { _beProcPlayer = value; }
-    }
-    private int _procCardId = default(int);
-    [global::ProtoBuf.ProtoMember(4, IsRequired = false, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    [global::System.ComponentModel.DefaultValue(default(int))]
-    public int procCardId
-    {
-      get { return _procCardId; }
-      set { _procCardId = value; }
+      get { return _drawCard; }
+      set { _drawCard = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSPlayerProcRet")]
-  public partial class C2GSPlayerProcRet : global::ProtoBuf.IExtensible
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"C2GSInterruptActionRet")]
+  public partial class C2GSInterruptActionRet : global::ProtoBuf.IExtensible
   {
-    public C2GSPlayerProcRet() {}
+    public C2GSInterruptActionRet() {}
     
     private pb.ProcType _procType;
     [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
@@ -522,23 +500,23 @@ namespace pb
       get { return _procType; }
       set { _procType = value; }
     }
-    private int _procCardId = default(int);
-    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"procCardId", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-    [global::System.ComponentModel.DefaultValue(default(int))]
-    public int procCardId
+    private pb.CardInfo _drawCard = null;
+    [global::ProtoBuf.ProtoMember(2, IsRequired = false, Name=@"drawCard", DataFormat = global::ProtoBuf.DataFormat.Default)]
+    [global::System.ComponentModel.DefaultValue(null)]
+    public pb.CardInfo drawCard
     {
-      get { return _procCardId; }
-      set { _procCardId = value; }
+      get { return _drawCard; }
+      set { _drawCard = value; }
     }
     private global::ProtoBuf.IExtension extensionObject;
     global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CPlayProcAni")]
-  public partial class GS2CPlayProcAni : global::ProtoBuf.IExtensible
+  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"GS2CBroadcastProc")]
+  public partial class GS2CBroadcastProc : global::ProtoBuf.IExtensible
   {
-    public GS2CPlayProcAni() {}
+    public GS2CBroadcastProc() {}
     
     private int _procPlayer;
     [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name=@"procPlayer", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
@@ -692,26 +670,20 @@ namespace pb
     public enum ProcType
     {
             
-      [global::ProtoBuf.ProtoEnum(Name=@"SelfHu", Value=1)]
-      SelfHu = 1,
+      [global::ProtoBuf.ProtoEnum(Name=@"Proc_Hu", Value=1)]
+      Proc_Hu = 1,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"SelfGang", Value=2)]
-      SelfGang = 2,
+      [global::ProtoBuf.ProtoEnum(Name=@"Proc_Gang", Value=2)]
+      Proc_Gang = 2,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"HuOther", Value=3)]
-      HuOther = 3,
+      [global::ProtoBuf.ProtoEnum(Name=@"Proc_Peng", Value=3)]
+      Proc_Peng = 3,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"GangOther", Value=4)]
-      GangOther = 4,
+      [global::ProtoBuf.ProtoEnum(Name=@"Proc_Discard", Value=4)]
+      Proc_Discard = 4,
             
-      [global::ProtoBuf.ProtoEnum(Name=@"Peng", Value=5)]
-      Peng = 5,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"Discard", Value=6)]
-      Discard = 6,
-            
-      [global::ProtoBuf.ProtoEnum(Name=@"Pass", Value=7)]
-      Pass = 7
+      [global::ProtoBuf.ProtoEnum(Name=@"Proc_Pass", Value=5)]
+      Proc_Pass = 5
     }
   
     [global::ProtoBuf.ProtoContract(Name=@"TurnSwitchType")]

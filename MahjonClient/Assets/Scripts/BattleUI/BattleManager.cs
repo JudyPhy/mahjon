@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using EventTransmit;
 
+public enum BattleProcess
+{
+    Default,
+    ExchangCard,
+    ExchangCardOver,
+
+    Lack,
+    LackOver,
+
+    Discard,
+    DiscardOver,
+}
+
+
 public class BattleManager
 {
     private static BattleManager _instance;
@@ -36,12 +50,18 @@ public class BattleManager
         get { return _curPlaySide; }
     }
 
-    //    private BattleProcess _curProcess;
-    //    public BattleProcess CurProcess
-    //    {
-    //        set { _curProcess = value; }
-    //        get { return _curProcess; }
-    //    }
+    private int _curTurnPlayer;
+    public int CurTurnPlayer
+    {
+        get { return _curTurnPlayer; }
+    }
+
+    private BattleProcess _curProcess;
+    public BattleProcess CurProcess
+    {
+        set { _curProcess = value; }
+        get { return _curProcess; }
+    }
 
     //    private int _curTurnDrawnCardOid;
     //    public int CurTurnDrawnCardOid
@@ -64,7 +84,14 @@ public class BattleManager
     //        get { return _curSelfGangCardId; }
     //    }
 
+    //playerOid : sideInfo
     private Dictionary<int, SideInfo> _SideInfoDict = new Dictionary<int, SideInfo>();
+
+    private List<pb.MahjonSide> _sortSideFromSelf = new List<pb.MahjonSide>();
+    public List<pb.MahjonSide> SortSideFromSelf
+    {
+        get { return _sortSideFromSelf; }
+    }
 
     //    private SideInfo getSideInfoBySide(pb.BattleSide side)
     //    {
@@ -121,7 +148,7 @@ public class BattleManager
 
     public void GS2CUpdateRoomMember(pb.GS2CUpdateRoomMember msg)
     {
-        Debug.Log("GS2CUpdateRoomMember=> player count:" + msg.player.Count);
+        Debug.Log("GS2CUpdateRoomMember=> player count:" + msg.player.Count);        
         for (int i = 0; i < msg.player.Count; i++)
         {
             if (_SideInfoDict.ContainsKey(msg.player[i].OID))
@@ -152,6 +179,7 @@ public class BattleManager
             }
         }
         EventDispatcher.TriggerEvent(EventDefine.UpdateRoomMember);
+        _sortSideFromSelf = GetSortedSideFromSelf();
     }
 
     public List<pb.MahjonSide> GetSortedSideFromSelf()
@@ -177,10 +205,9 @@ public class BattleManager
 
     public int GetSideIndexFromSelf(pb.MahjonSide side)
     {
-        List<pb.MahjonSide> sideList = GetSortedSideFromSelf();
-        for (int i = 0; i < sideList.Count; i++)
+        for (int i = 0; i < _sortSideFromSelf.Count; i++)
         {
-            if (side == sideList[i])
+            if (side == _sortSideFromSelf[i])
             {
                 return i;
             }
@@ -243,6 +270,17 @@ public class BattleManager
         _dealerId = msg.dealerId;
         Debug.Log("_dealerId=" + _dealerId);
         EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
+
+        //log        
+        foreach (int player in _SideInfoDict.Keys)
+        {
+            string str = "player" + player + " 's cards: ";
+            for (int i = 0; i < _SideInfoDict[player].CardList.Count; i++)
+            {
+                str += _SideInfoDict[player].CardList[i].Id + ", ";
+            }
+            Debug.Log(str);
+        }        
     }
 
     public pb.MahjonSide GetSideByPlayerOID(int playerOid)
@@ -303,23 +341,23 @@ public class BattleManager
     //        return false;
     //    }
 
-    //    public void UpdateLackCardInfo(List<pb.LackCard> list)
-    //    {
-    //        Debug.Log("lack card count=" + list.Count);
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            for (int j = 0; j < _playerPaiInfoList.Count; j++)
-    //            {
-    //                if (_playerPaiInfoList[j].PlayerInfo.OID == list[i].playerId)
-    //                {
-    //                    Debug.Log("player " + _playerPaiInfoList[j].PlayerInfo.NickName + " 's lack card is " + list[i].type);
-    //                    _playerPaiInfoList[j].LackPaiType = list[i].type;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //        EventDispatcher.TriggerEvent(EventDefine.ShowLackCard);
-    //    }
+    public void LackRet(List<pb.LackCard> list)
+    {
+        Debug.Log("LackRet");
+        for (int i = 0; i < list.Count; i++)
+        {
+            int player = list[i].playerOID;
+            if (_SideInfoDict.ContainsKey(player))
+            {
+                _SideInfoDict[player].Lack = list[i].type;
+            }
+            else
+            {
+                Debug.LogError("has no player" + player + " 's sideInfo.");
+            }
+        }
+        EventDispatcher.TriggerEvent(EventDefine.ShowLackCard);
+    }
 
     //    public pb.CardType GetLackCardTypeByPlayerId(int playerId)
     //    {
@@ -343,15 +381,15 @@ public class BattleManager
     //        return pb.CardType.None;
     //    }
 
-    //    public pb.CardType GetExchangeTypeBySide(pb.BattleSide side)
+    //public pb.CardType GetExchangeType(int playerOid)
+    //{
+    //    if (_SideInfoDict.ContainsKey(playerOid))
     //    {
-    //        SideInfo sideInfo = getSideInfoBySide(side);
-    //        if (sideInfo != null)
-    //        {
-    //            return sideInfo.GetExchangeType();
-    //        }
-    //        return pb.CardType.None;
+
+    //        return sideInfo.GetExchangeType();
     //    }
+    //    return pb.CardType.Default;
+    //}
 
     //    public int GetExchangeCardCountBySide(pb.BattleSide side)
     //    {
@@ -363,17 +401,14 @@ public class BattleManager
     //        return 0;
     //    }
 
-    //    public List<Pai> GetCardListBySideAndStatus(pb.BattleSide side, PaiStatus status)
-    //    {
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            if (_playerPaiInfoList[i].Side == side)
-    //            {
-    //                return _playerPaiInfoList[i].GetPaiListByStatus(status);
-    //            }
-    //        }
-    //        return null;
-    //    }
+    public List<Card> GetCardList(int playerOid, CardStatus status)
+    {
+        if (_SideInfoDict.ContainsKey(playerOid))
+        {
+            return _SideInfoDict[playerOid].GetCardList(status);
+        }
+        return null;
+    }
 
     //    public List<int> GetCardIdListBySideAndStatus(pb.BattleSide side, PaiStatus status)
     //    {
@@ -387,96 +422,133 @@ public class BattleManager
     //        return null;
     //    }
 
-    //    public void UpdateExchangeCardInfo(pb.GS2CUpdateCardInfoAfterExchange msg)
-    //    {
-    //        //只处理自己交换牌
-    //        List<pb.CardInfo> selfNewCardList = new List<pb.CardInfo>();
-    //        for (int i = 0; i < msg.cardList.Count; i++)
-    //        {
-    //            if (msg.cardList[i].playerId == Player.Instance.PlayerInfo.OID)
-    //            {
-    //                selfNewCardList.Add(msg.cardList[i]);
-    //            }
-    //        }
-    //        Debug.Log("After exchange card, self card count is " + selfNewCardList.Count);
+    //收到交换牌
+    public void UpdateAllCardsAfterExhchange(pb.GS2CExchangeCardRet msg)
+    {
+        Dictionary<int, List<pb.CardInfo>> newCardDict = new Dictionary<int, List<pb.CardInfo>>();
+        for (int i = 0; i < msg.cardList.Count; i++)
+        {
+            if (!newCardDict.ContainsKey(msg.cardList[i].playerOID))
+            {
+                newCardDict.Add(msg.cardList[i].playerOID, new List<pb.CardInfo>());
+            }
+            newCardDict[msg.cardList[i].playerOID].Add(msg.cardList[i]);
+        }
+        foreach (int player in _SideInfoDict.Keys)
+        {
+            if (!newCardDict.ContainsKey(player))
+            {
+                Debug.LogError("player" + player + " has no new cardlist after exchange.");
+                continue;
+            }            
+            List<pb.CardInfo> list = newCardDict[player];
+            list.Sort((card1, card2) => { return card1.ID.CompareTo(card2.ID); });
 
-    //        List<int> _selfExchangeCardOid = new List<int>();
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            int playerId = _playerPaiInfoList[i].PlayerInfo.OID;
-    //            if (playerId == Player.Instance.PlayerInfo.OID)
-    //            {
-    //                //自己的牌将交换牌区分出来，用以动画表现
-    //                _playerPaiInfoList[i].RemoveExchangeCard();
-    //                List<Pai> curPaiList = _playerPaiInfoList[i].GetPaiListByStatus(PaiStatus.InHand);
-    //                Debug.Log("self has " + curPaiList.Count + " inhand cards.");
-    //                for (int n = 0; n < selfNewCardList.Count; n++)
-    //                {
-    //                    pb.CardInfo curCard = selfNewCardList[n];
-    //                    bool isFind = false;
-    //                    for (int j = 0; j < curPaiList.Count; j++)
-    //                    {
-    //                        if (curPaiList[j].OID == curCard.CardOid)
-    //                        {
-    //                            isFind = true;
-    //                            break;
-    //                        }
-    //                    }
-    //                    if (!isFind)
-    //                    {
-    //                        Pai pai = new Pai();
-    //                        pai.OID = curCard.CardOid;
-    //                        pai.Id = curCard.CardId;
-    //                        pai.Status = PaiStatus.Exchange;
-    //                        pai.PlayerID = curCard.playerId;
-    //                        _playerPaiInfoList[i].GetPaiList().Add(pai);
-    //                    }
-    //                }
-    //                Debug.Log("self has " + _playerPaiInfoList[i].GetPaiList().Count + " cards.");
-    //            }
-    //            else
-    //            {
-    //                // 其他人直接更新所有牌
-    //                _playerPaiInfoList[i].ClearPai();
-    //                for (int j = 0; j < msg.cardList.Count; j++)
-    //                {
-    //                    if (playerId == msg.cardList[j].playerId)
-    //                    {
-    //                        _playerPaiInfoList[i].AddPai(msg.cardList[j]);
-    //                    }
-    //                }
-    //                Debug.Log("other has " + _playerPaiInfoList[i].GetPaiList().Count + " cards.");
-    //            }
-    //        }
-    //        EventDispatcher.TriggerEvent<pb.ExchangeType>(EventDefine.UpdateCardInfoAfterExchange, msg.type);
-    //    }
+            //log
+            string str = "player" + player + " 's cards: ";
+            for (int i = 0; i < list.Count; i++)
+            {
+                str += list[i].ID + ", ";
+            }
+            Debug.Log(str);
+
+            if (player == Player.Instance.OID)
+            {
+                List<Card> inhand = _SideInfoDict[player].GetCardList(CardStatus.InHand);
+                _SideInfoDict[player].CardList.Clear();
+                for (int j = 0; j < list.Count; j++)
+                {
+                    pb.CardInfo card = list[j];
+                    bool isFind = false;
+                    for (int i = 0; i < inhand.Count; i++)
+                    {
+                        if (inhand[i].OID == card.OID)
+                        {
+                            _SideInfoDict[player].AddCard(card);
+                            isFind = true;
+                            break;
+                        }
+                    }
+                    if (!isFind)
+                    {
+                        Card newCard = new Card();
+                        newCard.PlayerID = card.playerOID;
+                        newCard.OID = card.OID;
+                        newCard.Id = card.ID;
+                        newCard.Status = CardStatus.Exchange;
+                        newCard.IsFromOther = card.fromOther;
+                        _SideInfoDict[player].CardList.Add(newCard);
+                    }
+                }
+            }
+            else
+            {
+                _SideInfoDict[player].CardList.Clear();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    _SideInfoDict[player].AddCard(list[i]);
+                }
+            }
+        }
+        EventDispatcher.TriggerEvent<pb.ExchangeType>(EventDefine.UpdateAllCardsAfterExhchange, msg.type);
+    }
+
+    public List<int> GetOtherPlayers()
+    {
+        List<int> result = new List<int>();
+        foreach (int id in _SideInfoDict.Keys)
+        {
+            if (id != Player.Instance.OID)
+            {
+                result.Add(id);
+            }
+        }
+        return result;
+    }
 
     //    public pb.BattleSide GetDealerSide()
     //    {
     //        return GetSideByPlayerOID(_dealerId);
     //    }
 
+    //出牌方跳转
+    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard)
+    {
+        Debug.Log("turn to next:" + playerOid);
+        _curTurnPlayer = playerOid;
+        int curPlayerSideIndex = 0;
+        if (_SideInfoDict.ContainsKey(_curTurnPlayer))
+        {
+            _SideInfoDict[_curTurnPlayer].AddCard(drawnCard);
+            curPlayerSideIndex = GetSideIndexFromSelf(_SideInfoDict[_curTurnPlayer].Side);
+        }
+        else
+        {
+            Debug.LogError("player " + playerOid + " not in room");
+        }
+        EventDispatcher.TriggerEvent<int>(EventDefine.TurnToPlayer, curPlayerSideIndex);
+    }
 
-
-    //    #region playing
-    //    public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard, pb.TurnSwitchType type)
-    //    {
-    //        Debug.Log("turn to next:" + playerOid + ", type=" + type.ToString());
-    //        if (drawnCard != null)
-    //        {
-    //            Debug.Log("draw new card：" + drawnCard.CardOid);
-    //            BattleManager.Instance.CurTurnDrawnCardOid = drawnCard.CardOid;
-    //        }
-    //        _curPlaySide = GetSideByPlayerOID(playerOid);
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid && drawnCard != null)
-    //            {
-    //                _playerPaiInfoList[i].AddPai(drawnCard);
-    //            }
-    //        }
-    //        EventDispatcher.TriggerEvent<pb.BattleSide, pb.CardInfo, pb.TurnSwitchType>(EventDefine.TurnToPlayer, _curPlaySide, drawnCard, type);
-    //    }
+    //收到当前可操作方式
+    public void PlayerProc(pb.GS2CInterruptAction msg)
+    {
+        for (int i = 0; i < msg.procList.Count; i++)
+        {
+            pb.ProcType type = msg.procList[i];
+            if (type == pb.ProcType.Proc_Gang || type == pb.ProcType.Proc_Hu || type == pb.ProcType.Proc_Peng)
+            {
+                //碰杠胡
+                EventDispatcher.TriggerEvent<int>(EventDefine.TurnToPlayer, curPlayerSideIndex);
+                break;
+            }
+            else if (type == pb.ProcType.Proc_Discard)
+            {
+                //出牌
+                EventDispatcher.TriggerEvent(EventDefine.ChooseDiscard);
+                break;
+            }
+        }
+    }
 
     //    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
     //    {

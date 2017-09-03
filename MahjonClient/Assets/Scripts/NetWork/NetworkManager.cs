@@ -74,10 +74,11 @@ public class NetworkManager : MonoBehaviour
         RegisterMessageHandler((int)MsgDef.GS2CEnterGameRet, GameMsgHandler.Instance.RevMsgGS2CEnterGameRet);
         RegisterMessageHandler((int)MsgDef.GS2CUpdateRoomMember, GameMsgHandler.Instance.RevMsgGS2CUpdateRoomMember);
         RegisterMessageHandler((int)MsgDef.GS2CBattleStart, GameMsgHandler.Instance.RevMsgGS2CBattleStart);
-        //RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
-        //RegisterMessageHandler((int)MsgDef.GS2CUpdateCardInfoAfterExchange, GameMsgHandler.Instance.RevMsgGS2CUpdateCardInfoAfterExchange);
-        //RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);
-        //RegisterMessageHandler((int)MsgDef.GS2CTurnToNext, GameMsgHandler.Instance.RevMsgGS2CTurnToNext);
+        RegisterMessageHandler((int)MsgDef.GS2CExchangeCardRet, GameMsgHandler.Instance.RevMsgGS2CExchangeCardRet);
+        RegisterMessageHandler((int)MsgDef.GS2CSelectLackRet, GameMsgHandler.Instance.RevMsgGS2CSelectLackRet);
+        RegisterMessageHandler((int)MsgDef.GS2CTurnToNext, GameMsgHandler.Instance.RevMsgGS2CTurnToNext);
+        RegisterMessageHandler((int)MsgDef.GS2CInterruptAction, GameMsgHandler.Instance.RevMsgGS2CInterruptAction);
+        //RegisterMessageHandler((int)MsgDef.GS2CDiscardRet, GameMsgHandler.Instance.RevMsgGS2CDiscardRet);        
         //RegisterMessageHandler((int)MsgDef.GS2CRobotProc, GameMsgHandler.Instance.RevMsgGS2CRobotProc);
         //RegisterMessageHandler((int)MsgDef.GS2CPlayerEnsureProc, GameMsgHandler.Instance.RevMsgGS2CPlayerEnsureProc);
         //RegisterMessageHandler((int)MsgDef.GS2CUpdateCardAfterPlayerProc, GameMsgHandler.Instance.RevMsgGS2CUpdateCardAfterPlayerProc);

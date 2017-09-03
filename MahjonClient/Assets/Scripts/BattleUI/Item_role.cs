@@ -37,6 +37,7 @@ public class Item_role : MonoBehaviour
         _headIcon.spriteName = string.IsNullOrEmpty(_sideInfo.HeadIcon) ? "headIcon_default_s" : _sideInfo.HeadIcon;
         _score.text = "";
         _owner.SetActive(_sideInfo.IsOwner);
+        _lack.gameObject.SetActive(false);
     }
 
     public void ShowDealer()
@@ -44,19 +45,26 @@ public class Item_role : MonoBehaviour
         _dealer.SetActive(true);
     }
 
-    public string getSpriteNameByType(pb.CardType type)
+    public void ShowLack()
     {
-        switch (type)
+        _lack.gameObject.SetActive(true);
+        switch (_sideInfo.Lack)
         {
             case pb.CardType.Wan:
-                return "room_color2";
+                _lack.spriteName = "icon_wan";
+                break;
             case pb.CardType.Tiao:
-                return "room_color3";
+                _lack.spriteName = "icon_tiao";
+                break;
             case pb.CardType.Tong:
-                return "room_color1";
+                _lack.spriteName = "icon_tong";
+                break;
             default:
-                return "";
+                break;
         }
+        _lack.MakePixelPerfect();
+        _lack.transform.localScale = Vector3.one * 1.5f;
+        iTween.ScaleTo(_lack.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));   
     }
 
     //public void ShowLackIcon()

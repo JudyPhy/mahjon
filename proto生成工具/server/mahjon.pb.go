@@ -24,9 +24,9 @@ It has these top-level messages:
 	C2GSSelectLack
 	GS2CSelectLackRet
 	GS2CTurnToNext
-	GS2CPlayerProc
-	C2GSPlayerProcRet
-	GS2CPlayProcAni
+	GS2CInterruptAction
+	C2GSInterruptActionRet
+	GS2CBroadcastProc
 	GS2CGameOver
 */
 package pb
@@ -278,32 +278,26 @@ func (x *CardType) UnmarshalJSON(data []byte) error {
 type ProcType int32
 
 const (
-	ProcType_SelfHu    ProcType = 1
-	ProcType_SelfGang  ProcType = 2
-	ProcType_HuOther   ProcType = 3
-	ProcType_GangOther ProcType = 4
-	ProcType_Peng      ProcType = 5
-	ProcType_Discard   ProcType = 6
-	ProcType_Pass      ProcType = 7
+	ProcType_Proc_Hu      ProcType = 1
+	ProcType_Proc_Gang    ProcType = 2
+	ProcType_Proc_Peng    ProcType = 3
+	ProcType_Proc_Discard ProcType = 4
+	ProcType_Proc_Pass    ProcType = 5
 )
 
 var ProcType_name = map[int32]string{
-	1: "SelfHu",
-	2: "SelfGang",
-	3: "HuOther",
-	4: "GangOther",
-	5: "Peng",
-	6: "Discard",
-	7: "Pass",
+	1: "Proc_Hu",
+	2: "Proc_Gang",
+	3: "Proc_Peng",
+	4: "Proc_Discard",
+	5: "Proc_Pass",
 }
 var ProcType_value = map[string]int32{
-	"SelfHu":    1,
-	"SelfGang":  2,
-	"HuOther":   3,
-	"GangOther": 4,
-	"Peng":      5,
-	"Discard":   6,
-	"Pass":      7,
+	"Proc_Hu":      1,
+	"Proc_Gang":    2,
+	"Proc_Peng":    3,
+	"Proc_Discard": 4,
+	"Proc_Pass":    5,
 }
 
 func (x ProcType) Enum() *ProcType {
@@ -517,7 +511,7 @@ type PlayerInfo struct {
 	NickName         *string     `protobuf:"bytes,2,req" json:"NickName,omitempty"`
 	HeadIcon         *string     `protobuf:"bytes,3,req" json:"HeadIcon,omitempty"`
 	Gold             *int32      `protobuf:"varint,4,req" json:"Gold,omitempty"`
-	Diamond          *int32      `protobuf:"varint,5,req" json:"Diamond,omitempty"`
+	Fangka           *int32      `protobuf:"varint,5,req" json:"Fangka,omitempty"`
 	Side             *MahjonSide `protobuf:"varint,6,opt,enum=pb.MahjonSide" json:"Side,omitempty"`
 	IsOwner          *bool       `protobuf:"varint,7,opt" json:"IsOwner,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
@@ -555,9 +549,9 @@ func (m *PlayerInfo) GetGold() int32 {
 	return 0
 }
 
-func (m *PlayerInfo) GetDiamond() int32 {
-	if m != nil && m.Diamond != nil {
-		return *m.Diamond
+func (m *PlayerInfo) GetFangka() int32 {
+	if m != nil && m.Fangka != nil {
+		return *m.Fangka
 	}
 	return 0
 }
@@ -834,10 +828,9 @@ func (m *GS2CSelectLackRet) GetLackCard() []*LackCard {
 }
 
 type GS2CTurnToNext struct {
-	PlayerOID        *int32          `protobuf:"varint,1,req,name=playerOID" json:"playerOID,omitempty"`
-	Type             *TurnSwitchType `protobuf:"varint,2,req,name=type,enum=pb.TurnSwitchType" json:"type,omitempty"`
-	DrawCard         *CardInfo       `protobuf:"bytes,3,opt,name=drawCard" json:"drawCard,omitempty"`
-	XXX_unrecognized []byte          `json:"-"`
+	PlayerOID        *int32    `protobuf:"varint,1,req,name=playerOID" json:"playerOID,omitempty"`
+	DrawCard         *CardInfo `protobuf:"bytes,2,opt,name=drawCard" json:"drawCard,omitempty"`
+	XXX_unrecognized []byte    `json:"-"`
 }
 
 func (m *GS2CTurnToNext) Reset()         { *m = GS2CTurnToNext{} }
@@ -851,13 +844,6 @@ func (m *GS2CTurnToNext) GetPlayerOID() int32 {
 	return 0
 }
 
-func (m *GS2CTurnToNext) GetType() TurnSwitchType {
-	if m != nil && m.Type != nil {
-		return *m.Type
-	}
-	return TurnSwitchType_Normal
-}
-
 func (m *GS2CTurnToNext) GetDrawCard() *CardInfo {
 	if m != nil {
 		return m.DrawCard
@@ -865,96 +851,80 @@ func (m *GS2CTurnToNext) GetDrawCard() *CardInfo {
 	return nil
 }
 
-type GS2CPlayerProc struct {
-	ProcPlayer       *int32    `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
-	ProcType         *ProcType `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
-	BeProcPlayer     *int32    `protobuf:"varint,3,opt,name=beProcPlayer" json:"beProcPlayer,omitempty"`
-	ProcCardId       *int32    `protobuf:"varint,4,opt,name=procCardId" json:"procCardId,omitempty"`
-	XXX_unrecognized []byte    `json:"-"`
+type GS2CInterruptAction struct {
+	ProcList         []ProcType `protobuf:"varint,1,rep,name=procList,enum=pb.ProcType" json:"procList,omitempty"`
+	DrawCard         *CardInfo  `protobuf:"bytes,2,opt,name=drawCard" json:"drawCard,omitempty"`
+	XXX_unrecognized []byte     `json:"-"`
 }
 
-func (m *GS2CPlayerProc) Reset()         { *m = GS2CPlayerProc{} }
-func (m *GS2CPlayerProc) String() string { return proto.CompactTextString(m) }
-func (*GS2CPlayerProc) ProtoMessage()    {}
+func (m *GS2CInterruptAction) Reset()         { *m = GS2CInterruptAction{} }
+func (m *GS2CInterruptAction) String() string { return proto.CompactTextString(m) }
+func (*GS2CInterruptAction) ProtoMessage()    {}
 
-func (m *GS2CPlayerProc) GetProcPlayer() int32 {
-	if m != nil && m.ProcPlayer != nil {
-		return *m.ProcPlayer
+func (m *GS2CInterruptAction) GetProcList() []ProcType {
+	if m != nil {
+		return m.ProcList
 	}
-	return 0
+	return nil
 }
 
-func (m *GS2CPlayerProc) GetProcType() ProcType {
-	if m != nil && m.ProcType != nil {
-		return *m.ProcType
+func (m *GS2CInterruptAction) GetDrawCard() *CardInfo {
+	if m != nil {
+		return m.DrawCard
 	}
-	return ProcType_SelfHu
+	return nil
 }
 
-func (m *GS2CPlayerProc) GetBeProcPlayer() int32 {
-	if m != nil && m.BeProcPlayer != nil {
-		return *m.BeProcPlayer
-	}
-	return 0
-}
-
-func (m *GS2CPlayerProc) GetProcCardId() int32 {
-	if m != nil && m.ProcCardId != nil {
-		return *m.ProcCardId
-	}
-	return 0
-}
-
-type C2GSPlayerProcRet struct {
+type C2GSInterruptActionRet struct {
 	ProcType         *ProcType `protobuf:"varint,1,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
-	ProcCardId       *int32    `protobuf:"varint,2,opt,name=procCardId" json:"procCardId,omitempty"`
+	DrawCard         *CardInfo `protobuf:"bytes,2,opt,name=drawCard" json:"drawCard,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
-func (m *C2GSPlayerProcRet) Reset()         { *m = C2GSPlayerProcRet{} }
-func (m *C2GSPlayerProcRet) String() string { return proto.CompactTextString(m) }
-func (*C2GSPlayerProcRet) ProtoMessage()    {}
+func (m *C2GSInterruptActionRet) Reset()         { *m = C2GSInterruptActionRet{} }
+func (m *C2GSInterruptActionRet) String() string { return proto.CompactTextString(m) }
+func (*C2GSInterruptActionRet) ProtoMessage()    {}
 
-func (m *C2GSPlayerProcRet) GetProcType() ProcType {
+func (m *C2GSInterruptActionRet) GetProcType() ProcType {
 	if m != nil && m.ProcType != nil {
 		return *m.ProcType
 	}
-	return ProcType_SelfHu
+	return ProcType_Proc_Hu
 }
 
-func (m *C2GSPlayerProcRet) GetProcCardId() int32 {
-	if m != nil && m.ProcCardId != nil {
-		return *m.ProcCardId
+func (m *C2GSInterruptActionRet) GetDrawCard() *CardInfo {
+	if m != nil {
+		return m.DrawCard
 	}
-	return 0
+	return nil
 }
 
-type GS2CPlayProcAni struct {
+type GS2CBroadcastProc struct {
 	ProcPlayer       *int32      `protobuf:"varint,1,req,name=procPlayer" json:"procPlayer,omitempty"`
 	ProcType         *ProcType   `protobuf:"varint,2,req,name=procType,enum=pb.ProcType" json:"procType,omitempty"`
 	CardList         []*CardInfo `protobuf:"bytes,3,rep,name=cardList" json:"cardList,omitempty"`
 	XXX_unrecognized []byte      `json:"-"`
 }
 
-func (m *GS2CPlayProcAni) Reset()         { *m = GS2CPlayProcAni{} }
-func (m *GS2CPlayProcAni) String() string { return proto.CompactTextString(m) }
-func (*GS2CPlayProcAni) ProtoMessage()    {}
+func (m *GS2CBroadcastProc) Reset()         { *m = GS2CBroadcastProc{} }
+func (m *GS2CBroadcastProc) String() string { return proto.CompactTextString(m) }
+func (*GS2CBroadcastProc) ProtoMessage()    {}
 
-func (m *GS2CPlayProcAni) GetProcPlayer() int32 {
+func (m *GS2CBroadcastProc) GetProcPlayer() int32 {
 	if m != nil && m.ProcPlayer != nil {
 		return *m.ProcPlayer
 	}
 	return 0
 }
 
-func (m *GS2CPlayProcAni) GetProcType() ProcType {
+func (m *GS2CBroadcastProc) GetProcType() ProcType {
 	if m != nil && m.ProcType != nil {
 		return *m.ProcType
 	}
-	return ProcType_SelfHu
+	return ProcType_Proc_Hu
 }
 
-func (m *GS2CPlayProcAni) GetCardList() []*CardInfo {
+func (m *GS2CBroadcastProc) GetCardList() []*CardInfo {
 	if m != nil {
 		return m.CardList
 	}
