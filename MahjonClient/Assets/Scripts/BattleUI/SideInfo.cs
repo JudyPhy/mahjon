@@ -54,7 +54,6 @@ public class Card
         set { _isFromOther = value; }
         get { return _isFromOther; }
     }
-
 }
 
 public class SideInfo

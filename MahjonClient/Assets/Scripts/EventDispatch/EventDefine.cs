@@ -17,10 +17,15 @@ public class EventDefine
 
     public static string TurnToPlayer = "TurnToPlayer";
     public static string ChooseDiscard = "ChooseDiscard";
-
     public static string UnSelectOtherDiscard = "UnSelectOtherDiscard";
     public static string EnsureDiscard = "EnsureDiscard";
-    public static string DiscardRet = "DiscardRet";
+
+    public static string BroadcastDiscard = "BroadcastDiscard";
+    public static string BroadcastProc = "BroadcastProc";
+
+
+
+
     public static string RobotProc = "SomePlayerPG";
     public static string EnsureProcPG = "EnsureProcPG";
     public static string SelfEnsureProc = "SelfEnsureProc";

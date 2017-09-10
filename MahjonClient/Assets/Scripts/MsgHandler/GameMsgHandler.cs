@@ -60,31 +60,14 @@ public class GameMsgHandler
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSSelectLack, msg);
     }
 
-    //public void SendMsgC2GSDiscard(int oid)
-    //{
-    //    Debug.Log("SendMsgC2GSDiscard==>> [" + oid + "]");
-    //    pb.C2GSDiscard msg = new pb.C2GSDiscard();
-    //    msg.cardOid = oid;
-    //    NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSDiscard, msg);
-    //}
-
-    //public void SendMsgC2GSPlayerEnsureProcRet(pb.ProcType type, int procCardId = 0)
-    //{
-    //    Debug.Log("SendMsgC2GSPlayerEnsureProcRet==>>");
-    //    pb.C2GSPlayerEnsureProcRet msg = new pb.C2GSPlayerEnsureProcRet();
-    //    msg.procType = type;
-    //    msg.procCardId = procCardId;
-    //    NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSPlayerEnsureProcRet, msg);
-    //}
-
-    //public void SendMsgC2GSRobotProcOver(int robotOid, pb.ProcType type)
-    //{
-    //    Debug.Log("SendMsgC2GSRobotProcOver==>>");
-    //    pb.C2GSRobotProcOver msg = new pb.C2GSRobotProcOver();
-    //    msg.robotOid = robotOid;
-    //    msg.procType = type;
-    //    NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSRobotProcOver, msg);
-    //}
+    public void SendMsgC2GSInterruptActionRet(pb.ProcType procType,pb.CardInfo info)
+    {
+        Debug.Log("SendMsgC2GSInterruptActionRet==>> procType[" + procType + "], cardOid[" + info.OID + "]");
+        pb.C2GSInterruptActionRet msg = new pb.C2GSInterruptActionRet();
+        msg.procType = procType;
+        msg.drawCard = info;
+        NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSInterruptActionRet, msg);
+    }
     #endregion
 
 
@@ -182,29 +165,13 @@ public class GameMsgHandler
         BattleManager.Instance.PlayerProc(msg);
     }
 
-    //public void RevMsgGS2CRobotProc(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CRobotProc");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CRobotProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CRobotProc>(stream);
-    //    BattleManager.Instance.ProcessRobotProc(msg);
-    //}
-
-    //public void RevMsgGS2CPlayerEnsureProc(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CPlayerEnsureProc");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CPlayerEnsureProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CPlayerEnsureProc>(stream);
-    //    BattleManager.Instance.ProcessPlayerProc(msg);
-    //}
-
-    //public void RevMsgGS2CUpdateCardAfterPlayerProc(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CUpdateCardAfterPlayerProc");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CUpdateCardAfterPlayerProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateCardAfterPlayerProc>(stream);
-    //    BattleManager.Instance.UpdateCardInfoByPlayerProcOver(msg.cardList);
-    //}
+    public void RevMsgGS2CBroadcastProc(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CBroadcastProc");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CBroadcastProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBroadcastProc>(stream);
+        BattleManager.Instance.UpdateCardsInfo(msg);
+    }
 
     //public void RevMsgGS2CGameOver(int pid, byte[] msgBuf, int msgSize)
     //{

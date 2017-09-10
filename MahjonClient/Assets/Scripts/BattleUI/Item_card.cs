@@ -16,10 +16,10 @@ public class Item_card : MonoBehaviour
     }
     private pb.MahjonSide _side;
 
-    private bool _isSelected;
+    private bool _preDiscard;
     public bool IsSelected
     {
-        set { _isSelected = value; }
+        set { _preDiscard = value; }
     }
 
     void Awake()
@@ -28,7 +28,7 @@ public class Item_card : MonoBehaviour
         _bg = transform.FindChild("bg").GetComponent<UISprite>();
         _collider = transform.GetComponent<BoxCollider>();
         UIEventListener.Get(gameObject).onClick = OnClickCard;
-        _isSelected = false;
+        _preDiscard = false;
     }
 
     // Use this for initialization
@@ -82,7 +82,6 @@ public class Item_card : MonoBehaviour
                     break;
             }
         }
-        _isSelected = false;
     }
 
     public void SetDepth(int depth)
@@ -98,22 +97,6 @@ public class Item_card : MonoBehaviour
         _bg.spriteName = bgName[sideIndex];
         _bg.MakePixelPerfect();
     }
-
-    //public void UpdateGangCard(Pai pai, pb.BattleSide side, bool showFront)
-    //{
-    //    _info = pai;
-    //    _side = side;
-    //    _pai.gameObject.SetActive(showFront);
-    //    if (showFront)
-    //    {
-    //        _pai.spriteName = "b" + _info.Id.ToString();
-    //        _bg.spriteName = "inhand_bg2";
-    //    }
-    //    else
-    //    {
-    //        _bg.spriteName = "inhand_bg2";
-    //    }
-    //}
 
     private void OnSelectExchangeCard()
     {
@@ -152,27 +135,31 @@ public class Item_card : MonoBehaviour
         }
     }
 
-    //public void UnSelect()
-    //{
-    //    _isSelected = false;
-    //    iTween.MoveTo(gameObject, iTween.Hash("y", -250, "islocal", true, "time", 0.2f));
-    //}
+    public void UnChoose()
+    {
+        if (_preDiscard)
+        {
+            _preDiscard = false;
+            iTween.MoveTo(gameObject, iTween.Hash("y", 80, "islocal", true, "time", 0.2f));
+        }
+    }
 
-    //private void OnSelectDiscard()
-    //{
-    //    Debug.Log("select card as discard, oid=" + _info.OID);
-    //    if (_isSelected)
-    //    {
-    //        _info.Status = PaiStatus.Discard;
-    //        EventDispatcher.TriggerEvent<Pai>(EventDefine.EnsureDiscard, _info);
-    //    }
-    //    else
-    //    {
-    //        _isSelected = true;
-    //        iTween.MoveTo(gameObject, iTween.Hash("y", -230, "islocal", true, "time", 0.2f));
-    //        EventDispatcher.TriggerEvent<Pai>(EventDefine.UnSelectOtherDiscard, _info);
-    //    }
-    //}
+    private void OnChooseDiscard()
+    {        
+        if (_preDiscard)
+        {
+            _preDiscard = false;
+            _info.Status = CardStatus.Discard;
+            EventDispatcher.TriggerEvent<Card>(EventDefine.EnsureDiscard, _info);
+        }
+        else
+        {
+            Debug.Log("prepare discard, oid=" + _info.OID);
+            _preDiscard = true;
+            iTween.MoveTo(gameObject, iTween.Hash("y", 105, "islocal", true, "time", 0.2f));
+            EventDispatcher.TriggerEvent<Card>(EventDefine.UnSelectOtherDiscard, _info);
+        }
+    }
 
     private void OnClickCard(GameObject go)
     {
@@ -183,15 +170,14 @@ public class Item_card : MonoBehaviour
             // 选择交换牌阶段            
             OnSelectExchangeCard();
         }
-        //else if (BattleManager.Instance.CurProcess == BattleProcess.SelectingDiscard)
-        //{
-        //    if (_info.Status != PaiStatus.InHand)
-        //    {
-        //        return;
-        //    }
-        //    // 出牌阶段
-        //    OnSelectDiscard();
-        //}
+        else if (BattleManager.Instance.CurProcess == BattleProcess.Discard)
+        {
+            if (_info.Status != CardStatus.InHand || _info.Status != CardStatus.Deal)
+            {
+                // 出牌阶段
+                OnChooseDiscard();
+            }
+        }
     }
 
     // Update is called once per frame

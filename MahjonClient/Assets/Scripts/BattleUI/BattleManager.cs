@@ -292,6 +292,18 @@ public class BattleManager
         return pb.MahjonSide.DEFAULT;
     }
 
+    public int GetPlayerOIDBySide(pb.MahjonSide side)
+    {
+        foreach (int playerId in _SideInfoDict.Keys)
+        {
+            if (_SideInfoDict[playerId].Side == side)
+            {
+                return playerId;
+            }
+        }
+        return 0;
+    }
+
     //    public Pai GetPaiInfoByIndexAndSide(pb.BattleSide side, int index)
     //    {
     //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
@@ -538,7 +550,7 @@ public class BattleManager
             if (type == pb.ProcType.Proc_Gang || type == pb.ProcType.Proc_Hu || type == pb.ProcType.Proc_Peng)
             {
                 //碰杠胡
-                EventDispatcher.TriggerEvent<int>(EventDefine.TurnToPlayer, curPlayerSideIndex);
+                //EventDispatcher.TriggerEvent<int>(EventDefine.TurnToPlayer, curPlayerSideIndex);
                 break;
             }
             else if (type == pb.ProcType.Proc_Discard)
@@ -550,432 +562,483 @@ public class BattleManager
         }
     }
 
-    //    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
-    //    {
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            if (_playerPaiInfoList[i].Side == side)
-    //            {
-    //                return _playerPaiInfoList[i].GetUsefulPaiList();
-    //            }
-    //        }
-    //        return null;
-    //    }
+    //收到操作广播，以及新的手牌列表
+    public void UpdateCardsInfo(pb.GS2CBroadcastProc msg)
+    {
+        if (!_SideInfoDict.ContainsKey(msg.procPlayer))
+        {
+            Debug.LogError("proc player not in _SideInfoDict.");
+            return;
+        }
+        if (Player.Instance.OID != msg.procPlayer)
+        {
+            //播放操作动画
+            switch (msg.procType)
+            {
+                case pb.ProcType.Proc_Discard:
+                    List<Card> oldDiscard = GetCardList(msg.procPlayer, CardStatus.Discard);
+                    for (int i = 0; i < msg.cardList.Count; i++)
+                    {
+                        if (msg.cardList[i].Status == pb.CardStatus.Dis)
+                        {
+                            bool isFind = false;
+                            for (int j = 0; j < oldDiscard.Count; j++)
+                            {
+                                if (oldDiscard[j].OID == msg.cardList[i].OID)
+                                {
+                                    isFind = true;
+                                    break;
+                                }
+                            }
+                            if (!isFind)
+                            {
+                                Debug.Log(msg.procPlayer + "出牌" + msg.cardList[i].ID);
+                                _SideInfoDict[msg.procPlayer].AddCard(msg.cardList[i]);
+                                EventDispatcher.TriggerEvent<pb.CardInfo>(EventDefine.BroadcastDiscard, msg.cardList[i]);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case pb.ProcType.Proc_Hu:
+                case pb.ProcType.Proc_Peng:
+                case pb.ProcType.Proc_Gang:
+                    EventDispatcher.TriggerEvent<pb.ProcType>(EventDefine.BroadcastProc, msg.procType);
+                    break;
+                default:
+                    break;
+            }
+        }
+        //更新牌列表
+        
+    }
 
-    //    public bool CanHu(List<int> inhandList, List<int> pList, List<int> gList)
-    //    {
-    //        Debug.Log("check hu pai...");
+        //    private List<Pai> getAllUsefulCardsBySide(pb.BattleSide side)
+        //    {
+        //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        //        {
+        //            if (_playerPaiInfoList[i].Side == side)
+        //            {
+        //                return _playerPaiInfoList[i].GetUsefulPaiList();
+        //            }
+        //        }
+        //        return null;
+        //    }
 
-    //        int count = inhandList.Count + pList.Count + gList.Count;
-    //        Debug.Log("check hu==> all card count is " + count);
-    //        if (count < 14 || count > 18)
-    //        {
-    //            Debug.Log("check hu==> all card count is error.");
-    //            return false;
-    //        }
+        //    public bool CanHu(List<int> inhandList, List<int> pList, List<int> gList)
+        //    {
+        //        Debug.Log("check hu pai...");
 
-    //        if (!checkPeng(pList))
-    //        {
-    //            return false;
-    //        }
+        //        int count = inhandList.Count + pList.Count + gList.Count;
+        //        Debug.Log("check hu==> all card count is " + count);
+        //        if (count < 14 || count > 18)
+        //        {
+        //            Debug.Log("check hu==> all card count is error.");
+        //            return false;
+        //        }
 
-    //        if (!checkGang(gList))
-    //        {
-    //            return false;
-    //        }
+        //        if (!checkPeng(pList))
+        //        {
+        //            return false;
+        //        }
 
-    //        if (checkSevenPair(inhandList))
-    //        {
-    //            Debug.Log("check hu==> is 7 pair.");
-    //            return true;
-    //        }
+        //        if (!checkGang(gList))
+        //        {
+        //            return false;
+        //        }
 
-    //        return checkCommonHu(inhandList);
-    //    }
+        //        if (checkSevenPair(inhandList))
+        //        {
+        //            Debug.Log("check hu==> is 7 pair.");
+        //            return true;
+        //        }
 
-    //    private bool checkPeng(List<int> list)
-    //    {
-    //        if (list.Count % 3 != 0)
-    //        {
-    //            Debug.Log("peng card count[" + list.Count + "] is error.");
-    //            return false;
-    //        }
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
-    //            if (ds.Count != 3)
-    //            {
-    //                Debug.Log("peng card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
-    //                return false;
-    //            }
-    //        }
-    //        return true;
-    //    }
+        //        return checkCommonHu(inhandList);
+        //    }
 
-    //    private bool checkGang(List<int> list)
-    //    {
-    //        if (list.Count % 4 != 0)
-    //        {
-    //            Debug.Log("gang card count[" + list.Count + "] is error.");
-    //            return false;
-    //        }
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
-    //            if (ds.Count != 4)
-    //            {
-    //                Debug.Log("gang card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
-    //                return false;
-    //            }
-    //        }
-    //        return true;
-    //    }
+        //    private bool checkPeng(List<int> list)
+        //    {
+        //        if (list.Count % 3 != 0)
+        //        {
+        //            Debug.Log("peng card count[" + list.Count + "] is error.");
+        //            return false;
+        //        }
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+        //            if (ds.Count != 3)
+        //            {
+        //                Debug.Log("peng card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    }
 
-    //    private bool checkSevenPair(List<int> list)
-    //    {
-    //        if (list.Count != 14)
-    //        {
-    //            return false;
-    //        }
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
-    //            if (ds.Count % 2 != 0)
-    //            {
-    //                return false;
-    //            }
-    //        }
-    //        return true;
-    //    }
+        //    private bool checkGang(List<int> list)
+        //    {
+        //        if (list.Count % 4 != 0)
+        //        {
+        //            Debug.Log("gang card count[" + list.Count + "] is error.");
+        //            return false;
+        //        }
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+        //            if (ds.Count != 4)
+        //            {
+        //                Debug.Log("gang card[" + ds[0] + "]'count[" + ds.Count + "] is error.");
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    }
 
-    //    private bool checkCommonHu(List<int> list)
-    //    {
-    //        list.Sort((x, y) => { return x.CompareTo(y); });
+        //    private bool checkSevenPair(List<int> list)
+        //    {
+        //        if (list.Count != 14)
+        //        {
+        //            return false;
+        //        }
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            List<int> ds = list.FindAll(delegate (int id) { return id == list[i]; });
+        //            if (ds.Count % 2 != 0)
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //        return true;
+        //    }
 
-    //        string str = "checkCommonHu list: ";
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            str += list[i].ToString() + ", ";
-    //        }
-    //        Debug.LogError(str);
+        //    private bool checkCommonHu(List<int> list)
+        //    {
+        //        list.Sort((x, y) => { return x.CompareTo(y); });
 
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            List<int> tempList = new List<int>(list);
-    //            List<int> ds = tempList.FindAll(delegate (int id) { return id == list[i]; });
-    //            if (ds.Count >= 2)
-    //            {
-    //                //Debug.LogError("将牌：" + ds[0]);
-    //                //选择将牌
-    //                tempList.Remove(list[i]);
-    //                tempList.Remove(list[i]);
-    //                i += ds.Count;
-    //                //判断剩余牌的情况
-    //                if (huPaiPanDing(tempList))
-    //                {
-    //                    return true;
-    //                }
-    //            }
-    //        }
-    //        return false;
-    //    }
+        //        string str = "checkCommonHu list: ";
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            str += list[i].ToString() + ", ";
+        //        }
+        //        Debug.LogError(str);
 
-    //    private bool huPaiPanDing(List<int> list)
-    //    {
-    //        //string str = "huPaiPanDing list: ";
-    //        //for (int i = 0; i < list.Count; i++)
-    //        //{
-    //        //    str += list[i].ToString() + ", ";
-    //        //}
-    //        //Debug.LogError(str);
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            List<int> tempList = new List<int>(list);
+        //            List<int> ds = tempList.FindAll(delegate (int id) { return id == list[i]; });
+        //            if (ds.Count >= 2)
+        //            {
+        //                //Debug.LogError("将牌：" + ds[0]);
+        //                //选择将牌
+        //                tempList.Remove(list[i]);
+        //                tempList.Remove(list[i]);
+        //                i += ds.Count;
+        //                //判断剩余牌的情况
+        //                if (huPaiPanDing(tempList))
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //        }
+        //        return false;
+        //    }
 
-    //        if (list.Count == 0)
-    //        {
-    //            return true;
-    //        }
+        //    private bool huPaiPanDing(List<int> list)
+        //    {
+        //        //string str = "huPaiPanDing list: ";
+        //        //for (int i = 0; i < list.Count; i++)
+        //        //{
+        //        //    str += list[i].ToString() + ", ";
+        //        //}
+        //        //Debug.LogError(str);
 
-    //        List<int> tempList = list.FindAll(delegate (int id) { return id == list[0]; });
+        //        if (list.Count == 0)
+        //        {
+        //            return true;
+        //        }
 
-    //        //检查刻子
-    //        if (tempList.Count == 3)
-    //        {
-    //            //Debug.Log("去除刻子:" + list[0]);
-    //            list.Remove(list[0]);
-    //            list.Remove(list[0]);
-    //            list.Remove(list[0]);
-    //            return huPaiPanDing(list);
-    //        }
-    //        else
-    //        {
-    //            if (list.Contains(list[0] + 1) && list.Contains(list[0] + 2))
-    //            {
-    //                //Debug.Log("去除顺子:" + list[0] + ", " + (list[0] + 1) + ", " + (list[0] + 2));
-    //                list.Remove(list[0] + 2);
-    //                list.Remove(list[0] + 1);
-    //                list.Remove(list[0]);
-    //                return huPaiPanDing(list);
-    //            }
-    //            //Debug.Log("没顺子，没刻子");
-    //            return false;
-    //        }
-    //    }
+        //        List<int> tempList = list.FindAll(delegate (int id) { return id == list[0]; });
 
-    //    public bool CanGang(List<int> list)
-    //    {
-    //        Debug.Log("check gang pai...");
+        //        //检查刻子
+        //        if (tempList.Count == 3)
+        //        {
+        //            //Debug.Log("去除刻子:" + list[0]);
+        //            list.Remove(list[0]);
+        //            list.Remove(list[0]);
+        //            list.Remove(list[0]);
+        //            return huPaiPanDing(list);
+        //        }
+        //        else
+        //        {
+        //            if (list.Contains(list[0] + 1) && list.Contains(list[0] + 2))
+        //            {
+        //                //Debug.Log("去除顺子:" + list[0] + ", " + (list[0] + 1) + ", " + (list[0] + 2));
+        //                list.Remove(list[0] + 2);
+        //                list.Remove(list[0] + 1);
+        //                list.Remove(list[0]);
+        //                return huPaiPanDing(list);
+        //            }
+        //            //Debug.Log("没顺子，没刻子");
+        //            return false;
+        //        }
+        //    }
 
-    //        //string str = "";
-    //        //for (int i = 0; i < list.Count; i++)
-    //        //{
-    //        //    str += list[i] + ", ";
-    //        //}
-    //        //Debug.Log(str);
+        //    public bool CanGang(List<int> list)
+        //    {
+        //        Debug.Log("check gang pai...");
 
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            List<int> tempList = list.FindAll(delegate (int id) { return id == list[i]; });
-    //            if (tempList.Count == 4)
-    //            {
-    //                return true;
-    //            }
-    //        }
-    //        return false;
-    //    }
+        //        //string str = "";
+        //        //for (int i = 0; i < list.Count; i++)
+        //        //{
+        //        //    str += list[i] + ", ";
+        //        //}
+        //        //Debug.Log(str);
 
-    //    public bool CanPeng(List<int> list, int pCard)
-    //    {
-    //        Debug.Log("check peng pai...");
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            List<int> tempList = list.FindAll(delegate (int id) { return id == list[i]; });
+        //            if (tempList.Count == 4)
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //        return false;
+        //    }
 
-    //        //string str = "";
-    //        //for (int i = 0; i < list.Count; i++)
-    //        //{
-    //        //    str += list[i] + ", ";
-    //        //}
-    //        //Debug.Log(str);
+        //    public bool CanPeng(List<int> list, int pCard)
+        //    {
+        //        Debug.Log("check peng pai...");
 
-    //        List<int> tempList = list.FindAll(delegate (int id) { return id == pCard; });
-    //        if (tempList.Count == 3)
-    //        {
-    //            return true;
-    //        }
-    //        return false;
-    //    }
-    //    #endregion
+        //        //string str = "";
+        //        //for (int i = 0; i < list.Count; i++)
+        //        //{
+        //        //    str += list[i] + ", ";
+        //        //}
+        //        //Debug.Log(str);
 
-    //    public Pai GetCardInfoByCurTurnOid(int oid)
-    //    {
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
-    //            for (int j = 0; j < list.Count; j++)
-    //            {
-    //                if (list[j].OID == oid)
-    //                {
-    //                    list[j].Status = PaiStatus.Discard;
-    //                    return list[j];
-    //                }
-    //            }
-    //        }
-    //        return null;
-    //    }
+        //        List<int> tempList = list.FindAll(delegate (int id) { return id == pCard; });
+        //        if (tempList.Count == 3)
+        //        {
+        //            return true;
+        //        }
+        //        return false;
+        //    }
+        //    #endregion
 
-    //    public Pai GetCardInfoByCardOid(int cardOid)
-    //    {
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
-    //            for (int j = 0; j < list.Count; j++)
-    //            {
-    //                if (list[j].OID == cardOid)
-    //                {
-    //                    return list[j];
-    //                }
-    //            }
-    //        }
-    //        return null;
-    //    }
+        //    public Pai GetCardInfoByCurTurnOid(int oid)
+        //    {
+        //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        //        {
+        //            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+        //            for (int j = 0; j < list.Count; j++)
+        //            {
+        //                if (list[j].OID == oid)
+        //                {
+        //                    list[j].Status = PaiStatus.Discard;
+        //                    return list[j];
+        //                }
+        //            }
+        //        }
+        //        return null;
+        //    }
 
-    //    public void UpdateCardInfoByDiscardRet(int discardOid)
-    //    {
-    //        _curTurnDiscard = discardOid;
-    //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //        {
-    //            bool isFind = false;
-    //            List<Pai> cardList = _playerPaiInfoList[i].GetPaiList();
-    //            for (int n = 0; n < cardList.Count; n++)
-    //            {
-    //                if (cardList[n].OID == discardOid)
-    //                {
-    //                    Pai temp = cardList[n];
-    //                    cardList.RemoveAt(n);
-    //                    cardList.Add(temp); //将最新出的牌排列在最后
-    //                    isFind = true;
-    //                    break;
-    //                }
-    //            }
-    //            if (isFind)
-    //            {
-    //                break;
-    //            }
-    //        }
-    //    }
+        //    public Pai GetCardInfoByCardOid(int cardOid)
+        //    {
+        //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        //        {
+        //            List<Pai> list = _playerPaiInfoList[i].GetPaiList();
+        //            for (int j = 0; j < list.Count; j++)
+        //            {
+        //                if (list[j].OID == cardOid)
+        //                {
+        //                    return list[j];
+        //                }
+        //            }
+        //        }
+        //        return null;
+        //    }
 
-    //    private Dictionary<int, List<pb.CardInfo>> getDictByCardList(List<pb.CardInfo> list) {
-    //        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>(); //playerOid : cardList
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            if (dict.ContainsKey(list[i].playerId))
-    //            {
-    //                dict[list[i].playerId].Add(list[i]);
-    //            }
-    //            else
-    //            {
-    //                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
-    //                cardList.Add(list[i]);
-    //                dict.Add(list[i].playerId, cardList);
-    //            }
-    //        }
-    //        return dict;
-    //    }
+        //    public void UpdateCardInfoByDiscardRet(int discardOid)
+        //    {
+        //        _curTurnDiscard = discardOid;
+        //        for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        //        {
+        //            bool isFind = false;
+        //            List<Pai> cardList = _playerPaiInfoList[i].GetPaiList();
+        //            for (int n = 0; n < cardList.Count; n++)
+        //            {
+        //                if (cardList[n].OID == discardOid)
+        //                {
+        //                    Pai temp = cardList[n];
+        //                    cardList.RemoveAt(n);
+        //                    cardList.Add(temp); //将最新出的牌排列在最后
+        //                    isFind = true;
+        //                    break;
+        //                }
+        //            }
+        //            if (isFind)
+        //            {
+        //                break;
+        //            }
+        //        }
+        //    }
 
-    //    private void updatePaiByCardList(List<pb.CardInfo> newCardInfoList)
-    //    {
-    //        Dictionary<int, List<pb.CardInfo>> dict = getDictByCardList(newCardInfoList);
-    //        foreach (int playerOid in dict.Keys)
-    //        {
-    //            List<pb.CardInfo> newCardList = dict[playerOid];
-    //            Debug.Log("current player[" + playerOid + "] has card count=" + newCardList.Count);
-    //            for (int i = 0; i < _playerPaiInfoList.Count; i++)
-    //            {
-    //                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
-    //                {
-    //                    //原始牌堆没有new中的牌，则添加，有则更新信息
-    //                    List<Pai> origCardList = _playerPaiInfoList[i].GetPaiList();
-    //                    for (int n = 0; n < newCardList.Count; n++)
-    //                    {
-    //                        bool isFind = false;
-    //                        for (int m = 0; m < origCardList.Count; m++)
-    //                        {
-    //                            if (origCardList[m].OID == newCardList[n].CardOid)
-    //                            {
-    //                                _playerPaiInfoList[i].UpdatePai(origCardList[m], newCardList[n]);
-    //                                isFind = true;
-    //                                break;
-    //                            }
-    //                        }
-    //                        if (!isFind)
-    //                        {
-    //                            _playerPaiInfoList[i].AddPai(newCardList[n]);
-    //                        }
-    //                    }
+        //    private Dictionary<int, List<pb.CardInfo>> getDictByCardList(List<pb.CardInfo> list) {
+        //        Dictionary<int, List<pb.CardInfo>> dict = new Dictionary<int, List<pb.CardInfo>>(); //playerOid : cardList
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            if (dict.ContainsKey(list[i].playerId))
+        //            {
+        //                dict[list[i].playerId].Add(list[i]);
+        //            }
+        //            else
+        //            {
+        //                List<pb.CardInfo> cardList = new List<pb.CardInfo>();
+        //                cardList.Add(list[i]);
+        //                dict.Add(list[i].playerId, cardList);
+        //            }
+        //        }
+        //        return dict;
+        //    }
 
-    //                    _playerPaiInfoList[i].ClearPai();
-    //                    for (int n = 0; n < dict[playerOid].Count; n++)
-    //                    {
-    //                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
-    //                    }
-    //                    //原始牌堆中若有比new多的牌，则删除
-    //                    for (int n = 0; n < origCardList.Count; n++)
-    //                    {
-    //                        bool isFind = false;
-    //                        for (int m = 0; m < newCardList.Count; m++)
-    //                        {
-    //                            if (newCardList[m].CardOid == origCardList[n].OID)
-    //                            {
-    //                                isFind = true;
-    //                                break;
-    //                            }
-    //                        }
-    //                        if (!isFind)
-    //                        {
-    //                            origCardList.RemoveAt(n);
-    //                            n--;
-    //                        }
-    //                    }
-    //                    Debug.Log("After update player" + playerOid + "'s card, card count=" + origCardList.Count);
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+        //    private void updatePaiByCardList(List<pb.CardInfo> newCardInfoList)
+        //    {
+        //        Dictionary<int, List<pb.CardInfo>> dict = getDictByCardList(newCardInfoList);
+        //        foreach (int playerOid in dict.Keys)
+        //        {
+        //            List<pb.CardInfo> newCardList = dict[playerOid];
+        //            Debug.Log("current player[" + playerOid + "] has card count=" + newCardList.Count);
+        //            for (int i = 0; i < _playerPaiInfoList.Count; i++)
+        //            {
+        //                if (_playerPaiInfoList[i].PlayerInfo.OID == playerOid)
+        //                {
+        //                    //原始牌堆没有new中的牌，则添加，有则更新信息
+        //                    List<Pai> origCardList = _playerPaiInfoList[i].GetPaiList();
+        //                    for (int n = 0; n < newCardList.Count; n++)
+        //                    {
+        //                        bool isFind = false;
+        //                        for (int m = 0; m < origCardList.Count; m++)
+        //                        {
+        //                            if (origCardList[m].OID == newCardList[n].CardOid)
+        //                            {
+        //                                _playerPaiInfoList[i].UpdatePai(origCardList[m], newCardList[n]);
+        //                                isFind = true;
+        //                                break;
+        //                            }
+        //                        }
+        //                        if (!isFind)
+        //                        {
+        //                            _playerPaiInfoList[i].AddPai(newCardList[n]);
+        //                        }
+        //                    }
 
-    //    public void ProcessRobotProc(pb.GS2CRobotProc msg)
-    //    {
-    //        Debug.Log("ProcessRobotProc, procRobot=" + msg.procPlayer + ", beProcPlayer=" + msg.beProcPlayer + ", type=" + msg.procType.ToString());
-    //        //更新牌信息
-    //        updatePaiByCardList(msg.cardList);
-    //        //处理操作动画
-    //        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
-    //    }
+        //                    _playerPaiInfoList[i].ClearPai();
+        //                    for (int n = 0; n < dict[playerOid].Count; n++)
+        //                    {
+        //                        _playerPaiInfoList[i].AddPai(dict[playerOid][n]);
+        //                    }
+        //                    //原始牌堆中若有比new多的牌，则删除
+        //                    for (int n = 0; n < origCardList.Count; n++)
+        //                    {
+        //                        bool isFind = false;
+        //                        for (int m = 0; m < newCardList.Count; m++)
+        //                        {
+        //                            if (newCardList[m].CardOid == origCardList[n].OID)
+        //                            {
+        //                                isFind = true;
+        //                                break;
+        //                            }
+        //                        }
+        //                        if (!isFind)
+        //                        {
+        //                            origCardList.RemoveAt(n);
+        //                            n--;
+        //                        }
+        //                    }
+        //                    Debug.Log("After update player" + playerOid + "'s card, card count=" + origCardList.Count);
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //    }
 
-    //    public void ProcessPlayerProc(pb.GS2CPlayerEnsureProc msg)
-    //    {
-    //        Debug.Log("ProcessPlayerProc");
-    //        if (msg.procPlayer == Player.Instance.PlayerInfo.OID)
-    //        {
-    //            EventDispatcher.TriggerEvent<int, pb.ProcType, int>(EventDefine.SelfEnsureProc, msg.beProcPlayer, msg.procType, msg.procCardId);
-    //        }
-    //    }
+        //    public void ProcessRobotProc(pb.GS2CRobotProc msg)
+        //    {
+        //        Debug.Log("ProcessRobotProc, procRobot=" + msg.procPlayer + ", beProcPlayer=" + msg.beProcPlayer + ", type=" + msg.procType.ToString());
+        //        //更新牌信息
+        //        updatePaiByCardList(msg.cardList);
+        //        //处理操作动画
+        //        EventDispatcher.TriggerEvent<int, int, pb.ProcType>(EventDefine.RobotProc, msg.procPlayer, msg.beProcPlayer, msg.procType);
+        //    }
 
-    //    public void UpdateCardInfoByPlayerProcOver(List<pb.CardInfo> list)
-    //    {
-    //        //更新牌信息
-    //        updatePaiByCardList(list);
-    //        List<int> updatePlayerOid = new List<int>();
-    //        for (int i = 0; i < list.Count; i++)
-    //        {
-    //            bool isFind = false;
-    //            for (int j = 0; j < updatePlayerOid.Count; j++)
-    //            {
-    //                if (updatePlayerOid[j] == list[i].playerId)
-    //                {
-    //                    isFind = true;
-    //                    break;
-    //                }
-    //            }
-    //            if (!isFind)
-    //            {
-    //                updatePlayerOid.Add(list[i].playerId);
-    //            }
-    //        }
-    //        //对更新牌的玩家重新摆放牌堆
-    //        EventDispatcher.TriggerEvent<List<int>>(EventDefine.ReplacePlayerCards, updatePlayerOid);
-    //    }
+        //    public void ProcessPlayerProc(pb.GS2CPlayerEnsureProc msg)
+        //    {
+        //        Debug.Log("ProcessPlayerProc");
+        //        if (msg.procPlayer == Player.Instance.PlayerInfo.OID)
+        //        {
+        //            EventDispatcher.TriggerEvent<int, pb.ProcType, int>(EventDefine.SelfEnsureProc, msg.beProcPlayer, msg.procType, msg.procCardId);
+        //        }
+        //    }
 
-    //    public int GetSelfGangCardId()
-    //    {
-    //        Dictionary<int, int> dict = new Dictionary<int, int>();
-    //        List<int> inhandList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.InHand);
-    //        List<int> pList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.Peng);
-    //        for (int j = 0; j < 2; j++)
-    //        {
-    //            List<int> list = j == 0 ? inhandList : pList;
-    //            for (int i = 0; i < list.Count; i++)
-    //            {
-    //                if (dict.ContainsKey(list[i]))
-    //                {
-    //                    dict[list[i]]++;
-    //                }
-    //                else
-    //                {
-    //                    dict.Add(list[i], 1);
-    //                }
-    //            }
-    //        }
-    //        foreach (int id in dict.Keys)
-    //        {
-    //            if (dict[id] == 4)
-    //            {
-    //                return id;
-    //            }
-    //        }
-    //        return 0;
-    //    }
+        //    public void UpdateCardInfoByPlayerProcOver(List<pb.CardInfo> list)
+        //    {
+        //        //更新牌信息
+        //        updatePaiByCardList(list);
+        //        List<int> updatePlayerOid = new List<int>();
+        //        for (int i = 0; i < list.Count; i++)
+        //        {
+        //            bool isFind = false;
+        //            for (int j = 0; j < updatePlayerOid.Count; j++)
+        //            {
+        //                if (updatePlayerOid[j] == list[i].playerId)
+        //                {
+        //                    isFind = true;
+        //                    break;
+        //                }
+        //            }
+        //            if (!isFind)
+        //            {
+        //                updatePlayerOid.Add(list[i].playerId);
+        //            }
+        //        }
+        //        //对更新牌的玩家重新摆放牌堆
+        //        EventDispatcher.TriggerEvent<List<int>>(EventDefine.ReplacePlayerCards, updatePlayerOid);
+        //    }
 
-    //    public void GameOver()
-    //    {
-    //        _curProcess = BattleProcess.GameOver;
-    //        EventDispatcher.TriggerEvent(EventDefine.GameOver);
-    //    }
+        //    public int GetSelfGangCardId()
+        //    {
+        //        Dictionary<int, int> dict = new Dictionary<int, int>();
+        //        List<int> inhandList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.InHand);
+        //        List<int> pList = GetCardIdListBySideAndStatus(GetSelfSide(), PaiStatus.Peng);
+        //        for (int j = 0; j < 2; j++)
+        //        {
+        //            List<int> list = j == 0 ? inhandList : pList;
+        //            for (int i = 0; i < list.Count; i++)
+        //            {
+        //                if (dict.ContainsKey(list[i]))
+        //                {
+        //                    dict[list[i]]++;
+        //                }
+        //                else
+        //                {
+        //                    dict.Add(list[i], 1);
+        //                }
+        //            }
+        //        }
+        //        foreach (int id in dict.Keys)
+        //        {
+        //            if (dict[id] == 4)
+        //            {
+        //                return id;
+        //            }
+        //        }
+        //        return 0;
+        //    }
 
-}
+        //    public void GameOver()
+        //    {
+        //        _curProcess = BattleProcess.GameOver;
+        //        EventDispatcher.TriggerEvent(EventDefine.GameOver);
+        //    }
+
+    }
