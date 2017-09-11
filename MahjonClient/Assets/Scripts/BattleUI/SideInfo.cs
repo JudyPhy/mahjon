@@ -54,6 +54,46 @@ public class Card
         set { _isFromOther = value; }
         get { return _isFromOther; }
     }
+
+    public Card(pb.CardInfo info)
+    {
+        _playerId = info.playerOID;
+        _oid = info.OID;
+        _id = info.ID;
+        _status = getCardStatus(info.Status);
+        _isFromOther = info.fromOther;
+    }
+
+    public pb.CardInfo ToPbInfo()
+    {
+        pb.CardInfo card = new pb.CardInfo();
+        card.playerOID = _playerId;
+        card.OID = _oid;
+        card.ID = _id;
+        card.fromOther = _isFromOther;
+        return card;
+    }
+
+    private CardStatus getCardStatus(pb.CardStatus status)
+    {
+        switch (status)
+        {
+            case pb.CardStatus.InHand:
+                return CardStatus.InHand;
+            case pb.CardStatus.P:
+                return CardStatus.Peng;
+            case pb.CardStatus.G:
+                return CardStatus.Gang;
+            case pb.CardStatus.Dis:
+                return CardStatus.Discard;
+            case pb.CardStatus.Deal:
+                return CardStatus.Deal;
+            case pb.CardStatus.Hu:
+                return CardStatus.Hu;
+            default:
+                return CardStatus.Idle;
+        }
+    }
 }
 
 public class SideInfo
@@ -118,11 +158,6 @@ public class SideInfo
         _headIcon = info.HeadIcon;
     }
 
-    //    public List<Pai> GetPaiList()
-    //    {
-    //        return _paiList;
-    //    }
-
     public List<Card> GetCardList(CardStatus status)
     {
         List<Card> list = new List<Card>();
@@ -136,125 +171,9 @@ public class SideInfo
         return list;
     }
 
-    //    public List<int> GetPaiIdListByStatus(PaiStatus status)
-    //    {
-    //        List<int> list = new List<int>();
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == status)
-    //            {
-    //                list.Add(_paiList[i].Id);
-    //            }
-    //        }
-    //        return list; 
-    //    }
-
-    //    public pb.CardType GetExchangeType()
-    //    {
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == PaiStatus.Exchange)
-    //            {
-    //                return (pb.CardType)Mathf.CeilToInt(_paiList[i].Id / 10);
-    //            }
-    //        }
-    //        return pb.CardType.None;
-    //    }
-
-    //    public int GetExchangeCardCount()
-    //    {
-    //        int count = 0;
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == PaiStatus.Exchange)
-    //            {
-    //                count++;
-    //            }
-    //        }
-    //        return count;
-    //    }
-
-
-    //    public void ClearPai()
-    //    {
-    //        _paiList.Clear();
-    //    }
-
-    private CardStatus getCardStatus(pb.CardStatus status)
-    {
-        switch (status)
-        {
-            case pb.CardStatus.InHand:
-                return CardStatus.InHand;
-            case pb.CardStatus.P:
-                return CardStatus.Peng;
-            case pb.CardStatus.G:
-                return CardStatus.Gang;
-            case pb.CardStatus.Dis:
-                return CardStatus.Discard;
-            case pb.CardStatus.Deal:
-                return CardStatus.Deal;
-            case pb.CardStatus.Hu:
-                return CardStatus.Hu;
-            default:
-                return CardStatus.Idle;
-        }
-    }
-
     public void AddCard(pb.CardInfo card)
     {
-        Card newCard = new Card();
-        newCard.PlayerID = card.playerOID;
-        newCard.OID = card.OID;
-        newCard.Id = card.ID;
-        newCard.Status = getCardStatus(card.Status);        
-        newCard.IsFromOther = card.fromOther;
+        Card newCard = new Card(card);
         _cardList.Add(newCard);
     }
-
-    //    public void UpdatePai(Pai origInfo, pb.CardInfo newInfo)
-    //    {
-    //        origInfo.OID = newInfo.CardOid;
-    //        origInfo.Id = newInfo.CardId;
-    //        origInfo.Status = getPaiStatus(newInfo.Status);
-    //        origInfo.PlayerID = newInfo.playerId;
-    //        origInfo.IsFromOther = newInfo.fromOther;
-    //    }
-
-    //    public void RemoveExchangeCard()
-    //    {
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == PaiStatus.Exchange)
-    //            {
-    //                _paiList.RemoveAt(i);
-    //                i--;
-    //            }
-    //        }
-    //    }
-
-    //    public List<Pai> GetUsefulPaiList()
-    //    {
-    //        List<Pai> list = new List<Pai>();
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (_paiList[i].Status == PaiStatus.InHand || _paiList[i].Status == PaiStatus.Gang || _paiList[i].Status == PaiStatus.Peng)
-    //            {
-    //                list.Add(_paiList[i]);
-    //            }
-    //        }
-    //        return list;
-    //    }
-
-    //    public Pai getDealCard(int cardOid) {
-    //        for (int i = 0; i < _paiList.Count; i++)
-    //        {
-    //            if (cardOid == _paiList[i].OID)
-    //            {
-    //                return _paiList[i];
-    //            }
-    //        }
-    //        return null;
-    //    }
-
 }

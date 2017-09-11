@@ -130,7 +130,12 @@ public class Panel_battle_mj : WindowsBasePanel
         EventDispatcher.AddEventListener<Card>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.AddEventListener<Card>(EventDefine.EnsureDiscard, EnsureDiscard);
 
+        EventDispatcher.AddEventListener<List<pb.ProcType>>(EventDefine.ProcHPG, ShowProcHPGBtns);
+        EventDispatcher.AddEventListener<pb.ProcType>(EventDefine.EnsureProcHPG, EnsureProcHPG);
+        EventDispatcher.AddEventListener(EventDefine.UpdateSelfGangCard, UpdateSelfGangCard);
+
         EventDispatcher.AddEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
+        EventDispatcher.AddEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
     }
 
     public override void OnRemoveEvent()
@@ -147,7 +152,12 @@ public class Panel_battle_mj : WindowsBasePanel
         EventDispatcher.RemoveEventListener<Card>(EventDefine.UnSelectOtherDiscard, UnSelectOtherDiscard);
         EventDispatcher.RemoveEventListener<Card>(EventDefine.EnsureDiscard, EnsureDiscard);
 
+        EventDispatcher.RemoveEventListener<List<pb.ProcType>>(EventDefine.ProcHPG, ShowProcHPGBtns);
+        EventDispatcher.RemoveEventListener<pb.ProcType>(EventDefine.EnsureProcHPG, EnsureProcHPG);
+        EventDispatcher.RemoveEventListener(EventDefine.UpdateSelfGangCard, UpdateSelfGangCard);
+
         EventDispatcher.RemoveEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
+        EventDispatcher.RemoveEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
     }
 
     private void ResetGame()
@@ -821,17 +831,14 @@ public class Panel_battle_mj : WindowsBasePanel
         info.playerOID = discard.PlayerID;
         info.Status = pb.CardStatus.Dis;
         GameMsgHandler.Instance.SendMsgC2GSInterruptActionRet(pb.ProcType.Proc_Discard, info);
+
+        BattleManager.Instance.CurProcess = BattleProcess.DiscardOver;
     }
 
     private void BroadcastDiscard(pb.CardInfo discard)
     {
         Debug.Log("BroadcastDiscard, discardId=" + discard.ID);
-        Card card = new Card();
-        card.PlayerID = discard.playerOID;
-        card.OID = discard.OID;
-        card.Id = discard.ID;
-        card.Status = CardStatus.Discard;
-        card.IsFromOther = discard.fromOther;
+        Card card = new Card(discard);
         PlayDiscardAni(card);
     }
 
@@ -870,6 +877,75 @@ public class Panel_battle_mj : WindowsBasePanel
             script.transform.localPosition = vecs[12] + i%10 * vecs[13] + i / 10 * vecs[14];
             script.UpdateUI(side, discard[i]);
         }
+    }
+
+    private void hideAllProcBtns()
+    {
+        for (int i = 0; i < _procItems.Count; i++)
+        {
+            _procItems[i].gameObject.SetActive(false);
+        }
+    }
+
+    private Item_proc getProcBtnItem(int index)
+    {
+        if (index < _procItems.Count)
+        {
+            return _procItems[index];
+        }
+        Item_proc item = UIManager.AddChild<Item_proc>(_procGrid.gameObject);
+        _procItems.Add(item);
+        return item;
+    }
+
+    private void ShowProcHPGBtns(List<pb.ProcType> procTypes)
+    {
+        iTween.MoveTo(_procObj, iTween.Hash("x", 250, "islocal", true, "time", 0.5f));
+        _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
+        _procCard.MakePixelPerfect();
+
+        //g、p、h btn
+        hideAllProcBtns();
+        for (int i = 0; i < procTypes.Count; i++)
+        {
+            Item_proc procBtn = getProcBtnItem(i);
+            procBtn.gameObject.SetActive(true);
+            procBtn.UpdateUI(procTypes[i]);
+        }
+        //pass btn
+        Item_proc passBtn = getProcBtnItem(procTypes.Count);
+        passBtn.gameObject.SetActive(true);
+        passBtn.UpdateUI(pb.ProcType.Proc_Pass);
+        _procGrid.repositionNow = true;
+    }
+
+    private void EnsureProcHPG(pb.ProcType type)
+    {
+        iTween.MoveTo(_procObj, iTween.Hash("x", 450, "islocal", true, "time", 0.5f));
+        pb.CardInfo card = BattleManager.Instance.ProcCard.ToPbInfo();
+        GameMsgHandler.Instance.SendMsgC2GSInterruptActionRet(type, card);
+        BattleManager.Instance.CurProcess = BattleProcess.ProcEnsureOver;
+    }
+
+    private void UpdateSelfGangCard()
+    {
+        _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
+        _procCard.MakePixelPerfect();
+    }
+
+    private void UpdateAllCardsList()
+    {
+        Debug.Log("UpdateAllCardsList");
+        //inhand
+        SortOneCards(pb.MahjonSide.EAST);
+        SortOneCards(pb.MahjonSide.SOUTH);
+        SortOneCards(pb.MahjonSide.WEST);
+        SortOneCards(pb.MahjonSide.NORTH);
+        //discard
+        SortOneDiscard(pb.MahjonSide.EAST);
+        SortOneDiscard(pb.MahjonSide.SOUTH);
+        SortOneDiscard(pb.MahjonSide.WEST);
+        SortOneDiscard(pb.MahjonSide.NORTH);
     }
     #endregion
 

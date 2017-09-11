@@ -20,8 +20,14 @@ public class EventDefine
     public static string UnSelectOtherDiscard = "UnSelectOtherDiscard";
     public static string EnsureDiscard = "EnsureDiscard";
 
+    public static string ProcHPG = "ProcHPG"; 
+    public static string EnsureProcHPG = "EnsureProcHPG";
+    public static string UpdateSelfGangCard = "UpdateSelfGangCard";
+
     public static string BroadcastDiscard = "BroadcastDiscard";
     public static string BroadcastProc = "BroadcastProc";
+
+    public static string UpdateAllCardsList = "UpdateAllCardsList";
 
 
 

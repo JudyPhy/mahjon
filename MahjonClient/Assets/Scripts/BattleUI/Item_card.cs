@@ -172,10 +172,23 @@ public class Item_card : MonoBehaviour
         }
         else if (BattleManager.Instance.CurProcess == BattleProcess.Discard)
         {
-            if (_info.Status != CardStatus.InHand || _info.Status != CardStatus.Deal)
+            if (_info.Status == CardStatus.InHand || _info.Status == CardStatus.Deal)
             {
                 // 出牌阶段
                 OnChooseDiscard();
+            }
+        }
+        else if (BattleManager.Instance.CurProcess == BattleProcess.SelfGangChoose)
+        {
+            if (_info.Status == CardStatus.InHand || _info.Status == CardStatus.Deal)
+            {
+                // 自杠阶段
+                int count = BattleManager.Instance.GetCardCount(_info.PlayerID, _info.Id);
+                if (count == 4)
+                {
+                    BattleManager.Instance.ProcCard = _info;
+                    EventDispatcher.TriggerEvent(EventDefine.UpdateSelfGangCard, _info);
+                }
             }
         }
     }

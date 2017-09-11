@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using EventTransmit;
 
 public class Item_proc : MonoBehaviour {
 
@@ -14,31 +15,32 @@ public class Item_proc : MonoBehaviour {
         UIEventListener.Get(gameObject).onClick = OnClickProc;
     }
 
-    //public void UpdateUI(pb.ProcType type)
-    //{
-    //    _type = type;
-    //    switch (_type)
-    //    {
-    //        case pb.ProcType.Peng:
-    //            _word.spriteName = "text_peng_s";
-    //            break;
-    //        case pb.ProcType.GangOther:
-    //        case pb.ProcType.SelfGang:
-    //            _word.spriteName = "text_gang_s";
-    //            break;
-    //        case pb.ProcType.HuOther:
-    //        case pb.ProcType.SelfHu:
-    //            _word.spriteName = "text_hu_s";
-    //            break;
-    //        default:
-    //            break;
-    //    }
-    //    _word.MakePixelPerfect();
-    //}
+    public void UpdateUI(pb.ProcType type)
+    {
+        _type = type;
+        switch (_type)
+        {
+            case pb.ProcType.Proc_Peng:
+                _word.spriteName = "text_peng_s";
+                break;
+            case pb.ProcType.Proc_Gang:
+                _word.spriteName = "text_gang_s";
+                break;
+            case pb.ProcType.Proc_Hu:
+                _word.spriteName = "text_hu_s";
+                break;
+            case pb.ProcType.Proc_Pass:
+                _word.spriteName = "text_hu_s";
+                break;
+            default:
+                break;
+        }
+        _word.MakePixelPerfect();
+    }
 
     private void OnClickProc(GameObject go)
     {
-
+        EventDispatcher.TriggerEvent<pb.ProcType>(EventDefine.EnsureProcHPG, _type);
     }
 
     // Update is called once per frame
