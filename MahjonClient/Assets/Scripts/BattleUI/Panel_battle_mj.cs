@@ -134,6 +134,8 @@ public class Panel_battle_mj : WindowsBasePanel
         EventDispatcher.AddEventListener<pb.ProcType>(EventDefine.EnsureProcHPG, EnsureProcHPG);
         EventDispatcher.AddEventListener(EventDefine.UpdateSelfGangCard, UpdateSelfGangCard);
 
+        EventDispatcher.AddEventListener<pb.ProcType>(EventDefine.BroadcastProc, PlayPGHProcAni);
+
         EventDispatcher.AddEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
         EventDispatcher.AddEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
     }
@@ -155,6 +157,8 @@ public class Panel_battle_mj : WindowsBasePanel
         EventDispatcher.RemoveEventListener<List<pb.ProcType>>(EventDefine.ProcHPG, ShowProcHPGBtns);
         EventDispatcher.RemoveEventListener<pb.ProcType>(EventDefine.EnsureProcHPG, EnsureProcHPG);
         EventDispatcher.RemoveEventListener(EventDefine.UpdateSelfGangCard, UpdateSelfGangCard);
+
+        EventDispatcher.RemoveEventListener<pb.ProcType>(EventDefine.BroadcastProc, PlayPGHProcAni);
 
         EventDispatcher.RemoveEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
         EventDispatcher.RemoveEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
@@ -931,6 +935,11 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
         _procCard.MakePixelPerfect();
+    }
+
+    private void PlayPGHProcAni(pb.ProcType type)
+    {
+        Debug.Log("PlayPGHProcAni, type:" + type.ToString());
     }
 
     private void UpdateAllCardsList()
