@@ -43,7 +43,7 @@ public class Panel_battle_mj : WindowsBasePanel
     private int _sideTipsIndex;
     private bool _playingTipsAni;
 
-    private Dictionary<pb.MahjonSide, GameObject> _sideCardsRoot = new Dictionary<pb.MahjonSide, GameObject>();
+    private List<GameObject> _sideCardsRoot = new List<GameObject>();
     private Dictionary<pb.MahjonSide, List<Item_card>> _sideCardsDict = new Dictionary<pb.MahjonSide, List<Item_card>>();
     private Dictionary<pb.MahjonSide, List<Item_card>> _sideDiscardsDict = new Dictionary<pb.MahjonSide, List<Item_card>>();
 
@@ -104,11 +104,10 @@ public class Panel_battle_mj : WindowsBasePanel
             _sideTips.Add(sp);
         }
 
-        for (pb.MahjonSide i = pb.MahjonSide.EAST; i <= pb.MahjonSide.NORTH; i++)
+        for (int i = 0; i < 4; i++)
         {
-            int curIndex = (int)(i - pb.MahjonSide.EAST);
-            GameObject root = transform.FindChild("CardRoot/Anchor" + curIndex.ToString()).gameObject;
-            _sideCardsRoot.Add(i, root);
+            GameObject root = transform.FindChild("CardRoot/Anchor" + i.ToString()).gameObject;
+            _sideCardsRoot.Add(root);
         }
 
         _procObj = transform.FindChild("Proc/bar").gameObject;
@@ -345,8 +344,8 @@ public class Panel_battle_mj : WindowsBasePanel
         }
         int curDrawCount = _turns > 11 ? 1 : 4;
         //Debug.Log("current draw card " + curDrawCount);
-        Vector3[] itemAttr = getCardsItemAttr(_curSide);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_curSide);
+        Vector3[] itemAttr = getCardsItemAttr(sideIndex);        
         for (int i = 0; i < curDrawCount; i++)
         {
             Card card = BattleManager.Instance.GetDrawCardInfo(_curSide, _drawItemIndex[_curSide]);
@@ -373,7 +372,7 @@ public class Panel_battle_mj : WindowsBasePanel
         inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
         pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
-        Vector3[] itemAttr = getCardsItemAttr(curSide);
+        Vector3[] itemAttr = getCardsItemAttr(sideIndex);
         hideOneSideCardItem(curSide);
         for (int i = 0; i < inhand.Count; i++)
         {
@@ -436,8 +435,9 @@ public class Panel_battle_mj : WindowsBasePanel
 
         List<Card> inhand = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.InHand);
         pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
-        //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset       
-        Vector3[] itemAttr = getCardsItemAttr(curSide);
+        //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset  
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);  
+        Vector3[] itemAttr = getCardsItemAttr(sideIndex);
         List<Item_card> exchangeCard = new List<Item_card>();
         for (int i = 0; i < 3; i++)
         {
@@ -477,8 +477,9 @@ public class Panel_battle_mj : WindowsBasePanel
             }
             PlaceInHandCardList(players[i]);
             pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(players[i]);
+            int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
             //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset       
-            Vector3[] itemAttr = getCardsItemAttr(curSide);
+            Vector3[] itemAttr = getCardsItemAttr(sideIndex);
             List<Item_card> exchangeCard = new List<Item_card>();
             for (int j = 0; j < 3; j++)
             {
@@ -595,7 +596,7 @@ public class Panel_battle_mj : WindowsBasePanel
             inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
             pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(players[i]);
             int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
-            Vector3[] itemAttr = getCardsItemAttr(curSide);
+            Vector3[] itemAttr = getCardsItemAttr(sideIndex);
             for (int n = 0; n < inhand.Count; n++)
             {
                 Item_card item = getCardsItem(curSide, n);
@@ -710,7 +711,8 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         int playerId = BattleManager.Instance.GetPlayerOIDBySide(side);
         hideOneSideCardItem(side);
-        Vector3[] vecs = getCardsItemAttr(side);
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+        Vector3[] vecs = getCardsItemAttr(sideIndex);
 
         //inhand
         //0:inhand_startPos、1:inhand_inlineOffset
@@ -850,6 +852,7 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         Debug.Log("PlayDiscardAni discardOid:" + discard.OID + ", discardId:" + discard.Id);
         pb.MahjonSide side = BattleManager.Instance.GetSideByPlayerOID(discard.PlayerID);
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
         SortOneCards(side);
         //animation
         //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset、15:discard_ani_startPos
@@ -857,7 +860,7 @@ public class Panel_battle_mj : WindowsBasePanel
         Item_card item = getDiscardsItem(side, dList.Count - 1);
         item.gameObject.SetActive(true);
         item.UpdateUI(side, discard);
-        Vector3[] vecs = getCardsItemAttr(side);
+        Vector3[] vecs = getCardsItemAttr(sideIndex);
         item.transform.localPosition = vecs[15];
         item.transform.localScale = Vector3.one * 1.2f;
         Vector3 to = vecs[12] + dList.Count / 10 * vecs[14] + dList.Count % 10 * vecs[13];
@@ -868,7 +871,8 @@ public class Panel_battle_mj : WindowsBasePanel
     private void SortOneDiscard(pb.MahjonSide side)
     {
         hideOneSideDiscardItem(side);
-        Vector3[] vecs = getCardsItemAttr(side);
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+        Vector3[] vecs = getCardsItemAttr(sideIndex);
 
         //discard
         //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset
@@ -990,7 +994,8 @@ public class Panel_battle_mj : WindowsBasePanel
             return item;
         }
         else {
-            Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[side]);
+            int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+            Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[sideIndex]);
             _sideCardsDict[side].Add(item);
             return item;
         }
@@ -1021,13 +1026,14 @@ public class Panel_battle_mj : WindowsBasePanel
         }
         else
         {
-            Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[side]);
+            int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+            Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[sideIndex]);
             _sideDiscardsDict[side].Add(item);
             return item;
         }
     }
 
-    private Vector3[] getCardsItemAttr(pb.MahjonSide side)
+    private Vector3[] getCardsItemAttr(int sideIndexFromSelf)
     {
         //0:inhand_startPos、1:inhand_inlineOffset、
         //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset、6:exchange_upOffset
@@ -1035,9 +1041,12 @@ public class Panel_battle_mj : WindowsBasePanel
         //8:deal_gang_space、9:gang_gang_space
         //10:gang_peng_space、11:peng_peng_space
         //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset、15:discard_ani_startPos
-        int sideIndexFromSelf = BattleManager.Instance.GetSideIndexFromSelf(side);
         Vector3[] result = { Vector3.zero, Vector3.zero,
-            Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero  };
+            Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero,
+            Vector3.zero,
+            Vector3.zero, Vector3.zero,
+            Vector3.zero, Vector3.zero,
+            Vector3.zero, Vector3.zero,Vector3.zero, Vector3.zero };
         switch (sideIndexFromSelf)
         {
             case 0:

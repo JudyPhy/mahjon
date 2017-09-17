@@ -125,6 +125,14 @@ public class BattleManager
         }
         EventDispatcher.TriggerEvent(EventDefine.UpdateRoomMember);
         _sortSideFromSelf = GetSortedSideFromSelf();
+
+        ////log
+        //string str = "sort side from self=> ";
+        //for (int i = 0; i < _sortSideFromSelf.Count; i++)
+        //{
+        //    str += _sortSideFromSelf[i].ToString() + ", ";
+        //}
+        //Debug.LogError(str);
     }
 
     public List<pb.MahjonSide> GetSortedSideFromSelf()
@@ -189,7 +197,8 @@ public class BattleManager
         //log        
         foreach (int player in _SideInfoDict.Keys)
         {
-            string str = "player" + player + " 's cards: ";
+            string str = "player" + player + " 's side:";
+            str += _SideInfoDict[player].Side.ToString() + ", cards: ";
             for (int i = 0; i < _SideInfoDict[player].CardList.Count; i++)
             {
                 str += _SideInfoDict[player].CardList[i].Id + ", ";
