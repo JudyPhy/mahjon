@@ -5,7 +5,6 @@ import (
 	"server/game"
 	"server/gate"
 	"server/login"
-	"server/roomMgr"
 
 	"github.com/name5566/leaf"
 	lconf "github.com/name5566/leaf/conf"
