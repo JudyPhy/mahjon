@@ -67,17 +67,6 @@ enum ProcType
 	Proc_Pass = 5;
 }
 
-/*enum ProcType
-{
-	SelfHu = 1;
-	SelfGang = 2;
-	HuOther = 3;
-	GangOther = 4;
-	Peng = 5;
-	Discard = 6;	
-	Pass = 7;
-}*/
-
 enum TurnSwitchType
 {	
 	Normal = 1;
