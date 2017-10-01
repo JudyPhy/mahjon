@@ -369,6 +369,7 @@ public class Panel_battle_mj : WindowsBasePanel
     private void PlaceInHandCardList(int playerOid)
     {
         List<Card> inhand = BattleManager.Instance.GetCardList(playerOid, CardStatus.InHand);
+        //Debug.LogError("inhand:" + inhand.Count);
         inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
         pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
@@ -404,7 +405,12 @@ public class Panel_battle_mj : WindowsBasePanel
         _sideTipsTime = System.DateTime.Now;
         for (int i = 0; i < _sideTips.Count; i++)
         {
-            _sideTips[i].spriteName = "text_select" + _sideTipsIndex.ToString();
+            string name = "text_select";
+            if (BattleManager.Instance.CurProcess == BattleProcess.Lack)
+            {
+                name = "text_lack";
+            }
+            _sideTips[i].spriteName = name + _sideTipsIndex.ToString();
             _sideTips[i].MakePixelPerfect();
         }
         _sideTipsIndex++;
@@ -709,9 +715,11 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void SortOneCards(pb.MahjonSide side)
     {
+        Debug.Log("SortOneCards, side=" + side.ToString());
         int playerId = BattleManager.Instance.GetPlayerOIDBySide(side);
         hideOneSideCardItem(side);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+        Debug.Log("SortOneCards, sideIndex=" + sideIndex.ToString());
         Vector3[] vecs = getCardsItemAttr(sideIndex);
 
         //inhand
@@ -724,6 +732,12 @@ public class Panel_battle_mj : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.transform.localPosition = vecs[0] + i * vecs[1];
             script.UpdateUI(side, inhand[i]);
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
         }
         Vector3 inhandLastPos = vecs[0] + inhand.Count * vecs[1];
 
@@ -737,6 +751,12 @@ public class Panel_battle_mj : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.transform.localPosition = inhandLastPos + i * vecs[1];
             script.UpdateUI(side, deal[i]);
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
         }
         Vector3 dealLastPos = inhandLastPos + (deal.Count == 0 ? 1 : deal.Count) * vecs[1];
 
@@ -780,6 +800,12 @@ public class Panel_battle_mj : WindowsBasePanel
                     script.ShowBack(BattleManager.Instance.GetSideIndexFromSelf(side));
                 }
             }
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
         }
         Vector3 gangLastPos = dealLastPos + gang.Count * vecs[1] + (gang.Count / 4 - 1) * vecs[9];
 
@@ -796,6 +822,12 @@ public class Panel_battle_mj : WindowsBasePanel
             script.gameObject.SetActive(true);
             script.transform.localPosition = gangLastPos + i * vecs[1] + (pIndex - 1) * vecs[11];
             script.UpdateUI(side, gang[i]);
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
         }
 
         Debug.Log("Sort cards over.");
@@ -860,30 +892,44 @@ public class Panel_battle_mj : WindowsBasePanel
         Item_card item = getDiscardsItem(side, dList.Count - 1);
         item.gameObject.SetActive(true);
         item.UpdateUI(side, discard);
+        if (sideIndex == 1)
+        {
+            //右侧item要修改depth
+            int curDepth = rightItemDepth - dList.Count;
+            item.SetDepth(curDepth);
+        }
         Vector3[] vecs = getCardsItemAttr(sideIndex);
         item.transform.localPosition = vecs[15];
         item.transform.localScale = Vector3.one * 1.2f;
-        Vector3 to = vecs[12] + dList.Count / 10 * vecs[14] + dList.Count % 10 * vecs[13];
+        Vector3 to = vecs[12] + (dList.Count-1) / 10 * vecs[14] + (dList.Count - 1) % 10 * vecs[13];
         iTween.MoveTo(item.gameObject, iTween.Hash("position", to, "islocal", true, "time", 0.5f));
         iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
     }
 
     private void SortOneDiscard(pb.MahjonSide side)
-    {
+    {        
         hideOneSideDiscardItem(side);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
+        Debug.Log("sort discard, sideIndex=" + sideIndex);
         Vector3[] vecs = getCardsItemAttr(sideIndex);
 
         //discard
         //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset
         int playerId = BattleManager.Instance.GetPlayerOIDBySide(side);
-        List<Card> discard = BattleManager.Instance.GetCardList(playerId, CardStatus.InHand);
+        List<Card> discard = BattleManager.Instance.GetCardList(playerId, CardStatus.Discard);
+        Debug.Log("discard count=" + discard.Count);
         for (int i = 0; i < discard.Count; i++)
         {
             Item_card script = getDiscardsItem(side, i);
             script.gameObject.SetActive(true);
             script.transform.localPosition = vecs[12] + i%10 * vecs[13] + i / 10 * vecs[14];
             script.UpdateUI(side, discard[i]);
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
         }
     }
 
@@ -908,7 +954,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void ShowProcHPGBtns(List<pb.ProcType> procTypes)
     {
-        iTween.MoveTo(_procObj, iTween.Hash("x", 250, "islocal", true, "time", 0.5f));
+        iTween.MoveTo(_procObj, iTween.Hash("x", 275-100* procTypes.Count, "islocal", true, "time", 0.5f));
         _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
         _procCard.MakePixelPerfect();
 
@@ -916,14 +962,11 @@ public class Panel_battle_mj : WindowsBasePanel
         hideAllProcBtns();
         for (int i = 0; i < procTypes.Count; i++)
         {
+            Debug.Log("proc type=" + procTypes[i].ToString());
             Item_proc procBtn = getProcBtnItem(i);
             procBtn.gameObject.SetActive(true);
             procBtn.UpdateUI(procTypes[i]);
         }
-        //pass btn
-        Item_proc passBtn = getProcBtnItem(procTypes.Count);
-        passBtn.gameObject.SetActive(true);
-        passBtn.UpdateUI(pb.ProcType.Proc_Pass);
         _procGrid.repositionNow = true;
     }
 
@@ -954,11 +997,12 @@ public class Panel_battle_mj : WindowsBasePanel
         SortOneCards(pb.MahjonSide.SOUTH);
         SortOneCards(pb.MahjonSide.WEST);
         SortOneCards(pb.MahjonSide.NORTH);
-        //discard
-        SortOneDiscard(pb.MahjonSide.EAST);
-        SortOneDiscard(pb.MahjonSide.SOUTH);
-        SortOneDiscard(pb.MahjonSide.WEST);
-        SortOneDiscard(pb.MahjonSide.NORTH);
+        
+        ////discard
+        //SortOneDiscard(pb.MahjonSide.EAST);
+        //SortOneDiscard(pb.MahjonSide.SOUTH);
+        //SortOneDiscard(pb.MahjonSide.WEST);
+        //SortOneDiscard(pb.MahjonSide.NORTH);
     }
     #endregion
 
@@ -1067,14 +1111,14 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[10] = new Vector3(20, 0, 0);
                 result[11] = new Vector3(20, 0, 0);
 
-                result[12] = new Vector3(-453, 180, 0);
-                result[13] = new Vector3(75, 0, 0);
-                result[14] = new Vector3(0, -80, 0);
-                result[15] = new Vector3(0, -80, 0);
+                result[12] = new Vector3(-195, 255, 0);
+                result[13] = new Vector3(44, 0, 0);
+                result[14] = new Vector3(0, -52, 0);
+                result[15] = new Vector3(0, 150, 0);
                 break;
             case 1:
                 result[0] = new Vector3(-160, -155, 0);
-                result[1] = new Vector3(0, 28, 0);
+                result[1] = new Vector3(0, 27, 0);
 
                 result[2] = new Vector3(-215, -42, 0);
                 result[3] = new Vector3(0, 42, 0);
@@ -1090,10 +1134,10 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[10] = new Vector3(0, 10, 0);
                 result[11] = new Vector3(0, 10, 0);
 
-                result[12] = new Vector3(-160, -155, 0);
-                result[13] = new Vector3(0, -28, 0);
-                result[14] = new Vector3(28, 0, 0);
-                result[15] = new Vector3(-80, 0, 0);
+                result[12] = new Vector3(-330, -150, 0);
+                result[13] = new Vector3(0, 32, 0);
+                result[14] = new Vector3(47, 0, 0);
+                result[15] = new Vector3(-205, 0, 0);
                 break;
             case 2:
                 result[0] = new Vector3(228, -65, 0);
@@ -1113,10 +1157,10 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[10] = new Vector3(-20, 0, 0);
                 result[11] = new Vector3(-20, 0, 0);
 
-                result[12] = new Vector3(228, -65, 0);
-                result[13] = new Vector3(-38, 0, 0);
-                result[14] = new Vector3(0, 30, 0);
-                result[15] = new Vector3(0, -80, 0);
+                result[12] = new Vector3(185, -260, 0);
+                result[13] = new Vector3(-37, 0, 0);
+                result[14] = new Vector3(0, 43, 0);
+                result[15] = new Vector3(0, -100, 0);
                 break;
             case 3:
                 result[0] = new Vector3(160, 210, 0);
@@ -1136,10 +1180,10 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[10] = new Vector3(0, -10, 0);
                 result[11] = new Vector3(0, -10, 0);
 
-                result[12] = new Vector3(160, 210, 0);
-                result[13] = new Vector3(0, -30, 0);
-                result[14] = new Vector3(-28, 0, 0);
-                result[15] = new Vector3(80, 0, 0);
+                result[12] = new Vector3(320, 180, 0);
+                result[13] = new Vector3(0, -32, 0);
+                result[14] = new Vector3(-47, 0, 0);
+                result[15] = new Vector3(200, 0, 0);
                 break;
             default:
                 break;

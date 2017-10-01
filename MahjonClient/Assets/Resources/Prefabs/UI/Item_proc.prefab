@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4274812281129656}
   - component: {fileID: 114662786923896518}
   - component: {fileID: 65619941307604804}
+  - component: {fileID: 114784952609832710}
   m_Layer: 5
   m_Name: Item_proc
   m_TagString: Untagged
@@ -85,7 +86,7 @@ MonoBehaviour:
   mPivot: 4
   mWidth: 96
   mHeight: 88
-  mDepth: 10
+  mDepth: 33
   autoResizeBoxCollider: 1
   hideIfOffScreen: 0
   keepAspectRatio: 0
@@ -103,3 +104,19 @@ MonoBehaviour:
   mAtlas: {fileID: 114771245132266918, guid: 4f7a62495d0fdec41b009dd8cfef3312, type: 2}
   mSpriteName: text_hu_s
   mFillCenter: 1
+--- !u!114 &114784952609832710
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1653493502423054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15cc9c62605319f4a9b20b15918913fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tweenTarget: {fileID: 1653493502423054}
+  hover: {r: 0.88235295, g: 0.78431374, b: 0.5882353, a: 1}
+  pressed: {r: 0.7176471, g: 0.6392157, b: 0.48235294, a: 1}
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  duration: 0.2

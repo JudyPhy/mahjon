@@ -344,7 +344,10 @@ public class BattleManager
         int curPlayerSideIndex = 0;
         if (_SideInfoDict.ContainsKey(_curTurnPlayer))
         {
-            _SideInfoDict[_curTurnPlayer].AddCard(drawnCard);
+            if (drawnCard != null)
+            {
+                _SideInfoDict[_curTurnPlayer].AddCard(drawnCard);
+            }
             curPlayerSideIndex = GetSideIndexFromSelf(_SideInfoDict[_curTurnPlayer].Side);
         }
         else
@@ -357,9 +360,11 @@ public class BattleManager
     //收到当前可操作方式
     public void PlayerProc(pb.GS2CInterruptAction msg)
     {
+        Debug.Log("proc count=" + msg.procList.Count);
         for (int i = 0; i < msg.procList.Count; i++)
-        {
+        {            
             pb.ProcType type = msg.procList[i];
+            Debug.Log("proc=" + type.ToString());
             if (type == pb.ProcType.Proc_Gang || type == pb.ProcType.Proc_Hu || type == pb.ProcType.Proc_Peng)
             {
                 //碰杠胡
@@ -395,6 +400,7 @@ public class BattleManager
             {
                 case pb.ProcType.Proc_Discard:
                     List<Card> oldDiscard = GetCardList(msg.procPlayer, CardStatus.Discard);
+                    Debug.LogError("procPlayer[" + msg.procPlayer + "] old card count=" + _SideInfoDict[msg.procPlayer].CardList.Count);
                     for (int i = 0; i < msg.cardList.Count; i++)
                     {
                         if (msg.cardList[i].Status == pb.CardStatus.Dis)
@@ -410,8 +416,18 @@ public class BattleManager
                             }
                             if (!isFind)
                             {
+                                Debug.Log("Is robot discard");
+                                List<Card> oldList = _SideInfoDict[msg.procPlayer].CardList;
+                                for (int j = 0; j < oldList.Count; j++)
+                                {
+                                    if (oldList[j].OID == msg.cardList[i].OID)
+                                    {
+                                        oldList[j].Status = CardStatus.Discard;
+                                        break;
+                                    }
+                                }
                                 Debug.Log(msg.procPlayer + "出牌" + msg.cardList[i].ID);
-                                _SideInfoDict[msg.procPlayer].AddCard(msg.cardList[i]);
+                                Debug.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + _SideInfoDict[msg.procPlayer].CardList.Count);
                                 EventDispatcher.TriggerEvent<pb.CardInfo>(EventDefine.BroadcastDiscard, msg.cardList[i]);
                                 break;
                             }
@@ -434,6 +450,7 @@ public class BattleManager
 
     private void updateCardsList(List<pb.CardInfo> newCardList)
     {
+        Debug.Log("updateCardsList");
         Dictionary<int, List<pb.CardInfo>> newCards = getPlayerCardDict(newCardList);
         foreach (int playerId in newCards.Keys)
         {
@@ -466,7 +483,7 @@ public class BattleManager
                     bool isFind = false;
                     for (int j = 0; j < newList.Count; j++)
                     {
-                        if (oldList[j].OID == newList[i].OID)
+                        if (oldList[i].OID == newList[j].OID)
                         {
                             isFind = true;
                             break;
@@ -479,6 +496,7 @@ public class BattleManager
                         i--;
                     }
                 }
+                Debug.LogError("player[" + playerId + "]'s card count=" + _SideInfoDict[playerId].CardList.Count);
             }
         }
     }

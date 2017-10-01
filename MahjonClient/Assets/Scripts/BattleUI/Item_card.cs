@@ -52,11 +52,12 @@ public class Item_card : MonoBehaviour
             _bg.MakePixelPerfect();
         }
         else
-        {
+        {            
             switch (_info.Status)
             {
                 case CardStatus.InHand:
                 case CardStatus.Exchange:
+                case CardStatus.Deal:
                     if (sideIndex == 0)
                     {
                         _card.gameObject.SetActive(true);
@@ -77,6 +78,21 @@ public class Item_card : MonoBehaviour
                     _card.gameObject.SetActive(true);
                     _card.MakePixelPerfect();
                     _card.transform.localPosition = new Vector3(0, 11, 0);
+                    break;
+                case CardStatus.Discard:
+                    string[] discardBgName = { "self_front1", "flank_front", "front_front", "flank_front" };
+                    _bg.spriteName = discardBgName[sideIndex];
+                    _bg.MakePixelPerfect();
+                    _card.gameObject.SetActive(true);
+                    _card.spriteName = _info.Id.ToString();
+                    _card.MakePixelPerfect();
+                    int[] rotate = { 0, 90, 180, -90 };
+                    _card.transform.localEulerAngles = new Vector3(0, 0, rotate[sideIndex]);
+                    float[] scaleRate = { 0.5f, 0.5f, 0.4f, 0.5f };
+                    _card.transform.localScale = Vector3.one * scaleRate[sideIndex];
+                    int[] cardPosX = { 0, -5, 0, 4 };
+                    int[] cardPosY = { 11, 6, 4, 6 };
+                    _card.transform.localPosition = new Vector3(cardPosX[sideIndex], cardPosY[sideIndex], 0);
                     break;
                 default:
                     break;
