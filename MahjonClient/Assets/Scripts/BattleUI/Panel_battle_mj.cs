@@ -35,7 +35,7 @@ public class Panel_battle_mj : WindowsBasePanel
     private Dictionary<pb.MahjonSide, List<Item_card>> putedExchangeCards = new Dictionary<pb.MahjonSide, List<Item_card>>(); //side : cardItemList
 
     private GameObject _lackObj;
-    private List<GameObject> _lackBtns = new List<GameObject>();    
+    private List<GameObject> _lackBtns = new List<GameObject>();
 
     private GameObject _sideTipsObj;
     private List<UISprite> _sideTips = new List<UISprite>();
@@ -137,6 +137,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
         EventDispatcher.AddEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
         EventDispatcher.AddEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
+        EventDispatcher.AddEventListener<int, int>(EventDefine.RemoveDiscard, HideDiscard);
     }
 
     public override void OnRemoveEvent()
@@ -161,6 +162,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
         EventDispatcher.RemoveEventListener<pb.CardInfo>(EventDefine.BroadcastDiscard, BroadcastDiscard);
         EventDispatcher.RemoveEventListener(EventDefine.UpdateAllCardsList, UpdateAllCardsList);
+        EventDispatcher.RemoveEventListener<int, int>(EventDefine.RemoveDiscard, HideDiscard);
     }
 
     private void ResetGame()
@@ -199,7 +201,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
         //rule
         _btnRule.transform.localPosition = new Vector3(-30f, -160f, 0);
-        iTween.MoveTo(_btnRule, iTween.Hash("x", 38f, "islocal", true, "time", 0.5f, "delay", 0.5f));        
+        iTween.MoveTo(_btnRule, iTween.Hash("x", 38f, "islocal", true, "time", 0.5f, "delay", 0.5f));
 
         //chat
         _btnChat.SetActive(false);
@@ -249,7 +251,7 @@ public class Panel_battle_mj : WindowsBasePanel
         UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
     }
 
-    private Item_role getItemRole(int index,int sideIndex)
+    private Item_role getItemRole(int index, int sideIndex)
     {
         if (index < _playerItems.Count)
         {
@@ -292,6 +294,8 @@ public class Panel_battle_mj : WindowsBasePanel
     private Dictionary<pb.MahjonSide, int> _drawItemIndex = new Dictionary<pb.MahjonSide, int>();
     private pb.MahjonSide _curSide;
     private int rightItemDepth = 20;
+    private int frontItemDiscardDepth = 5;
+
     private void PlayGamePrepareAni()
     {
         if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
@@ -336,16 +340,16 @@ public class Panel_battle_mj : WindowsBasePanel
         {
             PlaceInHandCardList(Player.Instance.OID);
 
-            Debug.Log("draw animation over, start exchange cards...");        
+            Debug.Log("draw animation over, start exchange cards...");
             _exchangeObj.SetActive(true);
-            ShowSideExchangeTips();            
+            ShowSideExchangeTips();
             BattleManager.Instance.CurProcess = BattleProcess.ExchangCard;
             return;
         }
         int curDrawCount = _turns > 11 ? 1 : 4;
         //Debug.Log("current draw card " + curDrawCount);
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_curSide);
-        Vector3[] itemAttr = getCardsItemAttr(sideIndex);        
+        Vector3[] itemAttr = getCardsItemAttr(sideIndex);
         for (int i = 0; i < curDrawCount; i++)
         {
             Card card = BattleManager.Instance.GetDrawCardInfo(_curSide, _drawItemIndex[_curSide]);
@@ -359,7 +363,7 @@ public class Panel_battle_mj : WindowsBasePanel
                 int curDepth = rightItemDepth - _drawItemIndex[_curSide];
                 item.SetDepth(curDepth);
             }
-            _drawItemIndex[_curSide]++;           
+            _drawItemIndex[_curSide]++;
         }
         _turns++;
         _curSide = _curSide == pb.MahjonSide.NORTH ? pb.MahjonSide.EAST : _curSide + 1;
@@ -387,7 +391,7 @@ public class Panel_battle_mj : WindowsBasePanel
                 int curDepth = rightItemDepth - i;
                 item.SetDepth(curDepth);
             }
-        }        
+        }
     }
     #endregion
 
@@ -396,7 +400,7 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         _sideTipsObj.SetActive(true);
         _playingTipsAni = true;
-        _sideTipsIndex = 1;        
+        _sideTipsIndex = 1;
         UpdateExchangeSelecting();
     }
 
@@ -417,7 +421,7 @@ public class Panel_battle_mj : WindowsBasePanel
         if (_sideTipsIndex > 4)
         {
             _sideTipsIndex = 1;
-        }        
+        }
     }
 
     private void OnClickEnsureExchange(GameObject go)
@@ -442,7 +446,7 @@ public class Panel_battle_mj : WindowsBasePanel
         List<Card> inhand = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.InHand);
         pb.MahjonSide curSide = BattleManager.Instance.GetSideByPlayerOID(playerOid);
         //2:exchange_startPos、3:exchange_startInlineOffset、4:exchange_endPos、5:exchange_endInlineOffset  
-        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);  
+        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(curSide);
         Vector3[] itemAttr = getCardsItemAttr(sideIndex);
         List<Item_card> exchangeCard = new List<Item_card>();
         for (int i = 0; i < 3; i++)
@@ -464,7 +468,7 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         List<Card> list = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.Exchange);
         GameMsgHandler.Instance.SendMsgC2GSExchangeCard(list);
-        BattleManager.Instance.CurProcess = BattleProcess.ExchangCardOver;        
+        BattleManager.Instance.CurProcess = BattleProcess.ExchangCardOver;
     }
 
     private void PutOtherExchangeCard(pb.ExchangeType type)
@@ -596,7 +600,7 @@ public class Panel_battle_mj : WindowsBasePanel
         List<int> players = BattleManager.Instance.GetOtherPlayers();
         players.Add(Player.Instance.OID);
         for (int i = 0; i < players.Count; i++)
-        {            
+        {
             //inhand list
             List<Card> inhand = BattleManager.Instance.GetCardList(players[i], CardStatus.InHand);
             inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
@@ -725,6 +729,7 @@ public class Panel_battle_mj : WindowsBasePanel
         //inhand
         //0:inhand_startPos、1:inhand_inlineOffset
         List<Card> inhand = BattleManager.Instance.GetCardList(playerId, CardStatus.InHand);
+        Debug.Log("inhand count:" + inhand.Count);
         inhand.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
         for (int i = 0; i < inhand.Count; i++)
         {
@@ -740,11 +745,14 @@ public class Panel_battle_mj : WindowsBasePanel
             }
         }
         Vector3 inhandLastPos = vecs[0] + inhand.Count * vecs[1];
+        Debug.Log("inhandLastPos=" + inhandLastPos);
 
         //deal
         //7:inhand_deal_space
         inhandLastPos += vecs[7];
+        Debug.Log("deal start=" + inhandLastPos);
         List<Card> deal = BattleManager.Instance.GetCardList(playerId, CardStatus.Deal);
+        Debug.Log("deal count:" + deal.Count);
         for (int i = 0; i < deal.Count; i++)
         {
             Item_card script = getCardsItem(side, inhand.Count + i);
@@ -754,16 +762,44 @@ public class Panel_battle_mj : WindowsBasePanel
             if (sideIndex == 1)
             {
                 //右侧item要修改depth
-                int curDepth = rightItemDepth - i;
+                int curDepth = rightItemDepth - inhand.Count - i;
                 script.SetDepth(curDepth);
             }
         }
         Vector3 dealLastPos = inhandLastPos + (deal.Count == 0 ? 1 : deal.Count) * vecs[1];
+        Debug.Log("dealLastPos=" + inhandLastPos);
+
+        //peng
+        //11:peng_peng_space、16:peng_startPos 17:pg_inlineOffset
+        Vector3 pgCurPos = vecs[16];
+        List<Card> peng = BattleManager.Instance.GetCardList(playerId, CardStatus.Peng);
+        Debug.Log("peng count:" + peng.Count);
+        peng.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
+        for (int i = 0; i < peng.Count; i++)
+        {
+            Item_card script = getCardsItem(side, inhand.Count + deal.Count + i);
+            script.gameObject.SetActive(true);            
+            script.transform.localPosition = pgCurPos;
+            Debug.LogError("Peng: pgCurPos=" + pgCurPos);
+            //Debug.LogError("peng pos:" + script.transform.localPosition);
+            script.UpdateUI(side, peng[i]);
+            //Debug.LogError("up over");
+            if (sideIndex == 1)
+            {
+                //右侧item要修改depth
+                int curDepth = rightItemDepth - i;
+                script.SetDepth(curDepth);
+            }
+            Vector3 ppSpace = (i + 1) % 3 == 0 ? vecs[11] : Vector3.zero;
+            pgCurPos += vecs[17] + ppSpace;
+        }
+        Debug.LogError("Peng over: pgCurPos=" + pgCurPos);
 
         //gang
-        //8:deal_gang_space、9:gang_gang_space
-        dealLastPos += vecs[8];
+        //9:gang_gang_space、10:gang_peng_space、17:pg_inlineOffset
+        pgCurPos += vecs[10];
         List<Card> gang = BattleManager.Instance.GetCardList(playerId, CardStatus.Gang);
+        Debug.Log("gang count:" + gang.Count);
         gang.Sort((card1, card2) =>
         {
             int result = card1.IsFromOther.CompareTo(card2.IsFromOther);
@@ -782,9 +818,10 @@ public class Panel_battle_mj : WindowsBasePanel
                 gangOther = gang[i].IsFromOther;
                 gIndex++;
             }
-            Item_card script = getCardsItem(side, inhand.Count + deal.Count + i);
+            Item_card script = getCardsItem(side, inhand.Count + deal.Count + peng.Count + i);
             script.gameObject.SetActive(true);
-            script.transform.localPosition = dealLastPos + i * vecs[1] + (gIndex - 1) * vecs[9];
+            script.transform.localPosition = pgCurPos;
+            Debug.LogError("Gang: pgCurPos=" + pgCurPos);
             if (gangOther)
             {
                 script.UpdateUI(side, gang[i]);
@@ -806,28 +843,7 @@ public class Panel_battle_mj : WindowsBasePanel
                 int curDepth = rightItemDepth - i;
                 script.SetDepth(curDepth);
             }
-        }
-        Vector3 gangLastPos = dealLastPos + gang.Count * vecs[1] + (gang.Count / 4 - 1) * vecs[9];
-
-        //peng
-        //10:gang_peng_space、11:peng_peng_space
-        gangLastPos += vecs[10];
-        List<Card> peng = BattleManager.Instance.GetCardList(playerId, CardStatus.Peng);
-        peng.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
-        int pIndex = 0;
-        for (int i = 0; i < peng.Count; i++)
-        {
-            pIndex = i % 3 == 0 ? pIndex + 1 : pIndex;
-            Item_card script = getCardsItem(side, inhand.Count + deal.Count + gang.Count + i);
-            script.gameObject.SetActive(true);
-            script.transform.localPosition = gangLastPos + i * vecs[1] + (pIndex - 1) * vecs[11];
-            script.UpdateUI(side, gang[i]);
-            if (sideIndex == 1)
-            {
-                //右侧item要修改depth
-                int curDepth = rightItemDepth - i;
-                script.SetDepth(curDepth);
-            }
+            pgCurPos += i * vecs[17] + (gIndex - 1) * vecs[9];
         }
 
         Debug.Log("Sort cards over.");
@@ -836,6 +852,32 @@ public class Panel_battle_mj : WindowsBasePanel
     private void ChooseDiscard()
     {
         Debug.Log("start choose discard ==>>");
+        List<Card> dealCard = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.Deal);
+        List<Card> inhand = BattleManager.Instance.GetCardList(Player.Instance.OID, CardStatus.InHand);
+        if (dealCard.Count <= 0 && inhand.Count > 0)
+        {
+            inhand.Sort((data1, data2) =>
+            {
+                int type1 = data1.Id / 10 + 2;
+                int type2 = data2.Id / 10 + 2;
+                if (type1 == (int)BattleManager.Instance.GetPlayerLack(Player.Instance.OID)
+                && type2 != (int)BattleManager.Instance.GetPlayerLack(Player.Instance.OID))
+                {
+                    return 1;
+                }
+                else if (type1 != (int)BattleManager.Instance.GetPlayerLack(Player.Instance.OID)
+                && type2 == (int)BattleManager.Instance.GetPlayerLack(Player.Instance.OID))
+                {
+                    return -1;
+                }
+                else
+                {
+                    return data1.Id.CompareTo(data2.Id);
+                }
+            });
+            inhand[inhand.Count - 1].Status = CardStatus.Deal;
+            SortOneCards(BattleManager.Instance.GetSideByPlayerOID(Player.Instance.OID));
+        }
         BattleManager.Instance.CurProcess = BattleProcess.Discard;
     }
 
@@ -898,39 +940,18 @@ public class Panel_battle_mj : WindowsBasePanel
             int curDepth = rightItemDepth - dList.Count;
             item.SetDepth(curDepth);
         }
+        else if (sideIndex == 2)
+        {
+            //对面item根据行数修改depth
+            int curDepth = frontItemDiscardDepth - (dList.Count / 10);
+            item.SetDepth(curDepth);
+        }
         Vector3[] vecs = getCardsItemAttr(sideIndex);
         item.transform.localPosition = vecs[15];
         item.transform.localScale = Vector3.one * 1.2f;
-        Vector3 to = vecs[12] + (dList.Count-1) / 10 * vecs[14] + (dList.Count - 1) % 10 * vecs[13];
+        Vector3 to = vecs[12] + (dList.Count - 1) / 10 * vecs[14] + (dList.Count - 1) % 10 * vecs[13];
         iTween.MoveTo(item.gameObject, iTween.Hash("position", to, "islocal", true, "time", 0.5f));
         iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
-    }
-
-    private void SortOneDiscard(pb.MahjonSide side)
-    {        
-        hideOneSideDiscardItem(side);
-        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
-        Debug.Log("sort discard, sideIndex=" + sideIndex);
-        Vector3[] vecs = getCardsItemAttr(sideIndex);
-
-        //discard
-        //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset
-        int playerId = BattleManager.Instance.GetPlayerOIDBySide(side);
-        List<Card> discard = BattleManager.Instance.GetCardList(playerId, CardStatus.Discard);
-        Debug.Log("discard count=" + discard.Count);
-        for (int i = 0; i < discard.Count; i++)
-        {
-            Item_card script = getDiscardsItem(side, i);
-            script.gameObject.SetActive(true);
-            script.transform.localPosition = vecs[12] + i%10 * vecs[13] + i / 10 * vecs[14];
-            script.UpdateUI(side, discard[i]);
-            if (sideIndex == 1)
-            {
-                //右侧item要修改depth
-                int curDepth = rightItemDepth - i;
-                script.SetDepth(curDepth);
-            }
-        }
     }
 
     private void hideAllProcBtns()
@@ -954,7 +975,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void ShowProcHPGBtns(List<pb.ProcType> procTypes)
     {
-        iTween.MoveTo(_procObj, iTween.Hash("x", 275-100* procTypes.Count, "islocal", true, "time", 0.5f));
+        iTween.MoveTo(_procObj, iTween.Hash("x", 275 - 100 * procTypes.Count, "islocal", true, "time", 0.5f));
         _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
         _procCard.MakePixelPerfect();
 
@@ -964,6 +985,7 @@ public class Panel_battle_mj : WindowsBasePanel
         {
             Debug.Log("proc type=" + procTypes[i].ToString());
             Item_proc procBtn = getProcBtnItem(i);
+            procBtn.gameObject.name = i.ToString();
             procBtn.gameObject.SetActive(true);
             procBtn.UpdateUI(procTypes[i]);
         }
@@ -986,23 +1008,34 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayPGHProcAni(pb.ProcType type)
     {
-        Debug.Log("PlayPGHProcAni, type:" + type.ToString());
+        Debug.LogError("PlayPGHProcAni, type:" + type.ToString());
+    }
+
+    private void HideDiscard(int cardOid, int playerOid)
+    {
+        Debug.Log("HideDiscard, cardOid:" + cardOid + ", playerOid:" + playerOid);
+        pb.MahjonSide side = BattleManager.Instance.GetSideByPlayerOID(playerOid);
+        if (_sideDiscardsDict.ContainsKey(side))
+        {
+            for (int i = 0; i < _sideDiscardsDict[side].Count; i++)
+            {
+                if (_sideDiscardsDict[side][i].Info.OID == cardOid)
+                {
+                    _sideDiscardsDict[side][i].gameObject.SetActive(false);
+                    break;
+                }
+            }
+        }
+            
     }
 
     private void UpdateAllCardsList()
     {
         Debug.Log("UpdateAllCardsList");
-        //inhand
         SortOneCards(pb.MahjonSide.EAST);
         SortOneCards(pb.MahjonSide.SOUTH);
         SortOneCards(pb.MahjonSide.WEST);
         SortOneCards(pb.MahjonSide.NORTH);
-        
-        ////discard
-        //SortOneDiscard(pb.MahjonSide.EAST);
-        //SortOneDiscard(pb.MahjonSide.SOUTH);
-        //SortOneDiscard(pb.MahjonSide.WEST);
-        //SortOneDiscard(pb.MahjonSide.NORTH);
     }
     #endregion
 
@@ -1037,7 +1070,8 @@ public class Panel_battle_mj : WindowsBasePanel
             item.transform.localScale = Vector3.one;
             return item;
         }
-        else {
+        else
+        {
             int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(side);
             Item_card item = UIManager.AddChild<Item_card>(_sideCardsRoot[sideIndex]);
             _sideCardsDict[side].Add(item);
@@ -1085,12 +1119,14 @@ public class Panel_battle_mj : WindowsBasePanel
         //8:deal_gang_space、9:gang_gang_space
         //10:gang_peng_space、11:peng_peng_space
         //12:discard_startPos、13:discard_inlineOffset、14:discard_betweenLineOffset、15:discard_ani_startPos
+        //16:peng_startPos 17:pg_inlineOffset
         Vector3[] result = { Vector3.zero, Vector3.zero,
             Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero,
             Vector3.zero,
             Vector3.zero, Vector3.zero,
             Vector3.zero, Vector3.zero,
-            Vector3.zero, Vector3.zero,Vector3.zero, Vector3.zero };
+            Vector3.zero, Vector3.zero,Vector3.zero, Vector3.zero,
+        Vector3.zero, Vector3.zero};
         switch (sideIndexFromSelf)
         {
             case 0:
@@ -1109,12 +1145,15 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[9] = new Vector3(20, 0, 0);
 
                 result[10] = new Vector3(20, 0, 0);
-                result[11] = new Vector3(20, 0, 0);
+                result[11] = new Vector3(-20, 0, 0);
 
                 result[12] = new Vector3(-195, 255, 0);
                 result[13] = new Vector3(44, 0, 0);
                 result[14] = new Vector3(0, -52, 0);
                 result[15] = new Vector3(0, 150, 0);
+
+                result[16] = new Vector3(580, 80, 0);
+                result[17] = new Vector3(-72, 0, 0);
                 break;
             case 1:
                 result[0] = new Vector3(-160, -155, 0);
@@ -1138,6 +1177,9 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[13] = new Vector3(0, 32, 0);
                 result[14] = new Vector3(47, 0, 0);
                 result[15] = new Vector3(-205, 0, 0);
+
+                result[16] = new Vector3(0, 200, 0);
+                result[17] = new Vector3(0, -27, 0);
                 break;
             case 2:
                 result[0] = new Vector3(228, -65, 0);
@@ -1161,6 +1203,9 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[13] = new Vector3(-37, 0, 0);
                 result[14] = new Vector3(0, 43, 0);
                 result[15] = new Vector3(0, -100, 0);
+
+                result[16] = new Vector3(-300, 0, 0);
+                result[17] = new Vector3(38, 0, 0);
                 break;
             case 3:
                 result[0] = new Vector3(160, 210, 0);
@@ -1184,6 +1229,9 @@ public class Panel_battle_mj : WindowsBasePanel
                 result[13] = new Vector3(0, -32, 0);
                 result[14] = new Vector3(-47, 0, 0);
                 result[15] = new Vector3(200, 0, 0);
+
+                result[16] = new Vector3(0, -200, 0);
+                result[17] = new Vector3(0, 28, 0);
                 break;
             default:
                 break;

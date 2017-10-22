@@ -228,6 +228,15 @@ public class BattleManager
         return 0;
     }
 
+    public pb.CardType GetPlayerLack(int playerOid)
+    {
+        if (_SideInfoDict.ContainsKey(playerOid))
+        {
+            return _SideInfoDict[playerOid].Lack;
+        }
+        return pb.CardType.Default;
+    }
+
     //收到定缺完毕信息
     public void LackRet(List<pb.LackCard> list)
     {
@@ -451,6 +460,17 @@ public class BattleManager
     private void updateCardsList(List<pb.CardInfo> newCardList)
     {
         Debug.Log("updateCardsList");
+        string recv = "";
+        for (int i = 0; i < newCardList.Count; i++)
+        {
+            if (newCardList[i].playerOID == Player.Instance.OID)
+            {
+                recv += newCardList[i].ID + ", ";
+            }
+        }
+        Debug.LogError(recv);
+
+
         Dictionary<int, List<pb.CardInfo>> newCards = getPlayerCardDict(newCardList);
         foreach (int playerId in newCards.Keys)
         {
@@ -492,13 +512,51 @@ public class BattleManager
                     if (!isFind)
                     {
                         Debug.Log("Delete old card[" + oldList[i].Id + "]from player[" + playerId + "]'s card list.");
+                        EventDispatcher.TriggerEvent<int, int>(EventDefine.RemoveDiscard, oldList[i].OID, oldList[i].PlayerID);
                         _SideInfoDict[playerId].CardList.Remove(oldList[i]);
                         i--;
                     }
                 }
-                Debug.LogError("player[" + playerId + "]'s card count=" + _SideInfoDict[playerId].CardList.Count);
+                //Debug.LogError("player[" + playerId + "]'s card count=" + _SideInfoDict[playerId].CardList.Count);
             }
         }
+
+        //log
+        string str = "InHand: ";
+        List<Card> list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.InHand);
+        list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i].Id + ", ";
+        }
+        Debug.LogError(str);
+
+        str = "deal: ";
+        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Deal);
+        list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i].Id + ", ";
+        }
+        Debug.LogError(str);
+
+        str = "peng: ";
+        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Peng);
+        list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i].Id + ", ";
+        }
+        Debug.LogError(str);
+
+        str = "gang: ";
+        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Gang);
+        list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
+        for (int i = 0; i < list.Count; i++)
+        {
+            str += list[i].Id + ", ";
+        }
+        Debug.LogError(str);
     }
 
     private Dictionary<int, List<pb.CardInfo>> getPlayerCardDict(List<pb.CardInfo> list)
@@ -530,6 +588,11 @@ public class BattleManager
             }
         }
         return count;
+    }
+
+    public void GameOver()
+    {
+        Debug.LogError("!!!!!!!!!");
     }
 
 }

@@ -70,6 +70,7 @@ public class Card
         card.playerOID = _playerId;
         card.OID = _oid;
         card.ID = _id;
+        card.Status = pb.CardStatus.InHand;
         card.fromOther = _isFromOther;
         return card;
     }

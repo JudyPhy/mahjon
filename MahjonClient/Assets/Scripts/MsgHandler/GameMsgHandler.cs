@@ -63,6 +63,7 @@ public class GameMsgHandler
     public void SendMsgC2GSInterruptActionRet(pb.ProcType procType,pb.CardInfo info)
     {
         Debug.Log("SendMsgC2GSInterruptActionRet==>> procType[" + procType + "], cardOid[" + info.OID + "]");
+        Debug.LogError("cardOid[" + info.OID + "], playerOid:"+ info.playerOID+", id:"+ info.ID+", status:"+ info.Status.ToString());
         pb.C2GSInterruptActionRet msg = new pb.C2GSInterruptActionRet();
         msg.procType = procType;
         msg.drawCard = info;
@@ -151,7 +152,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CTurnToNext(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CTurnToNext");
+        Debug.LogError("==>> RevMsgGS2CTurnToNext");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
         BattleManager.Instance.TurnToNextPlayer(msg.playerOID, msg.drawCard);
@@ -173,12 +174,12 @@ public class GameMsgHandler
         BattleManager.Instance.UpdateCardsInfo(msg);
     }
 
-    //public void RevMsgGS2CGameOver(int pid, byte[] msgBuf, int msgSize)
-    //{
-    //    Debug.Log("==>> RevMsgGS2CGameOver");
-    //    Stream stream = new MemoryStream(msgBuf);
-    //    pb.GS2CGameOver msg = ProtoBuf.Serializer.Deserialize<pb.GS2CGameOver>(stream);
-    //    BattleManager.Instance.GameOver();
-    //}
+    public void RevMsgGS2CGameOver(int pid, byte[] msgBuf, int msgSize)
+    {
+        Debug.Log("==>> RevMsgGS2CGameOver");
+        Stream stream = new MemoryStream(msgBuf);
+        pb.GS2CGameOver msg = ProtoBuf.Serializer.Deserialize<pb.GS2CGameOver>(stream);
+        BattleManager.Instance.GameOver();
+    }
     #endregion
 }

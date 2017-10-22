@@ -44,6 +44,7 @@ public class Item_card : MonoBehaviour
         int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_side);
         _collider.enabled = sideIndex == 0;
         string[] bgName = { "self", "flank", "front", "flank" };
+        string[] bgPGName = { "self_front", "flank_front", "self_front1", "flank_front" };
         if (_info == null)
         {
             Debug.LogError("self pai info is null.");
@@ -52,7 +53,7 @@ public class Item_card : MonoBehaviour
             _bg.MakePixelPerfect();
         }
         else
-        {            
+        {
             switch (_info.Status)
             {
                 case CardStatus.InHand:
@@ -71,13 +72,18 @@ public class Item_card : MonoBehaviour
                     _bg.spriteName = bgName[sideIndex];
                     _bg.transform.localEulerAngles = sideIndex == 3 ? new Vector3(0, 180, 0) : Vector3.zero;
                     _bg.MakePixelPerfect();
+                    _card.transform.localScale = Vector3.one;
+                    _card.transform.localPosition = Vector3.zero;
                     _bg.depth = 10;
                     break;
                 case CardStatus.Peng:
                     _card.spriteName = _info.Id.ToString();
                     _card.gameObject.SetActive(true);
                     _card.MakePixelPerfect();
-                    _card.transform.localPosition = new Vector3(0, 11, 0);
+                    _card.transform.localPosition = new Vector3(0, 20, 0);
+                    _card.transform.localScale = Vector3.one * 0.9f;
+                    _bg.spriteName = bgPGName[sideIndex];
+                    _bg.MakePixelPerfect();
                     break;
                 case CardStatus.Discard:
                     string[] discardBgName = { "self_front1", "flank_front", "front_front", "flank_front" };
@@ -180,7 +186,7 @@ public class Item_card : MonoBehaviour
     private void OnClickCard(GameObject go)
     {
         Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
-            + ", curProcess=" + BattleManager.Instance.CurProcess);
+            + ", curProcess=" + BattleManager.Instance.CurProcess);        
         if (BattleManager.Instance.CurProcess == BattleProcess.ExchangCard)
         {
             // 选择交换牌阶段            

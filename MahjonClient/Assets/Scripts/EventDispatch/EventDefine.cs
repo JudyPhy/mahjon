@@ -26,7 +26,7 @@ public class EventDefine
 
     public static string BroadcastDiscard = "BroadcastDiscard";
     public static string BroadcastProc = "BroadcastProc";
-
+    public static string RemoveDiscard = "RemoveDiscard";
     public static string UpdateAllCardsList = "UpdateAllCardsList";
 
 

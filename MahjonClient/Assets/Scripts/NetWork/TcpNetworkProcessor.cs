@@ -387,6 +387,7 @@ public sealed class TcpNetworkProcessor
     {
         if (!(msg is ProtoBuf.IExtensible))
         {
+            Debug.LogError("not pb msg");
             return false;
         }
         //Serialize pb message
