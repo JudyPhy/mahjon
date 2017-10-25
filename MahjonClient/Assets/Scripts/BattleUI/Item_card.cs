@@ -9,18 +9,20 @@ public class Item_card : MonoBehaviour
     private UISprite _bg;
     private BoxCollider _collider;
 
-    private Card _info;
     public Card Info
     {
         get { return _info; }
     }
-    private pb.MahjonSide _side;
+    private Card _info;
 
     private bool _preDiscard;
-    public bool IsSelected
-    {
-        set { _preDiscard = value; }
-    }
+
+    private string[] bgName = { "self", "flank", "front", "flank" };
+    private string[] bgPGName = { "self_front", "flank_front", "self_front1", "flank_front" };
+    private string[] discardBgName = { "self_front1", "flank_front", "front_front", "flank_front" };
+
+    private int m_sideIndex;
+    
 
     void Awake()
     {
@@ -31,20 +33,11 @@ public class Item_card : MonoBehaviour
         _preDiscard = false;
     }
 
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    public void UpdateUI(pb.MahjonSide side, Card card)
+    public void UpdateUI(int sidendex, Card card)
     {
         _info = card;
-        _side = side;
-        int sideIndex = BattleManager.Instance.GetSideIndexFromSelf(_side);
-        _collider.enabled = sideIndex == 0;
-        string[] bgName = { "self", "flank", "front", "flank" };
-        string[] bgPGName = { "self_front", "flank_front", "self_front1", "flank_front" };
+        m_sideIndex = sidendex;
+        _collider.enabled = m_sideIndex == 0;        
         if (_info == null)
         {
             Debug.LogError("self pai info is null.");
@@ -58,47 +51,42 @@ public class Item_card : MonoBehaviour
             {
                 case CardStatus.InHand:
                 case CardStatus.Exchange:
-                case CardStatus.Deal:
-                    if (sideIndex == 0)
-                    {
-                        _card.gameObject.SetActive(true);
-                        _card.spriteName = _info.Id.ToString();
-                        _card.MakePixelPerfect();
-                    }
-                    else
-                    {
-                        _card.gameObject.SetActive(false);
-                    }
-                    _bg.spriteName = bgName[sideIndex];
-                    _bg.transform.localEulerAngles = sideIndex == 3 ? new Vector3(0, 180, 0) : Vector3.zero;
+                case CardStatus.Deal:                    
+                    _bg.spriteName = bgName[m_sideIndex];
+                    _bg.transform.localEulerAngles = m_sideIndex == 3 ? new Vector3(0, 180, 0) : Vector3.zero;
                     _bg.MakePixelPerfect();
-                    _card.transform.localScale = Vector3.one;
-                    _card.transform.localPosition = Vector3.zero;
                     _bg.depth = 10;
+
+                    _card.gameObject.SetActive(m_sideIndex == 0);
+                    _card.spriteName = _info.Id.ToString();
+                    _card.MakePixelPerfect();
+                    _card.transform.localScale = Vector3.one;
+                    _card.transform.localPosition = Vector3.zero;                    
                     break;
                 case CardStatus.Peng:
-                    _card.spriteName = _info.Id.ToString();
+                    _bg.spriteName = bgPGName[m_sideIndex];
+                    _bg.MakePixelPerfect();
+
                     _card.gameObject.SetActive(true);
+                    _card.spriteName = _info.Id.ToString();                    
                     _card.MakePixelPerfect();
                     _card.transform.localPosition = new Vector3(0, 20, 0);
-                    _card.transform.localScale = Vector3.one * 0.9f;
-                    _bg.spriteName = bgPGName[sideIndex];
-                    _bg.MakePixelPerfect();
+                    _card.transform.localScale = Vector3.one * 0.9f;                    
                     break;
-                case CardStatus.Discard:
-                    string[] discardBgName = { "self_front1", "flank_front", "front_front", "flank_front" };
-                    _bg.spriteName = discardBgName[sideIndex];
+                case CardStatus.Discard:                    
+                    _bg.spriteName = discardBgName[m_sideIndex];
                     _bg.MakePixelPerfect();
+
                     _card.gameObject.SetActive(true);
                     _card.spriteName = _info.Id.ToString();
                     _card.MakePixelPerfect();
                     int[] rotate = { 0, 90, 180, -90 };
-                    _card.transform.localEulerAngles = new Vector3(0, 0, rotate[sideIndex]);
+                    _card.transform.localEulerAngles = new Vector3(0, 0, rotate[m_sideIndex]);
                     float[] scaleRate = { 0.5f, 0.5f, 0.4f, 0.5f };
-                    _card.transform.localScale = Vector3.one * scaleRate[sideIndex];
+                    _card.transform.localScale = Vector3.one * scaleRate[m_sideIndex];
                     int[] cardPosX = { 0, -5, 0, 4 };
                     int[] cardPosY = { 11, 6, 4, 6 };
-                    _card.transform.localPosition = new Vector3(cardPosX[sideIndex], cardPosY[sideIndex], 0);
+                    _card.transform.localPosition = new Vector3(cardPosX[m_sideIndex], cardPosY[m_sideIndex], 0);
                     break;
                 default:
                     break;
@@ -112,12 +100,13 @@ public class Item_card : MonoBehaviour
     }
 
     public void ShowBack(int sideIndex)
-    {
-        _card.gameObject.SetActive(false);
+    {        
         _collider.enabled = sideIndex == 0;
         string[] bgName = { "front_back", "flank_back", "front_back", "flank_back" };
         _bg.spriteName = bgName[sideIndex];
         _bg.MakePixelPerfect();
+
+        _card.gameObject.SetActive(false);
     }
 
     private void OnSelectExchangeCard()
@@ -185,7 +174,7 @@ public class Item_card : MonoBehaviour
 
     private void OnClickCard(GameObject go)
     {
-        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", side=" + _side.ToString()
+        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", sideIndex=" + m_sideIndex.ToString()
             + ", curProcess=" + BattleManager.Instance.CurProcess);        
         if (BattleManager.Instance.CurProcess == BattleProcess.ExchangCard)
         {

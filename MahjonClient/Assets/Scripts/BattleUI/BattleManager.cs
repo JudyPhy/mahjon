@@ -55,10 +55,6 @@ public class BattleManager
     }
 
     private int _curTurnPlayer;
-    public int CurTurnPlayer
-    {
-        get { return _curTurnPlayer; }
-    }
 
     private BattleProcess _curProcess;
     public BattleProcess CurProcess
@@ -68,13 +64,7 @@ public class BattleManager
     }
 
     //playerOid : sideInfo
-    private Dictionary<int, SideInfo> _SideInfoDict = new Dictionary<int, SideInfo>();
-
-    private List<pb.MahjonSide> _sortSideFromSelf = new List<pb.MahjonSide>();
-    public List<pb.MahjonSide> SortSideFromSelf
-    {
-        get { return _sortSideFromSelf; }
-    }
+    private Dictionary<int, SideInfo> m_sideInfoDict = new Dictionary<int, SideInfo>();
 
     public void PrepareEnterRoom(pb.GS2CEnterGameRet msg)
     {
@@ -94,20 +84,36 @@ public class BattleManager
     public void GS2CUpdateRoomMember(pb.GS2CUpdateRoomMember msg)
     {
         Debug.Log("GS2CUpdateRoomMember=> player count:" + msg.player.Count);
+        msg.player.Sort((data1, data2) =>
+        {
+            if (data1.OID == Player.Instance.OID && data2.OID != Player.Instance.OID)
+            {
+                return 1;
+            }
+            else if (data1.OID != Player.Instance.OID && data2.OID == Player.Instance.OID)
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
+        });
+        Debug.LogError("first player=" + msg.player[0].OID);
         for (int i = 0; i < msg.player.Count; i++)
         {
-            if (_SideInfoDict.ContainsKey(msg.player[i].OID))
+            if (m_sideInfoDict.ContainsKey(msg.player[i].OID))
             {
-                _SideInfoDict[msg.player[i].OID].UpdateInfo(msg.player[i]);
+                m_sideInfoDict[msg.player[i].OID].UpdateInfo(msg.player[i]);
             }
             else
             {
                 SideInfo info = new SideInfo();
                 info.UpdateInfo(msg.player[i]);
-                _SideInfoDict.Add(msg.player[i].OID, info);
+                m_sideInfoDict.Add(msg.player[i].OID, info);
             }
-        }
-        foreach (int id in _SideInfoDict.Keys)
+        }        
+        foreach (int id in m_sideInfoDict.Keys)
         {
             bool isFind = false;
             for (int i = 0; i < msg.player.Count; i++)
@@ -120,11 +126,11 @@ public class BattleManager
             }
             if (!isFind)
             {
-                _SideInfoDict.Remove(id);
+                m_sideInfoDict.Remove(id);
             }
         }
         EventDispatcher.TriggerEvent(EventDefine.UpdateRoomMember);
-        _sortSideFromSelf = GetSortedSideFromSelf();
+        
 
         ////log
         //string str = "sort side from self=> ";
@@ -135,46 +141,37 @@ public class BattleManager
         //Debug.LogError(str);
     }
 
-    public List<pb.MahjonSide> GetSortedSideFromSelf()
+    public pb.MahjonSide GetSelfSide()
     {
-        List<pb.MahjonSide> result = new List<pb.MahjonSide>();
-        int curSide = (int)_SideInfoDict[Player.Instance.OID].Side;
-        for (int i = 0; i < 4; i++)
+        if (m_sideInfoDict.ContainsKey(Player.Instance.OID))
         {
-            result.Add((pb.MahjonSide)curSide);
-            curSide++;
-            if (curSide > (int)pb.MahjonSide.NORTH)
-            {
-                curSide = (int)pb.MahjonSide.EAST;
-            }
+            return m_sideInfoDict[Player.Instance.OID].Side;
         }
-        return result;
+        return pb.MahjonSide.DEFAULT;
     }
 
-    public List<SideInfo> GetRoomMembers()
+    public int GetSideIndexByPlayerOID(int playerOid)
     {
-        return new List<SideInfo>(_SideInfoDict.Values);
-    }
-
-    public int GetSideIndexFromSelf(pb.MahjonSide side)
-    {
-        for (int i = 0; i < _sortSideFromSelf.Count; i++)
+        if (m_sideInfoDict.ContainsKey(playerOid))
         {
-            if (side == _sortSideFromSelf[i])
-            {
-                return i;
-            }
+            return m_sideInfoDict[playerOid].SideIndex;
         }
         return 0;
     }
 
-    public Card GetDrawCardInfo(pb.MahjonSide side, int index)
+    public List<SideInfo> GetRoomMembers()
     {
-        foreach (SideInfo sideInfo in _SideInfoDict.Values)
+        return new List<SideInfo>(m_sideInfoDict.Values);
+    }
+
+    public SideInfo GetSideInfo(int sideIndex)
+    {
+
+        foreach (SideInfo info in m_sideInfoDict.Values)
         {
-            if (sideInfo.Side == side && index < sideInfo.CardList.Count)
+            if (info.SideIndex == sideIndex)
             {
-                return sideInfo.CardList[index];
+                return info;
             }
         }
         return null;
@@ -185,9 +182,9 @@ public class BattleManager
         for (int i = 0; i < msg.cardList.Count; i++)
         {
             pb.CardInfo card = msg.cardList[i];
-            if (_SideInfoDict.ContainsKey(card.playerOID))
+            if (m_sideInfoDict.ContainsKey(card.playerOID))
             {
-                _SideInfoDict[card.playerOID].AddCard(card);
+                m_sideInfoDict[card.playerOID].AddCard(card);
             }
         }
         _dealerId = msg.dealerId;
@@ -195,13 +192,13 @@ public class BattleManager
         EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
 
         //log        
-        foreach (int player in _SideInfoDict.Keys)
+        foreach (int player in m_sideInfoDict.Keys)
         {
             string str = "player" + player + " 's side:";
-            str += _SideInfoDict[player].Side.ToString() + ", cards: ";
-            for (int i = 0; i < _SideInfoDict[player].CardList.Count; i++)
+            str += m_sideInfoDict[player].Side.ToString() + ", cards: ";
+            for (int i = 0; i < m_sideInfoDict[player].CardList.Count; i++)
             {
-                str += _SideInfoDict[player].CardList[i].Id + ", ";
+                str += m_sideInfoDict[player].CardList[i].Id + ", ";
             }
             Debug.Log(str);
         }
@@ -209,18 +206,18 @@ public class BattleManager
 
     public pb.MahjonSide GetSideByPlayerOID(int playerOid)
     {
-        if (_SideInfoDict.ContainsKey(playerOid))
+        if (m_sideInfoDict.ContainsKey(playerOid))
         {
-            return _SideInfoDict[playerOid].Side;
+            return m_sideInfoDict[playerOid].Side;
         }
         return pb.MahjonSide.DEFAULT;
     }
 
     public int GetPlayerOIDBySide(pb.MahjonSide side)
     {
-        foreach (int playerId in _SideInfoDict.Keys)
+        foreach (int playerId in m_sideInfoDict.Keys)
         {
-            if (_SideInfoDict[playerId].Side == side)
+            if (m_sideInfoDict[playerId].Side == side)
             {
                 return playerId;
             }
@@ -230,9 +227,9 @@ public class BattleManager
 
     public pb.CardType GetPlayerLack(int playerOid)
     {
-        if (_SideInfoDict.ContainsKey(playerOid))
+        if (m_sideInfoDict.ContainsKey(playerOid))
         {
-            return _SideInfoDict[playerOid].Lack;
+            return m_sideInfoDict[playerOid].Lack;
         }
         return pb.CardType.Default;
     }
@@ -244,9 +241,9 @@ public class BattleManager
         for (int i = 0; i < list.Count; i++)
         {
             int player = list[i].playerOID;
-            if (_SideInfoDict.ContainsKey(player))
+            if (m_sideInfoDict.ContainsKey(player))
             {
-                _SideInfoDict[player].Lack = list[i].type;
+                m_sideInfoDict[player].Lack = list[i].type;
             }
             else
             {
@@ -258,9 +255,9 @@ public class BattleManager
 
     public List<Card> GetCardList(int playerOid, CardStatus status)
     {
-        if (_SideInfoDict.ContainsKey(playerOid))
+        if (m_sideInfoDict.ContainsKey(playerOid))
         {
-            return _SideInfoDict[playerOid].GetCardList(status);
+            return m_sideInfoDict[playerOid].GetCardList(status);
         }
         return null;
     }
@@ -277,37 +274,38 @@ public class BattleManager
             }
             newCardDict[msg.cardList[i].playerOID].Add(msg.cardList[i]);
         }
-        foreach (int player in _SideInfoDict.Keys)
+
+        foreach (int player in m_sideInfoDict.Keys)
         {
             if (!newCardDict.ContainsKey(player))
             {
                 Debug.LogError("player" + player + " has no new cardlist after exchange.");
                 continue;
             }
-            List<pb.CardInfo> list = newCardDict[player];
-            list.Sort((card1, card2) => { return card1.ID.CompareTo(card2.ID); });
+            List<pb.CardInfo> newList = newCardDict[player];
+            newList.Sort((card1, card2) => { return card1.ID.CompareTo(card2.ID); });
 
             //log
             string str = "player" + player + " 's cards: ";
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < newList.Count; i++)
             {
-                str += list[i].ID + ", ";
+                str += newList[i].ID + ", ";
             }
             Debug.Log(str);
 
             if (player == Player.Instance.OID)
             {
-                List<Card> inhand = _SideInfoDict[player].GetCardList(CardStatus.InHand);
-                _SideInfoDict[player].CardList.Clear();
-                for (int j = 0; j < list.Count; j++)
+                List<Card> oldList = m_sideInfoDict[player].GetCardList(CardStatus.InHand);
+                m_sideInfoDict[player].CardList.Clear();
+                for (int j = 0; j < newList.Count; j++)
                 {
-                    pb.CardInfo card = list[j];
+                    pb.CardInfo card = newList[j];
                     bool isFind = false;
-                    for (int i = 0; i < inhand.Count; i++)
+                    for (int i = 0; i < oldList.Count; i++)
                     {
-                        if (inhand[i].OID == card.OID)
+                        if (oldList[i].OID == card.OID)
                         {
-                            _SideInfoDict[player].AddCard(card);
+                            m_sideInfoDict[player].AddCard(card);
                             isFind = true;
                             break;
                         }
@@ -316,33 +314,24 @@ public class BattleManager
                     {
                         Card newCard = new Card(card);
                         newCard.Status = CardStatus.Exchange;
-                        _SideInfoDict[player].CardList.Add(newCard);
+                        m_sideInfoDict[player].CardList.Add(newCard);
                     }
                 }
             }
             else
             {
-                _SideInfoDict[player].CardList.Clear();
-                for (int i = 0; i < list.Count; i++)
+                m_sideInfoDict[player].CardList.Clear();
+                for (int i = 0; i < newList.Count; i++)
                 {
-                    _SideInfoDict[player].AddCard(list[i]);
+                    m_sideInfoDict[player].AddCard(newList[i]);
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    m_sideInfoDict[player].CardList[i].Status = CardStatus.Exchange;
                 }
             }
         }
         EventDispatcher.TriggerEvent<pb.ExchangeType>(EventDefine.UpdateAllCardsAfterExhchange, msg.type);
-    }
-
-    public List<int> GetOtherPlayers()
-    {
-        List<int> result = new List<int>();
-        foreach (int id in _SideInfoDict.Keys)
-        {
-            if (id != Player.Instance.OID)
-            {
-                result.Add(id);
-            }
-        }
-        return result;
     }
 
     //收到出牌方跳转
@@ -351,13 +340,13 @@ public class BattleManager
         Debug.Log("turn to next:" + playerOid);
         _curTurnPlayer = playerOid;
         int curPlayerSideIndex = 0;
-        if (_SideInfoDict.ContainsKey(_curTurnPlayer))
+        if (m_sideInfoDict.ContainsKey(_curTurnPlayer))
         {
             if (drawnCard != null)
             {
-                _SideInfoDict[_curTurnPlayer].AddCard(drawnCard);
+                m_sideInfoDict[_curTurnPlayer].AddCard(drawnCard);
             }
-            curPlayerSideIndex = GetSideIndexFromSelf(_SideInfoDict[_curTurnPlayer].Side);
+            curPlayerSideIndex = m_sideInfoDict[_curTurnPlayer].SideIndex;
         }
         else
         {
@@ -388,7 +377,7 @@ public class BattleManager
             else if (type == pb.ProcType.Proc_Discard)
             {
                 //出牌
-                EventDispatcher.TriggerEvent(EventDefine.ChooseDiscard);
+                _curProcess = BattleProcess.Discard;
                 break;
             }
         }
@@ -397,11 +386,13 @@ public class BattleManager
     //收到操作广播，以及新的手牌列表
     public void UpdateCardsInfo(pb.GS2CBroadcastProc msg)
     {
-        if (!_SideInfoDict.ContainsKey(msg.procPlayer))
+        if (!m_sideInfoDict.ContainsKey(msg.procPlayer))
         {
             Debug.LogError("proc player not in _SideInfoDict.");
             return;
         }
+        List<int> procPlayersList = new List<int>();
+        procPlayersList.Add(_curTurnPlayer);
         if (Player.Instance.OID != msg.procPlayer)
         {
             //播放操作动画
@@ -409,7 +400,7 @@ public class BattleManager
             {
                 case pb.ProcType.Proc_Discard:
                     List<Card> oldDiscard = GetCardList(msg.procPlayer, CardStatus.Discard);
-                    Debug.LogError("procPlayer[" + msg.procPlayer + "] old card count=" + _SideInfoDict[msg.procPlayer].CardList.Count);
+                    Debug.LogError("procPlayer[" + msg.procPlayer + "] old card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
                     for (int i = 0; i < msg.cardList.Count; i++)
                     {
                         if (msg.cardList[i].Status == pb.CardStatus.Dis)
@@ -426,7 +417,7 @@ public class BattleManager
                             if (!isFind)
                             {
                                 Debug.Log("Is robot discard");
-                                List<Card> oldList = _SideInfoDict[msg.procPlayer].CardList;
+                                List<Card> oldList = m_sideInfoDict[msg.procPlayer].CardList;
                                 for (int j = 0; j < oldList.Count; j++)
                                 {
                                     if (oldList[j].OID == msg.cardList[i].OID)
@@ -436,7 +427,7 @@ public class BattleManager
                                     }
                                 }
                                 Debug.Log(msg.procPlayer + "出牌" + msg.cardList[i].ID);
-                                Debug.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + _SideInfoDict[msg.procPlayer].CardList.Count);
+                                Debug.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
                                 EventDispatcher.TriggerEvent<pb.CardInfo>(EventDefine.BroadcastDiscard, msg.cardList[i]);
                                 break;
                             }
@@ -454,7 +445,24 @@ public class BattleManager
         }
 
         updateCardsList(msg.cardList);
-        EventDispatcher.TriggerEvent(EventDefine.UpdateAllCardsList);
+        List<int> playerIds = new List<int>();
+        for (int i = 0; i < msg.cardList.Count; i++)
+        {
+            bool find = false;
+            for (int j = 0; j < playerIds.Count; j++)
+            {
+                if (playerIds[j] == msg.cardList[i].playerOID)
+                {
+                    find = true;
+                    break;
+                }
+            }
+            if (!find)
+            {
+                playerIds.Add(msg.cardList[i].playerOID);
+            }
+        }
+        EventDispatcher.TriggerEvent<List<int>>(EventDefine.UpdateAllCardsList, playerIds);
     }
 
     private void updateCardsList(List<pb.CardInfo> newCardList)
@@ -474,10 +482,10 @@ public class BattleManager
         Dictionary<int, List<pb.CardInfo>> newCards = getPlayerCardDict(newCardList);
         foreach (int playerId in newCards.Keys)
         {
-            if (_SideInfoDict.ContainsKey(playerId))
+            if (m_sideInfoDict.ContainsKey(playerId))
             {
                 List<pb.CardInfo> newList = newCards[playerId];
-                List<Card> oldList = _SideInfoDict[playerId].CardList;
+                List<Card> oldList = m_sideInfoDict[playerId].CardList;
                 //add
                 for (int i = 0; i < newList.Count; i++)
                 {
@@ -494,7 +502,7 @@ public class BattleManager
                     if (!isFind)
                     {
                         Debug.Log("Add new card[" + newList[i].ID + "] to player[" + playerId + "]'s card list.");
-                        _SideInfoDict[playerId].AddCard(newList[i]);
+                        m_sideInfoDict[playerId].AddCard(newList[i]);
                     }
                 }
                 //delete
@@ -513,7 +521,7 @@ public class BattleManager
                     {
                         Debug.Log("Delete old card[" + oldList[i].Id + "]from player[" + playerId + "]'s card list.");
                         EventDispatcher.TriggerEvent<int, int>(EventDefine.RemoveDiscard, oldList[i].OID, oldList[i].PlayerID);
-                        _SideInfoDict[playerId].CardList.Remove(oldList[i]);
+                        m_sideInfoDict[playerId].CardList.Remove(oldList[i]);
                         i--;
                     }
                 }
@@ -523,7 +531,7 @@ public class BattleManager
 
         //log
         string str = "InHand: ";
-        List<Card> list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.InHand);
+        List<Card> list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.InHand);
         list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
         for (int i = 0; i < list.Count; i++)
         {
@@ -532,7 +540,7 @@ public class BattleManager
         Debug.LogError(str);
 
         str = "deal: ";
-        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Deal);
+        list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Deal);
         list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
         for (int i = 0; i < list.Count; i++)
         {
@@ -541,7 +549,7 @@ public class BattleManager
         Debug.LogError(str);
 
         str = "peng: ";
-        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Peng);
+        list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Peng);
         list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
         for (int i = 0; i < list.Count; i++)
         {
@@ -550,7 +558,7 @@ public class BattleManager
         Debug.LogError(str);
 
         str = "gang: ";
-        list = _SideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Gang);
+        list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Gang);
         list.Sort((data1, data2) => { return data1.Id.CompareTo(data2.Id); });
         for (int i = 0; i < list.Count; i++)
         {
@@ -576,9 +584,9 @@ public class BattleManager
     public int GetCardCount(int player, int cardId)
     {
         int count = 0;
-        if (_SideInfoDict.ContainsKey(player))
+        if (m_sideInfoDict.ContainsKey(player))
         {
-            List<Card> list = _SideInfoDict[player].CardList;            
+            List<Card> list = m_sideInfoDict[player].CardList;            
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].Id == cardId)

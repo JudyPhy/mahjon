@@ -39,10 +39,10 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UnityEngine">
-      <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/Managed/UnityEngine.dll</HintPath>
+      <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor">
-      <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/Managed/UnityEditor.dll</HintPath>
+      <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -182,7 +182,10 @@
      <Compile Include="Assets\NGUI\Scripts\UI\UITooltip.cs" />
      <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
      <Compile Include="Assets\Scripts\BattleUI\BattleManager.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\CardPos.cs" />
      <Compile Include="Assets\Scripts\BattleUI\CardSortCompare.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\ItemGroup_side0.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\ItemPool.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_card.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_exchangeArrow.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Item_lack.cs" />
@@ -191,6 +194,7 @@
      <Compile Include="Assets\Scripts\BattleUI\Item_role.cs" />
      <Compile Include="Assets\Scripts\BattleUI\PaiListSort.cs" />
      <Compile Include="Assets\Scripts\BattleUI\Panel_battle_mj.cs" />
+     <Compile Include="Assets\Scripts\BattleUI\PoolManager.cs" />
      <Compile Include="Assets\Scripts\BattleUI\SideInfo.cs" />
      <Compile Include="Assets\Scripts\BattleUI\SidePai.cs" />
      <Compile Include="Assets\Scripts\Effects\EffectDepth.cs" />
@@ -363,22 +367,22 @@
      <None Include="Assets\NGUI\Examples\Models\Orc Armor\Orc Armor.shader" />
      <None Include="Assets\NGUI\Examples\Resources\Localization.txt" />
  <Reference Include="UnityEngine.UI">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.Networking">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.PlaymodeTestsRunner">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/PlaymodeTestsRunner/UnityEngine.PlaymodeTestsRunner.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/PlaymodeTestsRunner/UnityEngine.PlaymodeTestsRunner.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.Analytics">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.HoloLens">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.VR">
- <HintPath>D:/MyDevelop/unity 5.5.0f3/Editor/Data/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>
+ <HintPath>D:/Tool/Unity5.5.0f3/Unity/Editor/Data/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>
  </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

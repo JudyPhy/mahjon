@@ -100,54 +100,60 @@ public class Card
 public class SideInfo
 {
 
-    private pb.MahjonSide _side;
     public pb.MahjonSide Side
     {
         get { return _side; }
     }
+    private pb.MahjonSide _side;
 
-    private bool _isOwner;
+    public int SideIndex
+    {
+        get { return _sideIndex; }
+    }
+    private int _sideIndex;
+
     public bool IsOwner
     {
         get { return _isOwner; }
     }
+    private bool _isOwner;
 
-    private int _oid;
     public int OID
     {
         get { return _oid; }
     }
+    private int _oid;
 
-    private string _nickName;
     public string NickName
     {
         get { return _nickName; }
     }
+    private string _nickName;
 
-    private string _headIcon;
     public string HeadIcon
     {
         get { return _headIcon; }
     }
+    private string _headIcon;
 
-    private int _score;
     public int Score
     {
         get { return _score; }
     }
+    private int _score;
 
-    private List<Card> _cardList = new List<Card>();
     public List<Card> CardList
     {
         get { return _cardList; }
     }
+    private List<Card> _cardList = new List<Card>();
 
-    private pb.CardType _lack;
     public pb.CardType Lack
     {
         set { _lack = value; }
         get { return _lack; }
     }
+    private pb.CardType _lack;
 
     public void UpdateInfo(pb.PlayerInfo info)
     {
@@ -157,6 +163,23 @@ public class SideInfo
         _oid = info.OID;
         _nickName = info.NickName;
         _headIcon = info.HeadIcon;
+
+        pb.MahjonSide selfSide = BattleManager.Instance.GetSelfSide();
+        if (selfSide != pb.MahjonSide.DEFAULT)
+        {
+            int count = 0;
+            int curSide = (int)selfSide;
+            while (curSide != (int)_side)
+            {
+                curSide++;
+                if (curSide > 5)
+                {
+                    curSide = 2;
+                }
+            }
+            _sideIndex = count;
+        }
+        Debug.LogError("_sideIndex=" + _sideIndex);
     }
 
     public List<Card> GetCardList(CardStatus status)
