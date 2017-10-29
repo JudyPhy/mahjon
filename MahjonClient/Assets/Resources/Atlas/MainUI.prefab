@@ -92,6 +92,19 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 2
+  - name: btn_create
+    x: 333
+    y: 397
+    width: 350
+    height: 126
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 1
+    paddingTop: 0
+    paddingBottom: 2
   - name: btn_createRoom
     x: 412
     y: 672
@@ -105,6 +118,19 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 17
     paddingBottom: 15
+  - name: btn_enter
+    x: 333
+    y: 524
+    width: 351
+    height: 127
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 0
+    paddingTop: 0
+    paddingBottom: 1
   - name: btn_enterRoom
     x: 0
     y: 826
@@ -118,6 +144,19 @@ MonoBehaviour:
     paddingRight: 0
     paddingTop: 0
     paddingBottom: 0
+  - name: btn_goldcoin
+    x: 333
+    y: 270
+    width: 350
+    height: 126
+    borderLeft: 0
+    borderRight: 0
+    borderTop: 0
+    borderBottom: 0
+    paddingLeft: 0
+    paddingRight: 1
+    paddingTop: 0
+    paddingBottom: 2
   - name: button1
     x: 0
     y: 192
@@ -302,7 +341,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: rank_invite_friend
     x: 0
-    y: 139
+    y: 86
     width: 119
     height: 52
     borderLeft: 0
@@ -328,7 +367,7 @@ MonoBehaviour:
     paddingBottom: 0
   - name: rank_present_gold
     x: 0
-    y: 86
+    y: 139
     width: 119
     height: 52
     borderLeft: 0

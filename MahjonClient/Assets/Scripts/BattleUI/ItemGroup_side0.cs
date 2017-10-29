@@ -26,9 +26,10 @@ public class ItemGroup_side0 : MonoBehaviour
 
     private Vector3 m_exchangeStartPos;
     private Vector3 m_exchangeStartSpace;
-    private Vector3 m_exchangeEndPos;
+    private Vector3[] m_exchangeEndPos;
     private Vector3 m_exchangeEndSpace;
     private Vector3 m_exchangeUpOffset;
+    private int m_exchangeToSideIndex;
 
     private int m_curDiscardItemIndex;
     private Vector3 m_discardStartPos;
@@ -43,6 +44,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void Init(SideInfo sideInfo)
     {
+        Debug.Log("Init sideGroup, sideIndex=" + sideInfo.SideIndex);
         m_sideInfo = sideInfo;
         m_curInhandItemIndex = 0;
         SetCardPos();
@@ -83,6 +85,7 @@ public class ItemGroup_side0 : MonoBehaviour
         m_inhandList.Add(item);
         item.transform.parent = transform;
         item.transform.localPosition = m_inhandStartPos + m_curInhandItemIndex * m_inhandSpace;
+        item.transform.localScale = Vector3.one;
         item.UpdateUI(m_sideInfo.SideIndex, card);
         m_curInhandItemIndex++;
         if (m_sideInfo.SideIndex == 1)
@@ -123,13 +126,14 @@ public class ItemGroup_side0 : MonoBehaviour
                 int curDepth = 3 - i + 5;
                 item.SetDepth(curDepth);
             }
-            iTween.MoveTo(item.gameObject, iTween.Hash("position", m_exchangeEndPos + m_exchangeEndSpace * i, "islocal", true, "time", 0.5f));
+            iTween.MoveTo(item.gameObject, iTween.Hash("position", m_exchangeEndPos[m_sideInfo.SideIndex] + m_exchangeEndSpace * i, "islocal", true, "time", 0.5f));
             iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
         }
     }
 
     public void ExchangePlayerCards(pb.ExchangeType type)
     {
+        Debug.Log("ExchangePlayerCards: type=" + type.ToString());
         switch (type)
         {
             case pb.ExchangeType.ClockWise:
@@ -147,7 +151,7 @@ public class ItemGroup_side0 : MonoBehaviour
     }
 
     private void PlayClockWiseAni()
-    {       
+    {
         int fromIndex = m_sideInfo.SideIndex;
         int toIndex = fromIndex - 1;
         if (toIndex < 0)
@@ -181,13 +185,34 @@ public class ItemGroup_side0 : MonoBehaviour
 
     private void PlayExchangeAni(int toIndex)
     {
-        Vector3 toPos = CardPos.ExchangeEndPos(toIndex);
+        Debug.Log("PlayExchangeAni: sideIndex=" + m_sideInfo.SideIndex + ", toIndex=" + toIndex);
+        m_exchangeToSideIndex = toIndex;
+        Vector3 toPos = m_exchangeEndPos[toIndex];
         Vector3 toOffset = CardPos.ExchangeEndSpace(toIndex);
         for (int i = 0; i < m_exchangeList.Count; i++)
         {
             Item_card item = m_exchangeList[i];
-            item.ShowBack(toIndex);
-            iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos[toIndex] + toOffset[toIndex] * i, "islocal", true, "time", 0.4f, "delay", 0.5f));
+            iTween.MoveTo(item.gameObject, iTween.Hash("position", toPos + toOffset * i, "islocal", true, "time", 0.4f, "delay", 0.5f));
+        }
+        Invoke("UpdateExchangeCardBG", 0.5f);
+    }
+
+    private void UpdateExchangeCardBG()
+    {
+        for (int i = 0; i < m_exchangeList.Count; i++)
+        {
+            Item_card item = m_exchangeList[i];
+            item.ShowBack(m_exchangeToSideIndex);
+            if (m_exchangeToSideIndex == 1)
+            {
+                int curDepth = 3 - i + 5;
+                item.SetDepth(curDepth);
+            }
+            else if (m_exchangeToSideIndex == 3)
+            {
+                int curDepth = i + 5;
+                item.SetDepth(curDepth);
+            }
         }
     }
 
@@ -234,15 +259,15 @@ public class ItemGroup_side0 : MonoBehaviour
             deal[0].Status = CardStatus.InHand;
             PlaceOneInhandCard(deal[0]);
         }
-        m_inhandList[m_inhandList.Count - 1].transform.localPosition += m_inhandSpace / 10.0f;
+        m_inhandList[m_inhandList.Count - 1].transform.localPosition += m_inhandSpace / 5.0f;
     }
 
     public void UnChooseDiscard(int preDiscardOid)
     {
         for (int i = 0; i < m_inhandList.Count; i++)
         {
-            if (m_inhandList[i].Info.OID == preDiscardOid)
-            {
+            if (m_inhandList[i].Info.OID != preDiscardOid)
+            {                
                 m_inhandList[i].UnChoose();
             }
         }
@@ -252,7 +277,7 @@ public class ItemGroup_side0 : MonoBehaviour
     {
         Debug.Log("PlayDiscardAni discardOid:" + discard.OID + ", discardId:" + discard.Id);
         //animation
-        Item_card item = m_pool.GetObject<Item_card>();
+        Item_card item = UIManager.AddChild<Item_card>(gameObject);
         m_discardList.Add(item);
         item.transform.parent = transform;
         item.UpdateUI(m_sideInfo.SideIndex, discard);
@@ -271,6 +296,7 @@ public class ItemGroup_side0 : MonoBehaviour
         Vector3 to = m_discardStartPos + m_curDiscardItemIndex / 10 * m_discardSpaceY + m_curDiscardItemIndex % 10 * m_discardSpaceX;
         iTween.MoveTo(item.gameObject, iTween.Hash("position", to, "islocal", true, "time", 0.5f));
         iTween.ScaleTo(item.gameObject, iTween.Hash("scale", Vector3.one, "time", 0.5f));
+        m_curDiscardItemIndex++;
     }
 
     private void SortPGCards()
@@ -304,10 +330,12 @@ public class ItemGroup_side0 : MonoBehaviour
         {
             for (int i = 0; i < 3; i++)
             {
+                Debug.LogError("Place PG card: itemIndex=" + itemIndex);
                 Item_card item = m_pool.GetObject<Item_card>();
                 m_pgList.Add(item);
                 item.UpdateUI(m_sideInfo.SideIndex, card);
                 item.transform.localPosition = m_pgStartPos + itemIndex * m_ppggSpace - m_ppggSpace / 10 * n;
+                Debug.LogError("pos: " + item.transform.localPosition);
                 itemIndex++;
             }
             if (card.Status == CardStatus.Gang)

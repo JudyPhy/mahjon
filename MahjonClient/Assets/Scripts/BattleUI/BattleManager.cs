@@ -426,7 +426,7 @@ public class BattleManager
                                         break;
                                     }
                                 }
-                                Debug.Log(msg.procPlayer + "出牌" + msg.cardList[i].ID);
+                                Debug.LogError(msg.procPlayer + "出牌" + msg.cardList[i].ID);
                                 Debug.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
                                 EventDispatcher.TriggerEvent<pb.CardInfo>(EventDefine.BroadcastDiscard, msg.cardList[i]);
                                 break;

@@ -52,7 +52,7 @@ public class CardPos
         }
     }
 
-    private static Vector3 PPGGSpace0 = new Vector3(75, 0, 0);
+    private static Vector3 PPGGSpace0 = new Vector3(-72, 0, 0);
     private static Vector3 PPGGSpace1 = new Vector3(0, 27, 0);
     private static Vector3 PPGGSpace2 = new Vector3(-38, 0, 0);
     private static Vector3 PPGGSpace3 = new Vector3(0, -28, 0);
@@ -60,10 +60,10 @@ public class CardPos
     {
         switch (sideIndex)
         {
-            case 0: return PGStartPos0;
-            case 1: return PGStartPos1;
-            case 2: return PGStartPos2;
-            case 3: return PGStartPos3;
+            case 0: return PPGGSpace0;
+            case 1: return PPGGSpace1;
+            case 2: return PPGGSpace2;
+            case 3: return PPGGSpace3;
             default: return Vector3.zero;
         }
     }
@@ -100,11 +100,12 @@ public class CardPos
         }
     }
 
-    private static Vector3 ExchangeEndPos0 = new Vector3(-37, 214, 0);
-    private static Vector3 ExchangeEndPos1 = new Vector3(-285, -28, 0);
-    private static Vector3 ExchangeEndPos2 = new Vector3(36, -200, 0);
-    private static Vector3 ExchangeEndPos3 = new Vector3(285, 28, 0);
-    public static Vector3 ExchangeEndPos(int sideIndex)
+    private static Vector3[] ExchangeEndPos0 = { new Vector3(-37, 214, 0), new Vector3(340, 389, 0), new Vector3(37, 525, 0), new Vector3(-340, 389, 0) };
+    private static Vector3[] ExchangeEndPos1 = { new Vector3(-677, -140, 0), new Vector3(-280, -28, 0), new Vector3(-603, 140, 0), new Vector3(-985, 28, 0) };
+    private static Vector3[] ExchangeEndPos2 = { new Vector3(-37, -525, 0), new Vector3(320, -396, 0), new Vector3(37, -214, 0), new Vector3(-320, -340, 0) };
+    private static Vector3[] ExchangeEndPos3 = { new Vector3(603, -140, 0), new Vector3(965, -28, 0), new Vector3(677, 140, 0), new Vector3(320, 28, 0) };
+    private static Vector3[] ExchangeEndPosDefault = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
+    public static Vector3[] ExchangeEndPos(int sideIndex)
     {
         switch (sideIndex)
         {
@@ -112,13 +113,13 @@ public class CardPos
             case 1: return ExchangeEndPos1;
             case 2: return ExchangeEndPos2;
             case 3: return ExchangeEndPos3;
-            default: return Vector3.zero;
+            default: return ExchangeEndPosDefault;
         }
     }
 
     private static Vector3 ExchangeEndSpace0 = new Vector3(37, 0, 0);
     private static Vector3 ExchangeEndSpace1 = new Vector3(0, 28, 0);
-    private static Vector3 ExchangeEndSpace2 = new Vector3(-36, 0, 0);
+    private static Vector3 ExchangeEndSpace2 = new Vector3(-37, 0, 0);
     private static Vector3 ExchangeEndSpace3 = new Vector3(0, -28, 0);
     public static Vector3 ExchangeEndSpace(int sideIndex)
     {

@@ -328,6 +328,7 @@ public class Panel_battle_mj : WindowsBasePanel
     {        
         for (int i = 0; i < 4; i++)
         {
+            Debug.LogError("DrawCardStart, sideIndex=" + i);
             ItemGroup_side0 script = UIManager.AddChild<ItemGroup_side0>(_sideCardsRoot[i]);
             script.Init(BattleManager.Instance.GetSideInfo(i));
             m_sideItems.Add(i, script);
@@ -412,9 +413,10 @@ public class Panel_battle_mj : WindowsBasePanel
         GameMsgHandler.Instance.SendMsgC2GSExchangeCard(list);
         BattleManager.Instance.CurProcess = BattleProcess.ExchangCardOver;
     }
-
+    
     private void PutOtherExchangeCardToCenter(pb.ExchangeType type)
     {
+        Debug.Log("PutOtherExchangeCardToCenter");
         _playingTipsAni = false;
         _sideTipsObj.SetActive(false);
         
@@ -426,7 +428,7 @@ public class Panel_battle_mj : WindowsBasePanel
         {
             m_sideItems[i].ExchangePlayerCards(type);
         }
-        Invoke("ShowExchangeCards", 1.1f);
+        Invoke("ShowExchangeCards", 1.5f);
     }
 
     //Invoke

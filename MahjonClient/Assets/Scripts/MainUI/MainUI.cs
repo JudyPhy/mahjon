@@ -85,7 +85,7 @@ public class MainUI : WindowsBasePanel
 
     private void OnClikJoinXueLiu(GameObject go)
     {
-        UIManager.Instance.ShowTips(TipsType.text, "功能暂未开放");
+        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameType.XueZhan, pb.EnterMode.QuickEnter);
     }
 
     private void OnClikJoinXueZhan(GameObject go)
@@ -95,7 +95,8 @@ public class MainUI : WindowsBasePanel
 
     private void OnClikCreateRoom(GameObject go)
     {
-        ShowCreateRoomUI();
+        GameMsgHandler.Instance.SendMsgC2GSEnterGame(pb.GameType.XueZhan, pb.EnterMode.CreateRoom);
+        //ShowCreateRoomUI();
     }
 
     private void ShowCreateRoomUI()

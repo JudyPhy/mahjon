@@ -157,7 +157,7 @@ public class SideInfo
 
     public void UpdateInfo(pb.PlayerInfo info)
     {
-        Debug.Log("OID:" + info.OID + ", isowner:" + info.IsOwner);
+        Debug.LogError("OID:" + info.OID + ", isowner:" + info.IsOwner);
         _side = info.Side;
         _isOwner = info.IsOwner;
         _oid = info.OID;
@@ -165,6 +165,7 @@ public class SideInfo
         _headIcon = info.HeadIcon;
 
         pb.MahjonSide selfSide = BattleManager.Instance.GetSelfSide();
+        //Debug.LogError("selfSide=" + selfSide.ToString() + ", _side=" + _side.ToString());
         if (selfSide != pb.MahjonSide.DEFAULT)
         {
             int count = 0;
@@ -172,6 +173,7 @@ public class SideInfo
             while (curSide != (int)_side)
             {
                 curSide++;
+                count++;
                 if (curSide > 5)
                 {
                     curSide = 2;
@@ -179,7 +181,7 @@ public class SideInfo
             }
             _sideIndex = count;
         }
-        Debug.LogError("_sideIndex=" + _sideIndex);
+        Debug.Log("_sideIndex=" + _sideIndex);
     }
 
     public List<Card> GetCardList(CardStatus status)

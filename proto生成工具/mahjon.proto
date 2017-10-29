@@ -199,27 +199,6 @@ message GS2CBroadcastProc
 	repeated CardInfo cardList = 3;
 }
 
-/*message GS2CPlayerProc
-{
-	required int32 procPlayer = 1;
-	required ProcType procType = 2;
-	optional int32 beProcPlayer = 3;
-	optional int32 procCardId = 4;
-}
-
-message C2GSPlayerProcRet
-{
-	required ProcType procType = 1;
-	optional int32 procCardId = 2;
-}
-
-message GS2CPlayProcAni
-{	
-	required int32 procPlayer = 1;
-	required ProcType procType = 2;
-	repeated CardInfo cardList = 3;
-}*/
-
 message GS2CGameOver
 {
 	repeated GameOverInfo list = 1;

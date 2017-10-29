@@ -2186,13 +2186,13 @@ MonoBehaviour:
   updateAnchors: 1
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
-  mWidth: 412
-  mHeight: 186
+  mWidth: 352
+  mHeight: 128
   mDepth: 2
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 2.2150538
+  aspectRatio: 2.75
   mType: 1
   mFillDirection: 4
   mFillAmount: 1
@@ -2204,7 +2204,7 @@ MonoBehaviour:
   bottomType: 1
   topType: 1
   mAtlas: {fileID: 114264344697458264, guid: 3faefd6e195a2204c8ea67c125021133, type: 2}
-  mSpriteName: roomEnter_xuezhan
+  mSpriteName: btn_enter
   mFillCenter: 1
 --- !u!114 &114006338090830084
 MonoBehaviour:
@@ -2644,13 +2644,13 @@ MonoBehaviour:
   updateAnchors: 1
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
-  mWidth: 412
-  mHeight: 186
+  mWidth: 352
+  mHeight: 128
   mDepth: 1
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 2.2150538
+  aspectRatio: 2.75
   mType: 1
   mFillDirection: 4
   mFillAmount: 1
@@ -2662,7 +2662,7 @@ MonoBehaviour:
   bottomType: 1
   topType: 1
   mAtlas: {fileID: 114264344697458264, guid: 3faefd6e195a2204c8ea67c125021133, type: 2}
-  mSpriteName: roomEnter_xueliu
+  mSpriteName: btn_goldcoin
   mFillCenter: 1
 --- !u!114 &114125214963324978
 MonoBehaviour:
@@ -3162,7 +3162,7 @@ MonoBehaviour:
   anchorOffset: 0
   softBorderPadding: 1
   renderQueue: 0
-  startingRenderQueue: 3012
+  startingRenderQueue: 3011
   mClipTexture: {fileID: 0}
   mAlpha: 1
   mClipping: 3
@@ -4761,13 +4761,13 @@ MonoBehaviour:
   updateAnchors: 1
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
-  mWidth: 412
-  mHeight: 186
+  mWidth: 352
+  mHeight: 128
   mDepth: 3
   autoResizeBoxCollider: 0
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 2.2150538
+  aspectRatio: 2.75
   mType: 1
   mFillDirection: 4
   mFillAmount: 1
@@ -4779,7 +4779,7 @@ MonoBehaviour:
   bottomType: 1
   topType: 1
   mAtlas: {fileID: 114264344697458264, guid: 3faefd6e195a2204c8ea67c125021133, type: 2}
-  mSpriteName: btn_createRoom
+  mSpriteName: btn_create
   mFillCenter: 1
 --- !u!114 &114883735682991138
 MonoBehaviour:
