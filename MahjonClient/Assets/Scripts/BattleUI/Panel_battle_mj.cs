@@ -43,9 +43,6 @@ public class Panel_battle_mj : WindowsBasePanel
     private bool _playingTipsAni;
 
     private List<GameObject> _sideCardsRoot = new List<GameObject>();
-    private Dictionary<pb.MahjonSide, List<Item_card>> _sideCardsDict = new Dictionary<pb.MahjonSide, List<Item_card>>();
-    private Dictionary<pb.MahjonSide, List<Item_card>> _sideDiscardsDict = new Dictionary<pb.MahjonSide, List<Item_card>>();
-
     private GameObject _procObj;
     private UISprite _procCard;
     private UIGrid _procGrid;
@@ -188,7 +185,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayEnterRoomAni()
     {
-        Debug.Log("PlayEnterRoomAni...");
+        MJLog.Log("PlayEnterRoomAni...");
         _roomProcess = RoomProcess.PlayingEnterRoomAni;
 
         //roomId
@@ -218,7 +215,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayEnterRoomAniOver()
     {
-        Debug.Log("PlayEnterRoomAniOver");
+        MJLog.Log("PlayEnterRoomAniOver");
         _roomProcess = RoomProcess.PlayEnterRoomAniOver;
         if (_wait_updateMember)
         {
@@ -268,20 +265,20 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
         {
-            Debug.Log("Is playing enter room ani, can't show player item.");
+            MJLog.Log("Is playing enter room ani, can't show player item.");
             _wait_updateMember = true;
             return;
         }
         _wait_updateMember = false;
         List<SideInfo> list = BattleManager.Instance.GetRoomMembers();
-        Debug.Log("current member count:" + list.Count);
+        MJLog.Log("current member count:" + list.Count);
         Vector3[] pos = { new Vector3(65, -95, 0), new Vector3(-65, 10, 0), new Vector3(-65, 180, 0), new Vector3(65, 50, 0) };
         hideAllPlayerItems();
         int n = 0;
         for (int i = 0; i < list.Count; i++)
         {
             int sideIndex = list[i].SideIndex;
-            //Debug.Log("sideIndex:" + sideIndex + ", side:" + list[i].Side.ToString());
+            //MJLog.Log("sideIndex:" + sideIndex + ", side:" + list[i].Side.ToString());
             Item_role role = getItemRole(n, sideIndex);
             n++;
             role.gameObject.SetActive(true);
@@ -298,12 +295,12 @@ public class Panel_battle_mj : WindowsBasePanel
     {
         if (_roomProcess == RoomProcess.PlayingEnterRoomAni)
         {
-            Debug.Log("Is playing enter room ani, can't show battle start ani.");
+            MJLog.Log("Is playing enter room ani, can't show battle start ani.");
             _wait_battleStart = true;
             return;
         }
         _wait_battleStart = false;
-        Debug.Log("PlayGamePrepareAni...");
+        MJLog.Log("PlayGamePrepareAni...");
         _timerObj.SetActive(true);
         _restCard.text = "108";
         _restRound.text = "8";
@@ -328,7 +325,7 @@ public class Panel_battle_mj : WindowsBasePanel
     {        
         for (int i = 0; i < 4; i++)
         {
-            Debug.LogError("DrawCardStart, sideIndex=" + i);
+            MJLog.LogError("DrawCardStart, sideIndex=" + i);
             ItemGroup_side0 script = UIManager.AddChild<ItemGroup_side0>(_sideCardsRoot[i]);
             script.Init(BattleManager.Instance.GetSideInfo(i));
             m_sideItems.Add(i, script);
@@ -341,10 +338,10 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayDrawCardsAni()
     {
-        Debug.Log("PlayDrawCardsAni, m_drawCardTurn:" + m_drawCardTurn + ", m_curSideIndex:" + m_curSideIndex);
+        MJLog.Log("PlayDrawCardsAni, m_drawCardTurn:" + m_drawCardTurn + ", m_curSideIndex:" + m_curSideIndex);
         if (m_drawCardTurn > 16)
         {
-            Debug.Log("draw animation over, start exchange cards...");
+            MJLog.Log("draw animation over, start exchange cards...");
             m_sideItems[0].SortInhandCards();           
             _exchangeObj.SetActive(true);
             ShowSideExchangeTips();
@@ -416,7 +413,7 @@ public class Panel_battle_mj : WindowsBasePanel
     
     private void PutOtherExchangeCardToCenter(pb.ExchangeType type)
     {
-        Debug.Log("PutOtherExchangeCardToCenter");
+        MJLog.Log("PutOtherExchangeCardToCenter");
         _playingTipsAni = false;
         _sideTipsObj.SetActive(false);
         
@@ -434,7 +431,7 @@ public class Panel_battle_mj : WindowsBasePanel
     //Invoke
     private void ShowExchangeCards()
     {
-        Debug.Log("ShowExchangeCards");
+        MJLog.Log("ShowExchangeCards");
         for (int i = 0; i < 4; i++)
         {
             m_sideItems[i].ShowExchangeCards();
@@ -445,7 +442,7 @@ public class Panel_battle_mj : WindowsBasePanel
     //Invoke
     private void ExchangeOver()
     {
-        Debug.Log("sort and place self cards after exchange.");
+        MJLog.Log("sort and place self cards after exchange.");
         for (int i = 0; i < 4; i++)
         {
             m_sideItems[0].SortForLack();
@@ -457,7 +454,7 @@ public class Panel_battle_mj : WindowsBasePanel
     #region lack
     private void LackStart()
     {
-        Debug.Log("start select lack...");
+        MJLog.Log("start select lack...");
         _lackObj.SetActive(true);
         _sideTipsObj.SetActive(true);
         _sideTipsIndex = 1;
@@ -502,7 +499,7 @@ public class Panel_battle_mj : WindowsBasePanel
         for (int i = 0; i < _playerItems.Count; i++)
         {
             pb.CardType lack = _playerItems[i].Info.Lack;
-            Debug.Log("player" + _playerItems[i].Info.OID + ", lack:" + lack.ToString());
+            MJLog.Log("player" + _playerItems[i].Info.OID + ", lack:" + lack.ToString());
             _playerItems[i].ShowLack();
         }
     }
@@ -525,7 +522,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void EnsureDiscard(Card discard)
     {
-        Debug.Log("EnsureDiscard oid:" + discard.OID + ", id:" + discard.Id);
+        MJLog.Log("EnsureDiscard oid:" + discard.OID + ", id:" + discard.Id);
         m_sideItems[0].SortInhandCards();
         m_sideItems[0].PlayDiscardAni(discard);
 
@@ -538,7 +535,7 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void BroadcastDiscard(pb.CardInfo discard)
     {
-        Debug.Log("BroadcastDiscard, discardId=" + discard.ID);
+        MJLog.Log("BroadcastDiscard, discardId=" + discard.ID);
         Card card = new Card(discard);
         int sideIndex = BattleManager.Instance.GetSideIndexByPlayerOID(card.PlayerID);
         m_sideItems[sideIndex].PlayDiscardAni(card);
@@ -565,15 +562,17 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void ShowProcHPGBtns(List<pb.ProcType> procTypes)
     {
+        MJLog.Log("ShowProcHPGBtns count:" + procTypes.Count);
         iTween.MoveTo(_procObj, iTween.Hash("x", 275 - 100 * procTypes.Count, "islocal", true, "time", 0.5f));
         _procCard.spriteName = BattleManager.Instance.ProcCard.Id.ToString();
         _procCard.MakePixelPerfect();
 
         //g、p、h btn
         hideAllProcBtns();
+        procTypes.Sort((type1, type2) => { return type1.CompareTo(type2); });
         for (int i = 0; i < procTypes.Count; i++)
         {
-            Debug.Log("proc type=" + procTypes[i].ToString());
+            MJLog.Log("proc type=" + procTypes[i].ToString());
             Item_proc procBtn = getProcBtnItem(i);
             procBtn.gameObject.name = i.ToString();
             procBtn.gameObject.SetActive(true);
@@ -598,30 +597,19 @@ public class Panel_battle_mj : WindowsBasePanel
 
     private void PlayPGHProcAni(pb.ProcType type)
     {
-        Debug.LogError("PlayPGHProcAni, type:" + type.ToString());
+        MJLog.LogError("PlayPGHProcAni, type:" + type.ToString());
     }
 
     private void HideDiscard(int cardOid, int playerOid)
     {
-        Debug.Log("HideDiscard, cardOid:" + cardOid + ", playerOid:" + playerOid);
-        pb.MahjonSide side = BattleManager.Instance.GetSideByPlayerOID(playerOid);
-        if (_sideDiscardsDict.ContainsKey(side))
-        {
-            for (int i = 0; i < _sideDiscardsDict[side].Count; i++)
-            {
-                if (_sideDiscardsDict[side][i].Info.OID == cardOid)
-                {
-                    _sideDiscardsDict[side][i].gameObject.SetActive(false);
-                    break;
-                }
-            }
-        }
-            
+        MJLog.Log("HideDiscard, cardOid:" + cardOid + ", playerOid:" + playerOid);
+        int sideIndex = BattleManager.Instance.GetSideIndexByPlayerOID(playerOid);
+        m_sideItems[sideIndex].HideDiscard(cardOid);        
     }
 
     private void UpdateAllCardsList(List<int> needUpdatePlayers)
     {
-        Debug.Log("UpdateAllCardsList: needUpdatePlayers=" + needUpdatePlayers.Count);
+        MJLog.Log("UpdateAllCardsList: needUpdatePlayers=" + needUpdatePlayers.Count);
         for (int i = 0; i < needUpdatePlayers.Count; i++)
         {
             int sideIndex = BattleManager.Instance.GetSideIndexByPlayerOID(needUpdatePlayers[i]);

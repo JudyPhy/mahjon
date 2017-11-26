@@ -68,7 +68,7 @@ public class BattleManager
 
     public void PrepareEnterRoom(pb.GS2CEnterGameRet msg)
     {
-        Debug.Log("PrepareEnterGame=> _gameType=" + msg.type.ToString() + ", _roomId=" + msg.roomId);
+        MJLog.Log("PrepareEnterGame=> _gameType=" + msg.type.ToString() + ", _roomId=" + msg.roomId);
         _gameType = msg.type;
         _roomId = msg.roomId;
         switch (_gameType)
@@ -83,7 +83,7 @@ public class BattleManager
 
     public void GS2CUpdateRoomMember(pb.GS2CUpdateRoomMember msg)
     {
-        Debug.Log("GS2CUpdateRoomMember=> player count:" + msg.player.Count);
+        MJLog.Log("GS2CUpdateRoomMember=> player count:" + msg.player.Count);
         msg.player.Sort((data1, data2) =>
         {
             if (data1.OID == Player.Instance.OID && data2.OID != Player.Instance.OID)
@@ -99,7 +99,7 @@ public class BattleManager
                 return 0;
             }
         });
-        Debug.LogError("first player=" + msg.player[0].OID);
+        MJLog.LogError("first player=" + msg.player[0].OID);
         for (int i = 0; i < msg.player.Count; i++)
         {
             if (m_sideInfoDict.ContainsKey(msg.player[i].OID))
@@ -138,7 +138,7 @@ public class BattleManager
         //{
         //    str += _sortSideFromSelf[i].ToString() + ", ";
         //}
-        //Debug.LogError(str);
+        //MJLog.LogError(str);
     }
 
     public pb.MahjonSide GetSelfSide()
@@ -188,7 +188,7 @@ public class BattleManager
             }
         }
         _dealerId = msg.dealerId;
-        Debug.Log("_dealerId=" + _dealerId);
+        MJLog.Log("_dealerId=" + _dealerId);
         EventDispatcher.TriggerEvent(EventDefine.PlayGamePrepareAni);
 
         //log        
@@ -200,7 +200,7 @@ public class BattleManager
             {
                 str += m_sideInfoDict[player].CardList[i].Id + ", ";
             }
-            Debug.Log(str);
+            MJLog.Log(str);
         }
     }
 
@@ -237,7 +237,7 @@ public class BattleManager
     //收到定缺完毕信息
     public void LackRet(List<pb.LackCard> list)
     {
-        Debug.Log("LackRet");
+        MJLog.Log("LackRet");
         for (int i = 0; i < list.Count; i++)
         {
             int player = list[i].playerOID;
@@ -247,7 +247,7 @@ public class BattleManager
             }
             else
             {
-                Debug.LogError("has no player" + player + " 's sideInfo.");
+                MJLog.LogError("has no player" + player + " 's sideInfo.");
             }
         }
         EventDispatcher.TriggerEvent(EventDefine.ShowLackCard);
@@ -279,7 +279,7 @@ public class BattleManager
         {
             if (!newCardDict.ContainsKey(player))
             {
-                Debug.LogError("player" + player + " has no new cardlist after exchange.");
+                MJLog.LogError("player" + player + " has no new cardlist after exchange.");
                 continue;
             }
             List<pb.CardInfo> newList = newCardDict[player];
@@ -291,7 +291,7 @@ public class BattleManager
             {
                 str += newList[i].ID + ", ";
             }
-            Debug.Log(str);
+            MJLog.Log(str);
 
             if (player == Player.Instance.OID)
             {
@@ -337,7 +337,7 @@ public class BattleManager
     //收到出牌方跳转
     public void TurnToNextPlayer(int playerOid, pb.CardInfo drawnCard)
     {
-        Debug.Log("turn to next:" + playerOid);
+        MJLog.Log("turn to next:" + playerOid);
         _curTurnPlayer = playerOid;
         int curPlayerSideIndex = 0;
         if (m_sideInfoDict.ContainsKey(_curTurnPlayer))
@@ -350,7 +350,7 @@ public class BattleManager
         }
         else
         {
-            Debug.LogError("player " + playerOid + " not in room");
+            MJLog.LogError("player " + playerOid + " not in room");
         }
         EventDispatcher.TriggerEvent<int>(EventDefine.TurnToPlayer, curPlayerSideIndex);
     }
@@ -358,11 +358,11 @@ public class BattleManager
     //收到当前可操作方式
     public void PlayerProc(pb.GS2CInterruptAction msg)
     {
-        Debug.Log("proc count=" + msg.procList.Count);
+        MJLog.Log("proc count=" + msg.procList.Count);
         for (int i = 0; i < msg.procList.Count; i++)
         {            
             pb.ProcType type = msg.procList[i];
-            Debug.Log("proc=" + type.ToString());
+            MJLog.Log("proc=" + type.ToString());
             if (type == pb.ProcType.Proc_Gang || type == pb.ProcType.Proc_Hu || type == pb.ProcType.Proc_Peng)
             {
                 //碰杠胡
@@ -388,7 +388,7 @@ public class BattleManager
     {
         if (!m_sideInfoDict.ContainsKey(msg.procPlayer))
         {
-            Debug.LogError("proc player not in _SideInfoDict.");
+            MJLog.LogError("proc player not in _SideInfoDict.");
             return;
         }
         List<int> procPlayersList = new List<int>();
@@ -400,7 +400,7 @@ public class BattleManager
             {
                 case pb.ProcType.Proc_Discard:
                     List<Card> oldDiscard = GetCardList(msg.procPlayer, CardStatus.Discard);
-                    Debug.LogError("procPlayer[" + msg.procPlayer + "] old card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
+                    MJLog.LogError("procPlayer[" + msg.procPlayer + "] old card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
                     for (int i = 0; i < msg.cardList.Count; i++)
                     {
                         if (msg.cardList[i].Status == pb.CardStatus.Dis)
@@ -416,7 +416,7 @@ public class BattleManager
                             }
                             if (!isFind)
                             {
-                                Debug.Log("Is robot discard");
+                                MJLog.Log("Is robot discard");
                                 List<Card> oldList = m_sideInfoDict[msg.procPlayer].CardList;
                                 for (int j = 0; j < oldList.Count; j++)
                                 {
@@ -426,8 +426,8 @@ public class BattleManager
                                         break;
                                     }
                                 }
-                                Debug.LogError(msg.procPlayer + "出牌" + msg.cardList[i].ID);
-                                Debug.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
+                                MJLog.LogError(msg.procPlayer + "出牌" + msg.cardList[i].ID);
+                                MJLog.Log("discard ani=> player[" + msg.procPlayer + "]'s card count=" + m_sideInfoDict[msg.procPlayer].CardList.Count);
                                 EventDispatcher.TriggerEvent<pb.CardInfo>(EventDefine.BroadcastDiscard, msg.cardList[i]);
                                 break;
                             }
@@ -467,7 +467,7 @@ public class BattleManager
 
     private void updateCardsList(List<pb.CardInfo> newCardList)
     {
-        Debug.Log("updateCardsList");
+        MJLog.Log("updateCardsList");
         string recv = "";
         for (int i = 0; i < newCardList.Count; i++)
         {
@@ -476,7 +476,7 @@ public class BattleManager
                 recv += newCardList[i].ID + ", ";
             }
         }
-        Debug.LogError(recv);
+        MJLog.LogError(recv);
 
 
         Dictionary<int, List<pb.CardInfo>> newCards = getPlayerCardDict(newCardList);
@@ -501,7 +501,7 @@ public class BattleManager
                     }
                     if (!isFind)
                     {
-                        Debug.Log("Add new card[" + newList[i].ID + "] to player[" + playerId + "]'s card list.");
+                        MJLog.Log("Add new card[" + newList[i].ID + "] to player[" + playerId + "]'s card list.");
                         m_sideInfoDict[playerId].AddCard(newList[i]);
                     }
                 }
@@ -519,13 +519,13 @@ public class BattleManager
                     }
                     if (!isFind)
                     {
-                        Debug.Log("Delete old card[" + oldList[i].Id + "]from player[" + playerId + "]'s card list.");
+                        MJLog.Log("Delete old card[" + oldList[i].Id + "]from player[" + playerId + "]'s card list.");
                         EventDispatcher.TriggerEvent<int, int>(EventDefine.RemoveDiscard, oldList[i].OID, oldList[i].PlayerID);
                         m_sideInfoDict[playerId].CardList.Remove(oldList[i]);
                         i--;
                     }
                 }
-                //Debug.LogError("player[" + playerId + "]'s card count=" + _SideInfoDict[playerId].CardList.Count);
+                //MJLog.LogError("player[" + playerId + "]'s card count=" + _SideInfoDict[playerId].CardList.Count);
             }
         }
 
@@ -537,7 +537,7 @@ public class BattleManager
         {
             str += list[i].Id + ", ";
         }
-        Debug.LogError(str);
+        MJLog.LogError(str);
 
         str = "deal: ";
         list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Deal);
@@ -546,7 +546,7 @@ public class BattleManager
         {
             str += list[i].Id + ", ";
         }
-        Debug.LogError(str);
+        MJLog.LogError(str);
 
         str = "peng: ";
         list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Peng);
@@ -555,7 +555,7 @@ public class BattleManager
         {
             str += list[i].Id + ", ";
         }
-        Debug.LogError(str);
+        MJLog.LogError(str);
 
         str = "gang: ";
         list = m_sideInfoDict[Player.Instance.OID].GetCardList(CardStatus.Gang);
@@ -564,7 +564,7 @@ public class BattleManager
         {
             str += list[i].Id + ", ";
         }
-        Debug.LogError(str);
+        MJLog.LogError(str);
     }
 
     private Dictionary<int, List<pb.CardInfo>> getPlayerCardDict(List<pb.CardInfo> list)
@@ -600,7 +600,7 @@ public class BattleManager
 
     public void GameOver()
     {
-        Debug.LogError("!!!!!!!!!");
+        MJLog.LogError("!!!!!!!!!");
     }
 
 }

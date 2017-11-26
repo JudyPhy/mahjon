@@ -379,6 +379,7 @@ public sealed class TcpNetworkProcessor
             packet.length = buffSize;
             packet.data = buffer;
             this.RevQueue_.Enqueue(packet);
+            MJLog.Log("Recv new msg[" + pid + "] from service");
         }
     }
 

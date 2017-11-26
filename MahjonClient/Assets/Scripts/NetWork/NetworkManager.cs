@@ -51,7 +51,7 @@ public class NetworkManager : MonoBehaviour
     private void InitNetwork()
     {
         _netConfigData = NetConfig.LoadConfig();
-        Debug.LogError("addr=" + _netConfigData.NetAddr + ", port=" + _netConfigData.Port + ", local=" + _netConfigData.UseLocalAddr);
+        MJLog.LogError("addr=" + _netConfigData.NetAddr + ", port=" + _netConfigData.Port + ", local=" + _netConfigData.UseLocalAddr);
         this.GameServerTcpConnect_ = CreateTcpConnect();    //一个线程执行，游戏服务器TCP连接Socket
     }
 
@@ -90,7 +90,7 @@ public class NetworkManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("MsgHandler[" + pid.ToString() + "] has registered.");
+            MJLog.LogError("MsgHandler[" + pid.ToString() + "] has registered.");
         }
     }
 
@@ -98,7 +98,7 @@ public class NetworkManager : MonoBehaviour
     public void ConnectGameServer(string addr, ushort port)
     {
         this.GameServerTcpConnect_.ClearWillSendMessage();
-        Debug.Log(string.Format("连接游戏服务器[{0}:{1}]", addr, port));
+        MJLog.Log(string.Format("连接游戏服务器[{0}:{1}]", addr, port));
         this.GameServerTcpConnect_.Connect(addr, port);     //连接游戏服务器成功后，开启新一个接收消息的线程，该接收线程一直存在，除非断开连接，套接字关闭
     }
 
@@ -131,7 +131,7 @@ public class NetworkManager : MonoBehaviour
                 //心跳超时，连接断开
                 if (this.GateServerTcpConnect_.IsConnectOverTime())
                 {
-                    Debug.LogError("心跳超时，连接断开");
+                    MJLog.LogError("心跳超时，连接断开");
                     this.GateServerTcpConnect_.DisConnect();
                 }
             }
@@ -139,7 +139,7 @@ public class NetworkManager : MonoBehaviour
             {
                 if (!this.GateServerTcpConnect_.IsNativeSocketNull())
                 {
-                    Debug.LogError("连接断开");
+                    MJLog.LogError("连接断开");
                 }
             }
         }
@@ -174,11 +174,11 @@ public class NetworkManager : MonoBehaviour
     {
         if (null == this.GateServerTcpConnect_)
         {
-            Debug.LogError("OnConnectedGateServer error!");
+            MJLog.LogError("OnConnectedGateServer error!");
         }
         else
         {
-            Debug.Log("游戏服务器连接成功，跳转主场景");
+            MJLog.Log("游戏服务器连接成功，跳转主场景");
             UIManager.Instance.ShowMainWindow<Panel_Login>(eWindowsID.LoginUI);
         }
     }
@@ -215,7 +215,7 @@ public class NetworkManager : MonoBehaviour
             }
             if (!this.MsgHandleDic_.ContainsKey(msg.pid))
             {
-                Debug.LogError(string.Format("消息id:{0} 没有注册处理函数句柄!", msg.pid));
+                MJLog.LogError(string.Format("消息id:{0} 没有注册处理函数句柄!", msg.pid));
                 continue;
             }
             this.MsgHandleDic_[msg.pid](msg.pid, msg.data, msg.length);
@@ -228,7 +228,7 @@ public class NetworkManager : MonoBehaviour
     {
         if (null == this.GameServerTcpConnect_ || !this.GameServerTcpConnect_.IsConnected())
         {
-            Debug.LogError(string.Format("游戏服务器连接断开，不能发送消息[msgid:{0}]", id));
+            MJLog.LogError(string.Format("游戏服务器连接断开，不能发送消息[msgid:{0}]", id));
             return false;
         }
         return this.GameServerTcpConnect_.Send(id, msg);

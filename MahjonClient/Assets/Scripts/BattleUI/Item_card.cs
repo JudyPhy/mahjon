@@ -40,7 +40,7 @@ public class Item_card : MonoBehaviour
         _collider.enabled = m_sideIndex == 0;        
         if (_info == null)
         {
-            Debug.LogError("self pai info is null.");
+            MJLog.LogError("self pai info is null.");
             _card.gameObject.SetActive(false);
             _bg.spriteName = "inhand_bg_back2";
             _bg.MakePixelPerfect();
@@ -111,7 +111,7 @@ public class Item_card : MonoBehaviour
 
     private void OnSelectExchangeCard()
     {
-        Debug.Log("select card as exchange card, oid=" + _info.OID);
+        MJLog.Log("select card as exchange card, oid=" + _info.OID);
         if (_info.Status == CardStatus.Exchange)
         {
             _info.Status = CardStatus.InHand;
@@ -165,7 +165,7 @@ public class Item_card : MonoBehaviour
         }
         else
         {
-            Debug.Log("prepare discard, oid=" + _info.OID);
+            MJLog.Log("prepare discard, oid=" + _info.OID);
             _preDiscard = true;
             iTween.MoveTo(gameObject, iTween.Hash("y", 105, "islocal", true, "time", 0.2f));
             EventDispatcher.TriggerEvent<Card>(EventDefine.UnSelectOtherDiscard, _info);
@@ -174,7 +174,7 @@ public class Item_card : MonoBehaviour
 
     private void OnClickCard(GameObject go)
     {
-        Debug.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", sideIndex=" + m_sideIndex.ToString()
+        MJLog.Log("click pai, status=" + _info.Status + ", id=" + _info.Id + ", sideIndex=" + m_sideIndex.ToString()
             + ", curProcess=" + BattleManager.Instance.CurProcess);        
         if (BattleManager.Instance.CurProcess == BattleProcess.ExchangCard)
         {

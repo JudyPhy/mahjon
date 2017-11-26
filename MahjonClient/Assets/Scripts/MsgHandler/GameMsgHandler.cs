@@ -24,7 +24,7 @@ public class GameMsgHandler
     #region C->GS
     public void SendMsgC2GSLogin(string account, string password)
     {
-        Debug.Log("SendMsgC2GSLogin==>> account[" + account + "], password[" + password + "]");
+        MJLog.Log("SendMsgC2GSLogin==>> account[" + account + "], password[" + password + "]");
         pb.C2GSLogin msg = new pb.C2GSLogin();
         msg.account = account;
         msg.password = password;
@@ -33,7 +33,7 @@ public class GameMsgHandler
 
     public void SendMsgC2GSEnterGame(pb.GameType type,pb.EnterMode mode, string roomId = "")
     {
-        Debug.Log("SendMsgC2GSEnterGame==>> type[" + type.ToString() + "], mode[" + mode.ToString() + "], roomId[" + roomId + "]");
+        MJLog.Log("SendMsgC2GSEnterGame==>> type[" + type.ToString() + "], mode[" + mode.ToString() + "], roomId[" + roomId + "]");
         pb.C2GSEnterGame msg = new pb.C2GSEnterGame();
         msg.type = type;
         msg.mode = mode;
@@ -43,7 +43,7 @@ public class GameMsgHandler
 
     public void SendMsgC2GSExchangeCard(List<Card> exchangeList)
     {
-        Debug.Log("SendMsgC2GSExchangeCard==>> [" + exchangeList.Count + "]");
+        MJLog.Log("SendMsgC2GSExchangeCard==>> [" + exchangeList.Count + "]");
         pb.C2GSExchangeCard msg = new pb.C2GSExchangeCard();
         for (int i = 0; i < exchangeList.Count; i++)
         {
@@ -54,7 +54,7 @@ public class GameMsgHandler
 
     public void SendMsgC2GSSelectLack(pb.CardType type)
     {
-        Debug.Log("SendMsgC2GSSelectLack==>> [" + type.ToString() + "]");
+        MJLog.Log("SendMsgC2GSSelectLack==>> [" + type.ToString() + "]");
         pb.C2GSSelectLack msg = new pb.C2GSSelectLack();
         msg.type = type;
         NetworkManager.Instance.SendToGS((UInt16)MsgDef.C2GSSelectLack, msg);
@@ -62,8 +62,8 @@ public class GameMsgHandler
 
     public void SendMsgC2GSInterruptActionRet(pb.ProcType procType,pb.CardInfo info)
     {
-        Debug.Log("SendMsgC2GSInterruptActionRet==>> procType[" + procType + "], cardOid[" + info.OID + "]");
-        Debug.LogError("cardOid[" + info.OID + "], playerOid:"+ info.playerOID+", id:"+ info.ID+", status:"+ info.Status.ToString());
+        MJLog.Log("SendMsgC2GSInterruptActionRet==>> procType[" + procType + "], cardOid[" + info.OID + "]");
+        MJLog.LogError("cardOid[" + info.OID + "], playerOid:"+ info.playerOID+", id:"+ info.ID+", status:"+ info.Status.ToString());
         pb.C2GSInterruptActionRet msg = new pb.C2GSInterruptActionRet();
         msg.procType = procType;
         msg.drawCard = info;
@@ -76,10 +76,10 @@ public class GameMsgHandler
 
     public void RevMsgGS2CLoginRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CLoginRet");
+        MJLog.Log("==>> RevMsgGS2CLoginRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CLoginRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CLoginRet>(stream);
-        Debug.Log("errorCode=" + msg.errorCode.ToString());
+        MJLog.Log("errorCode=" + msg.errorCode.ToString());
         switch (msg.errorCode)
         {
             case pb.GS2CLoginRet.ErrorCode.SUCCESS:
@@ -100,7 +100,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CEnterGameRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CEnterGameRet");
+        MJLog.Log("==>> RevMsgGS2CEnterGameRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CEnterGameRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CEnterGameRet>(stream);
         switch (msg.errorCode)
@@ -119,7 +119,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CUpdateRoomMember(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CUpdateRoomMember");
+        MJLog.Log("==>> RevMsgGS2CUpdateRoomMember");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CUpdateRoomMember msg = ProtoBuf.Serializer.Deserialize<pb.GS2CUpdateRoomMember>(stream);
         BattleManager.Instance.GS2CUpdateRoomMember(msg);
@@ -128,7 +128,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CBattleStart(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CBattleStart");
+        MJLog.Log("==>> RevMsgGS2CBattleStart");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CBattleStart msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBattleStart>(stream);
         BattleManager.Instance.PrepareGameStart(msg);
@@ -136,7 +136,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CExchangeCardRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CExchangeCardRet");
+        MJLog.Log("==>> RevMsgGS2CExchangeCardRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CExchangeCardRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CExchangeCardRet>(stream);
         BattleManager.Instance.UpdateAllCardsAfterExhchange(msg);
@@ -144,7 +144,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CSelectLackRet(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CSelectLackRet");
+        MJLog.Log("==>> RevMsgGS2CSelectLackRet");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CSelectLackRet msg = ProtoBuf.Serializer.Deserialize<pb.GS2CSelectLackRet>(stream);
         BattleManager.Instance.LackRet(msg.lackCard);
@@ -152,7 +152,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CTurnToNext(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.LogError("==>> RevMsgGS2CTurnToNext");
+        MJLog.LogError("==>> RevMsgGS2CTurnToNext");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CTurnToNext msg = ProtoBuf.Serializer.Deserialize<pb.GS2CTurnToNext>(stream);
         BattleManager.Instance.TurnToNextPlayer(msg.playerOID, msg.drawCard);
@@ -160,7 +160,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CInterruptAction(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CInterruptAction");
+        MJLog.Log("==>> RevMsgGS2CInterruptAction");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CInterruptAction msg = ProtoBuf.Serializer.Deserialize<pb.GS2CInterruptAction>(stream);
         BattleManager.Instance.PlayerProc(msg);
@@ -168,7 +168,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CBroadcastProc(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CBroadcastProc");
+        MJLog.Log("==>> RevMsgGS2CBroadcastProc");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CBroadcastProc msg = ProtoBuf.Serializer.Deserialize<pb.GS2CBroadcastProc>(stream);
         BattleManager.Instance.UpdateCardsInfo(msg);
@@ -176,7 +176,7 @@ public class GameMsgHandler
 
     public void RevMsgGS2CGameOver(int pid, byte[] msgBuf, int msgSize)
     {
-        Debug.Log("==>> RevMsgGS2CGameOver");
+        MJLog.Log("==>> RevMsgGS2CGameOver");
         Stream stream = new MemoryStream(msgBuf);
         pb.GS2CGameOver msg = ProtoBuf.Serializer.Deserialize<pb.GS2CGameOver>(stream);
         BattleManager.Instance.GameOver();

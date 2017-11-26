@@ -20,7 +20,9 @@ public class ItemGroup_side0 : MonoBehaviour
     private int m_curInhandItemIndex;
     private Vector3 m_inhandStartPos;
     private Vector3 m_inhandSpace;
-    
+
+    private int m_curPGItemIndex;
+    private int m_curPGGroupIndex;
     private Vector3 m_pgStartPos;
     private Vector3 m_ppggSpace;
 
@@ -44,9 +46,12 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void Init(SideInfo sideInfo)
     {
-        Debug.Log("Init sideGroup, sideIndex=" + sideInfo.SideIndex);
+        MJLog.Log("Init sideGroup, sideIndex=" + sideInfo.SideIndex);
         m_sideInfo = sideInfo;
         m_curInhandItemIndex = 0;
+        m_curPGItemIndex = 0;
+        m_curPGGroupIndex = 0;
+        m_curDiscardItemIndex = 0;
         SetCardPos();
     }
 
@@ -72,7 +77,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void DrawInhandCard(int count)
     {
-        Debug.Log("DrawInhandCard: player[" + m_sideInfo.OID + "], count=" + count + "]");
+        MJLog.Log("DrawInhandCard: player[" + m_sideInfo.OID + "], count=" + count + "]");
         for (int i = 0; i < count; i++)
         {
             PlaceOneInhandCard(m_sideInfo.CardList[m_curInhandItemIndex]);
@@ -81,6 +86,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     private void PlaceOneInhandCard(Card card)
     {
+        MJLog.Log("PlaceOneInhandCard: card=" + card.Id);
         Item_card item = m_pool.GetObject<Item_card>();
         m_inhandList.Add(item);
         item.transform.parent = transform;
@@ -97,7 +103,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void SortInhandCards()
     {
-        Debug.Log("SortForExchange");
+        MJLog.Log("SortForExchange");
         List<Card> list = m_sideInfo.GetCardList(CardStatus.InHand);
         list.Sort((card1, card2) => { return card1.Id.CompareTo(card2.Id); });
         m_pool.RecycleAll();
@@ -110,7 +116,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void PutExchangeCardsToCenter()
     {
-        Debug.Log("PlayExchangeCardsAni");
+        MJLog.Log("PlayExchangeCardsAni");
         SortInhandCards();
         List<Card> list = m_sideInfo.GetCardList(CardStatus.Exchange);
         for (int i = 0; i < list.Count; i++)
@@ -133,7 +139,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void ExchangePlayerCards(pb.ExchangeType type)
     {
-        Debug.Log("ExchangePlayerCards: type=" + type.ToString());
+        MJLog.Log("ExchangePlayerCards: type=" + type.ToString());
         switch (type)
         {
             case pb.ExchangeType.ClockWise:
@@ -185,7 +191,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     private void PlayExchangeAni(int toIndex)
     {
-        Debug.Log("PlayExchangeAni: sideIndex=" + m_sideInfo.SideIndex + ", toIndex=" + toIndex);
+        MJLog.Log("PlayExchangeAni: sideIndex=" + m_sideInfo.SideIndex + ", toIndex=" + toIndex);
         m_exchangeToSideIndex = toIndex;
         Vector3 toPos = m_exchangeEndPos[toIndex];
         Vector3 toOffset = CardPos.ExchangeEndSpace(toIndex);
@@ -230,7 +236,7 @@ public class ItemGroup_side0 : MonoBehaviour
             item.UpdateUI(m_sideInfo.SideIndex, exchange[i]);
             if (m_sideInfo.SideIndex == 1)
             {
-                int curDepth = 14 - m_curInhandItemIndex + i + 5;
+                int curDepth = 5 - i;
                 item.SetDepth(curDepth);
             }
             Vector3 endPos = item.transform.localPosition - m_exchangeUpOffset;
@@ -252,7 +258,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void SortForDiscard()
     {
-        Debug.Log("SortForDiscard: m_inhandList count=" + m_inhandList.Count);
+        MJLog.Log("SortForDiscard: m_inhandList count=" + m_inhandList.Count);
         List<Card> deal = m_sideInfo.GetCardList(CardStatus.Deal);
         if (deal.Count != 0)
         {
@@ -275,7 +281,7 @@ public class ItemGroup_side0 : MonoBehaviour
 
     public void PlayDiscardAni(Card discard)
     {
-        Debug.Log("PlayDiscardAni discardOid:" + discard.OID + ", discardId:" + discard.Id);
+        MJLog.Log("PlayDiscardAni discardOid:" + discard.OID + ", discardId:" + discard.Id);
         //animation
         Item_card item = UIManager.AddChild<Item_card>(gameObject);
         m_discardList.Add(item);
@@ -301,14 +307,14 @@ public class ItemGroup_side0 : MonoBehaviour
 
     private void SortPGCards()
     {
-        m_pgList.Clear();
+        //统计碰杠牌花色列表
         Dictionary<int, Card> pgCards = new Dictionary<int, Card>();
         List<Card> pList = m_sideInfo.GetCardList(CardStatus.Peng);
         List<Card> gList = m_sideInfo.GetCardList(CardStatus.Gang);
         for (int i = 0; i < pList.Count; i++)
         {
             if (!pgCards.ContainsKey(pList[i].Id))
-            {
+            {                
                 pgCards.Add(pList[i].Id, pList[i]);
             }
         }
@@ -324,20 +330,33 @@ public class ItemGroup_side0 : MonoBehaviour
                 pgCards[id] = gList[i];
             }
         }
-        int itemIndex = 0;
-        int n = 0;
+        //根据列表摆放碰杠牌
         foreach (Card card in pgCards.Values)
         {
+            bool hasPlaced = false;
+            for (int j = 0; j < m_pgList.Count; j++)
+            {
+                if (card.Id == m_pgList[j].Info.Id)
+                {
+                    hasPlaced = true;
+                    break;
+                }
+            }
+            if (hasPlaced)
+            {
+                continue;
+            }
             for (int i = 0; i < 3; i++)
             {
-                Debug.LogError("Place PG card: itemIndex=" + itemIndex);
-                Item_card item = m_pool.GetObject<Item_card>();
+                MJLog.LogError("Place PG card: m_curPGItemIndex=" + m_curPGItemIndex);
+                Item_card item = UIManager.AddChild<Item_card>(gameObject);
+                item.name = "PG" + m_curPGItemIndex.ToString("00");
                 m_pgList.Add(item);
                 item.UpdateUI(m_sideInfo.SideIndex, card);
-                item.transform.localPosition = m_pgStartPos + itemIndex * m_ppggSpace - m_ppggSpace / 10 * n;
-                Debug.LogError("pos: " + item.transform.localPosition);
-                itemIndex++;
+                item.transform.localPosition = m_pgStartPos + m_curPGItemIndex * m_ppggSpace + m_ppggSpace / 10 * m_curPGGroupIndex;
+                m_curPGItemIndex++;
             }
+            //杠牌最后一张与中间一张摞起来
             if (card.Status == CardStatus.Gang)
             {
                 Item_card item = m_pool.GetObject<Item_card>();
@@ -350,9 +369,9 @@ public class ItemGroup_side0 : MonoBehaviour
                 {
                     item.ShowBack(m_sideInfo.SideIndex);
                 }
-                item.transform.localPosition = m_pgStartPos + (itemIndex - 2) * m_ppggSpace - m_ppggSpace / 10 * n + new Vector3(0, 10, 0);
+                item.transform.localPosition = m_pgStartPos + (m_curPGItemIndex - 2) * m_ppggSpace - m_ppggSpace / 10 * m_curPGGroupIndex + new Vector3(0, 10, 0);
             }
-            n++;
+            m_curPGGroupIndex++;
         }
     }
 
@@ -360,6 +379,19 @@ public class ItemGroup_side0 : MonoBehaviour
     {
         SortInhandCards();
         SortPGCards();
+    }
+
+    public void HideDiscard(int cardOid)
+    {
+        for (int i = 0; i < m_discardList.Count; i++)
+        {
+            if (m_discardList[i].Info.OID == cardOid)
+            {
+                m_discardList[i].gameObject.SetActive(false);
+                m_curDiscardItemIndex--;
+                break;
+            }
+        }
     }
 
     // Update is called once per frame
