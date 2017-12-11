@@ -282,17 +282,24 @@ public sealed class TcpNetworkProcessor
     //拆包
     private void SplitPackage(byte[] buffer, int msgLength)
     {
+        //string str = "recv msg:";
+        //for (int i = 0; i < buffer.Length; i++)
+        //{
+        //    str += buffer[i] + ", ";
+        //}
+        //Debug.LogError(str);
+
         byte[] msgBuffer_ = null;
         if (this.MsgIncompleteBuffer_ == null)
         {
             msgBuffer_ = buffer;
 
-            /*string str = "recv msg:";
-            for (int i = 0; i < msgBuffer_.Length; i++)
-            {
-                str += msgBuffer_[i] + ", ";
-            }
-            Debug.LogError(str);*/
+            //string str = "recv msg:";
+            //for (int i = 0; i < msgBuffer_.Length; i++)
+            //{
+            //    str += msgBuffer_[i] + ", ";
+            //}
+            //Debug.LogError(str);
         }
         else
         {
@@ -306,6 +313,7 @@ public sealed class TcpNetworkProcessor
         int curPos = 0; // split package pos
         while (true)
         {
+            //Debug.LogError("curPos=" + curPos + ", msgLength=" + msgLength);
             if (curPos == msgLength)
                 break;
             //剩余未拆包消息长度小于包头，说明没接收完，等待下一段消息
@@ -317,8 +325,9 @@ public sealed class TcpNetworkProcessor
                 this.MsgIncompleteBuffer_ = incompleteBuffer;    //存储没有处理的消息
                 break;
             }
-            //剩余未拆包消息大于包头，说明没接收完，等待后面消息到来
-            byte[] array = { msgBuffer_[0], msgBuffer_[1] };  //包头前2个字节是（proto消息+id）总长度
+            //剩余未拆包消息大于包头，说明没接收完，等待后面消息到来 
+            byte[] array = { msgBuffer_[curPos], msgBuffer_[curPos + 1] };  //包头前2个字节是（proto消息+id）总长度
+            //Debug.LogError("package len:" + array[0] + ", " + array[1]);
             int sizePackage = ConvertByteArrayToInt(array) + 2;
             if (sizePackage > msgLength - curPos)
             {
@@ -328,8 +337,9 @@ public sealed class TcpNetworkProcessor
                 this.MsgIncompleteBuffer_ = incompleteBuffer;
                 break;
             }
-                        
-            byte[] array2 = { msgBuffer_[2], msgBuffer_[3] };  //包头后2个字节是消息ID
+
+            byte[] array2 = { msgBuffer_[curPos + 2], msgBuffer_[curPos + 3] };  //包头后2个字节是消息ID
+            //Debug.LogError("package id:" + array2[0] + ", " + array2[1]);
             int pid = ConvertByteArrayToInt(array2);
 
             byte[] protobufMsg = new byte[sizePackage];
@@ -371,13 +381,14 @@ public sealed class TcpNetworkProcessor
     //拆出一个包转为消息存储
     private void BuildMessage(byte[] buffer, int buffSize, int pid)
     {
-        //Debug.LogError("BuildMessage:" + pid);
+        //Debug.LogError("BuildMessage pid:" + pid);
         lock (this.RecvQueueLocker_)
         {
             Packet packet = new Packet();
             packet.pid = pid;
             packet.length = buffSize;
             packet.data = buffer;
+
             this.RevQueue_.Enqueue(packet);
             MJLog.Log("Recv new msg[" + pid + "] from service");
         }
